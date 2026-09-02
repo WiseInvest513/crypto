@@ -180,8 +180,8 @@ export function DcaCalculator({
 
       <form className="calculator-form" noValidate onSubmit={submit} ref={formRef}>
         <CalculatorFormSection
-          title="资产与金额"
-          description="每期投入以 USDT 计价，结果不包含手续费、点差、税务或质押收益。"
+          title="资产与投入节奏"
+          description="先选择资产、每期金额和 UTC 投入频率；页面不会提供推荐金额。"
         >
           <CalculatorField
             id="dca-asset"
@@ -222,51 +222,6 @@ export function DcaCalculator({
               step="any"
               type="number"
               value={form.amountPerPurchase}
-            />
-          </CalculatorField>
-        </CalculatorFormSection>
-
-        <CalculatorFormSection
-          title="UTC 计划"
-          description={
-            firstPriceDate && lastPriceDate
-              ? `可用已闭合日线：${firstPriceDate} 至 ${lastPriceDate}（UTC）`
-              : "当前资产没有可用于计算的已闭合日线。"
-          }
-        >
-          <CalculatorField
-            id="dca-start-date"
-            label="开始日期（UTC）"
-            hint="必须位于可用日线范围内。"
-            error={errors.startDate}
-          >
-            <input
-              {...calculatorInputA11y(
-                "dca-start-date",
-                errors.startDate,
-              )}
-              id="dca-start-date"
-              max={lastPriceDate}
-              min={firstPriceDate}
-              onChange={(event) => update("startDate", event.target.value)}
-              type="date"
-              value={form.startDate}
-            />
-          </CalculatorField>
-          <CalculatorField
-            id="dca-end-date"
-            label="结束日期（UTC）"
-            hint="期末估值使用当天或之后第一根有效日线。"
-            error={errors.endDate}
-          >
-            <input
-              {...calculatorInputA11y("dca-end-date", errors.endDate)}
-              id="dca-end-date"
-              max={lastPriceDate}
-              min={firstPriceDate}
-              onChange={(event) => update("endDate", event.target.value)}
-              type="date"
-              value={form.endDate}
             />
           </CalculatorField>
           <CalculatorField
@@ -341,6 +296,51 @@ export function DcaCalculator({
           )}
         </CalculatorFormSection>
 
+        <CalculatorFormSection
+          title="UTC 日期区间"
+          description={
+            firstPriceDate && lastPriceDate
+              ? `可用已闭合日线：${firstPriceDate} 至 ${lastPriceDate}（UTC）`
+              : "当前资产没有可用于计算的已闭合日线。"
+          }
+        >
+          <CalculatorField
+            id="dca-start-date"
+            label="开始日期（UTC）"
+            hint="必须位于可用日线范围内。"
+            error={errors.startDate}
+          >
+            <input
+              {...calculatorInputA11y(
+                "dca-start-date",
+                errors.startDate,
+              )}
+              id="dca-start-date"
+              max={lastPriceDate}
+              min={firstPriceDate}
+              onChange={(event) => update("startDate", event.target.value)}
+              type="date"
+              value={form.startDate}
+            />
+          </CalculatorField>
+          <CalculatorField
+            id="dca-end-date"
+            label="结束日期（UTC）"
+            hint="期末估值使用当天或之后第一根有效日线。"
+            error={errors.endDate}
+          >
+            <input
+              {...calculatorInputA11y("dca-end-date", errors.endDate)}
+              id="dca-end-date"
+              max={lastPriceDate}
+              min={firstPriceDate}
+              onChange={(event) => update("endDate", event.target.value)}
+              type="date"
+              value={form.endDate}
+            />
+          </CalculatorField>
+        </CalculatorFormSection>
+
         {(errors.dailyPrices || errors.calculation) && (
           <p className="calculator-form-error" role="alert">
             {errors.dailyPrices ?? errors.calculation}
@@ -356,11 +356,21 @@ export function DcaCalculator({
       <CalculatorResult
         title={result ? "历史定投结果" : "等待计算"}
         description="每次执行使用计划日当天或之后第一根有效的 Binance 已闭合日线收盘价。"
+        ready={Boolean(result)}
       >
         {result ? (
           <>
             <ResultGrid
               items={[
+                {
+                  label: "期末价值（历史）",
+                  value: formatToolMoney(result.endingValue, "USDT"),
+                  detail: `${result.valuationDate} UTC · 收盘 ${formatToolPrice(
+                    result.valuationPrice,
+                    "USDT",
+                  )}`,
+                  primary: true,
+                },
                 {
                   label: "总投入",
                   value: formatToolMoney(result.totalInvested, "USDT"),
@@ -378,14 +388,6 @@ export function DcaCalculator({
                   label: "平均成本",
                   value: formatToolPrice(result.averageCost, "USDT"),
                   detail: "总投入 ÷ 累计数量",
-                },
-                {
-                  label: "期末价值",
-                  value: formatToolMoney(result.endingValue, "USDT"),
-                  detail: `${result.valuationDate} UTC · 收盘 ${formatToolPrice(
-                    result.valuationPrice,
-                    "USDT",
-                  )}`,
                 },
                 {
                   label: "历史盈亏",
@@ -423,51 +425,67 @@ export function DcaCalculator({
 
 function DcaDatasetMeta({ dataset }: { dataset: DcaMarketDataset }) {
   const statusCopy = getDatasetStatusCopy(dataset);
+  const firstDate = dataset.prices.at(0)?.date;
+  const lastDate = dataset.prices.at(-1)?.date;
+  const assetLabel = dataset.asset.toUpperCase();
+  const rangeLabel =
+    firstDate && lastDate
+      ? `${firstDate} 至 ${lastDate}`
+      : "当前没有可用日期区间";
 
   return (
     <section
       className={`dca-data-state dca-data-state--${dataset.status}`}
       aria-label="DCA 行情数据状态"
     >
-      <div>
-        <strong>{statusCopy.label}</strong>
-        <span>{statusCopy.detail}</span>
+      <div className="dca-data-state__summary">
+        <strong>
+          {assetLabel} · {dataset.prices.length} 根已闭合日线
+        </strong>
+        <span>{statusCopy.label} · {rangeLabel}</span>
       </div>
-      <dl>
-        <div>
-          <dt>来源</dt>
-          <dd>
-            {dataset.source ? (
-              <a
-                href={dataset.source.url}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                {dataset.source.label}
-                <span className="sr-only">（在新标签页打开）</span>
-              </a>
-            ) : (
-              "—"
-            )}
-          </dd>
-        </div>
-        <div>
-          <dt>口径</dt>
-          <dd>{dataset.scope?.label ?? `${dataset.symbol} 现货日线`}</dd>
-        </div>
-        <div>
-          <dt>数据截至</dt>
-          <dd>{formatUtcTimestamp(dataset.updatedAt)}</dd>
-        </div>
-        <div>
-          <dt>获取时间</dt>
-          <dd>{formatUtcTimestamp(dataset.retrievedAt)}</dd>
-        </div>
-        <div>
-          <dt>缓存</dt>
-          <dd>{formatCacheState(dataset)}</dd>
-        </div>
-      </dl>
+      <details
+        className="dca-data-state__details"
+        open={dataset.status === "error" || dataset.status === "unavailable"}
+      >
+        <summary>查看完整数据口径</summary>
+        <p>{statusCopy.detail}</p>
+        <dl>
+          <div>
+            <dt>来源</dt>
+            <dd>
+              {dataset.source ? (
+                <a
+                  href={dataset.source.url}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {dataset.source.label}
+                  <span className="sr-only">（在新标签页打开）</span>
+                </a>
+              ) : (
+                "—"
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt>口径</dt>
+            <dd>{dataset.scope?.label ?? `${dataset.symbol} 现货日线`}</dd>
+          </div>
+          <div>
+            <dt>数据截至</dt>
+            <dd>{formatUtcTimestamp(dataset.updatedAt)}</dd>
+          </div>
+          <div>
+            <dt>获取时间</dt>
+            <dd>{formatUtcTimestamp(dataset.retrievedAt)}</dd>
+          </div>
+          <div>
+            <dt>缓存</dt>
+            <dd>{formatCacheState(dataset)}</dd>
+          </div>
+        </dl>
+      </details>
     </section>
   );
 }

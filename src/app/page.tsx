@@ -9,6 +9,7 @@ import {
 import {
   AssetOverview,
   AssetOverviewLoading,
+  HomepageQuoteUpdatedAt,
   KeyMarketIndicators,
   KeyMarketIndicatorsLoading,
   MarketDataNotice,
@@ -16,26 +17,42 @@ import {
   MarketPulse,
   MarketPulseLoading,
 } from "@/components/home/homepage-market";
-import { loadHomepageEditorial } from "@/server/editorial/homepage-editorial-service";
+import {
+  loadHomepageEditorialForAccess,
+  type HomepageEditorialPayload,
+} from "@/server/editorial/homepage-editorial-service";
+import { resolveUserAccess } from "@/server/access/resolve-user-access";
 import {
   loadMarketIndicatorSnapshot,
   loadMarketPulseSnapshot,
   loadMarketQuoteSnapshot,
   loadAssetChartSnapshot,
 } from "@/server/data/services/market-data-service";
+import { WISE_INVEST_CRYPTO_PERKS_URL } from "@/config/site";
+import { getToolDefinition, type ToolSlug } from "@/lib/tools/catalog";
+import "./home-dashboard.css";
 
 export const dynamic = "force-dynamic";
 
-const actionShortcuts = [
-  { href: "/btc", label: "BTC 详情", meta: "价格与日线" },
-  { href: "/eth", label: "ETH 详情", meta: "价格与日线" },
-  { href: "/tools/position-size", label: "仓位计算", meta: "按风险预算" },
-  { href: "/tools/risk-reward", label: "风险回报", meta: "检查计划" },
-  { href: "/tools/leverage", label: "杠杆计算", meta: "估算保证金" },
-  { href: "/tools/dca", label: "DCA 定投", meta: "定期投入" },
-] as const;
+const homepageToolOrder = [
+  "position-size",
+  "risk-reward",
+  "leverage",
+  "dca",
+] as const satisfies readonly ToolSlug[];
+
+const actionShortcuts = homepageToolOrder.map((slug, position) => {
+  const tool = getToolDefinition(slug);
+  return {
+    href: tool.href,
+    label: tool.shortTitle,
+    meta: tool.resultSummary,
+    index: String(position + 1).padStart(2, "0"),
+  };
+});
 
 export default function Home() {
+  const access = resolveUserAccess();
   const quoteSnapshot = loadMarketQuoteSnapshot();
   const pulseSnapshot = loadMarketPulseSnapshot();
   const noticeSnapshot = Promise.all([quoteSnapshot, pulseSnapshot]).then(
@@ -44,42 +61,43 @@ export default function Home() {
   const indicatorSnapshot = loadMarketIndicatorSnapshot();
   const btcChartSnapshot = loadAssetChartSnapshot("btc");
   const ethChartSnapshot = loadAssetChartSnapshot("eth");
-  const { config: editorial, now } = loadHomepageEditorial();
+  const editorial = loadHomepageEditorialForAccess(access);
 
   return (
-    <div className="dashboard-page page-container">
-      <section className="page-heading" aria-labelledby="home-title">
-        <div>
-          <p className="page-kicker">市场总览</p>
-          <h1 id="home-title">加密市场</h1>
-          <p>
-            查看经过验证的市场数据、明确的数据口径，以及由人工审核的市场背景。
-          </p>
+    <div className="dashboard-page home-dashboard page-container">
+      <section className="home-hero" aria-labelledby="home-title">
+        <div className="home-hero__intro">
+          <div>
+            <p className="home-hero__eyebrow">Wise Crypto 市场工作台</p>
+            <h1 id="home-title">
+              今天的加密市场，<span>一眼看清</span>
+            </h1>
+            <p>
+              先看 BTC 与 ETH 的价格和方向，再进入 K 线工作台做自己的判断。
+            </p>
+          </div>
+          <Suspense
+            fallback={<span className="home-hero__update">正在获取更新时间</span>}
+          >
+            <HomepageQuoteUpdatedAt snapshot={quoteSnapshot} />
+          </Suspense>
         </div>
-        <div
-          className="page-heading__utility"
-          aria-label="计价单位 USD，时间标准 UTC"
-        >
-          <span>计价：USD</span>
-          <span aria-hidden="true">·</span>
-          <span>时间：UTC</span>
-        </div>
+        <Suspense fallback={<AssetOverviewLoading />}>
+          <AssetOverview snapshot={quoteSnapshot} />
+        </Suspense>
       </section>
 
-      <Suspense fallback={<AssetOverviewLoading />}>
-        <AssetOverview snapshot={quoteSnapshot} />
+      <Suspense fallback={<MarketDataNoticeLoading />}>
+        <MarketDataNotice snapshot={noticeSnapshot} />
       </Suspense>
 
-      <section className="product-panel market-now" aria-labelledby="market-now-title">
-        <header className="panel-header">
+      <section className="home-market-now market-now" aria-labelledby="market-now-title">
+        <header className="home-section-heading">
           <div>
-            <p className="panel-kicker">可验证事实</p>
             <h2 id="market-now-title">市场现在</h2>
+            <p>先看方向，再看 BTC 与 ETH 的已闭合日线结构。</p>
           </div>
-          <span className="panel-count">
-            最多 3 条
-            <span className="market-now__mobile-hint"> · 横向查看</span>
-          </span>
+          <span>3 条客观事实</span>
         </header>
         <div className="market-now__grid">
           <Suspense fallback={<MarketNowFactLoading label="短期变化" />}>
@@ -97,52 +115,100 @@ export default function Home() {
         </p>
       </section>
 
-      <Suspense fallback={<MarketDataNoticeLoading />}>
-        <MarketDataNotice snapshot={noticeSnapshot} />
+      <section className="home-vip-cta" aria-labelledby="home-vip-title">
+        <div className="home-vip-cta__mark" aria-hidden="true">
+          W
+        </div>
+        <div className="home-vip-cta__copy">
+          <p>Wise VIP 行情参考</p>
+          <h2 id="home-vip-title">从市场事实，到人工策略</h2>
+          <p>
+            BTC / ETH 工作台承接人工关键位、方向、时间窗口、确认与失效条件。普通用户可继续查看市场事实，策略正文仅向服务端验证后的 VIP 开放。
+          </p>
+        </div>
+        <nav className="home-vip-cta__actions" aria-label="VIP 行情参考入口">
+          <Link href="/btc#vip-research">
+            查看 BTC 策略台 <ArrowRightIcon />
+          </Link>
+          <Link href="/eth#vip-research">
+            查看 ETH 策略台 <ArrowRightIcon />
+          </Link>
+          <a
+            href={WISE_INVEST_CRYPTO_PERKS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            了解 VIP 权益 <span aria-hidden="true">↗</span>
+            <span className="sr-only">（在新标签页打开）</span>
+          </a>
+        </nav>
+      </section>
+
+      <Suspense fallback={null}>
+        <StreamedHomepageEditorial editorial={editorial} />
       </Suspense>
 
       <Suspense fallback={<MarketPulseLoading />}>
         <MarketPulse snapshot={pulseSnapshot} />
       </Suspense>
 
-      <section className="quick-access" aria-labelledby="quick-access-title">
-        <div className="section-bar">
+      <section className="home-tools" aria-labelledby="quick-access-title">
+        <div className="home-section-heading">
           <div>
-            <p className="panel-kicker">下一步</p>
-            <h2 id="quick-access-title">查看详情或开始计算</h2>
+            <h2 id="quick-access-title">交易前，先把风险算清楚</h2>
+            <p>四个独立工具，帮你检查仓位、回报、杠杆和投入计划。</p>
           </div>
+          <Link href="/tools">查看全部工具</Link>
         </div>
         <div className="action-shortcuts">
           {actionShortcuts.map((shortcut) => (
             <Link key={shortcut.href} href={shortcut.href}>
+              <span className="action-shortcuts__index" aria-hidden="true">
+                {shortcut.index}
+              </span>
               <span>
                 <strong>{shortcut.label}</strong>
                 <small>{shortcut.meta}</small>
               </span>
-              <span className="row-arrow" aria-hidden="true">
-                →
-              </span>
+              <ArrowRightIcon />
             </Link>
           ))}
         </div>
       </section>
 
-      <HomepageEditorialPanels config={editorial} now={now} />
-
       <Suspense fallback={<KeyMarketIndicatorsLoading />}>
         <KeyMarketIndicators snapshot={indicatorSnapshot} />
       </Suspense>
-
-      <section className="home-products-cta" aria-labelledby="products-cta-title">
-        <div>
-          <p className="panel-kicker">客观产品指南</p>
-          <h2 id="products-cta-title">按事实、适用场景和限制了解产品</h2>
-          <p>查看已经核验来源的产品资料，并同时阅读优点与限制。</p>
-        </div>
-        <Link href="/products">
-          浏览产品目录 <span aria-hidden="true">→</span>
-        </Link>
-      </section>
     </div>
+  );
+}
+
+async function StreamedHomepageEditorial({
+  editorial,
+}: {
+  editorial: Promise<HomepageEditorialPayload>;
+}) {
+  const { config, now } = await editorial;
+
+  return <HomepageEditorialPanels config={config} now={now} />;
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 20 20"
+      width="20"
+      height="20"
+      fill="none"
+    >
+      <path
+        d="M4 10h11m-4-4 4 4-4 4"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </svg>
   );
 }

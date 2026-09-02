@@ -4,7 +4,6 @@ const footerLinks = [
   { href: "/btc", label: "比特币" },
   { href: "/eth", label: "以太坊" },
   { href: "/tools", label: "工具" },
-  { href: "/products", label: "产品" },
 ] as const;
 
 export function SiteFooter() {

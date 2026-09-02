@@ -8,9 +8,14 @@ import {
 } from "@/components/home/homepage-editorial";
 import {
   AssetOverview,
+  HomepageQuoteUpdatedAt,
   KeyMarketIndicators,
   MarketPulse,
 } from "@/components/home/homepage-market";
+import {
+  MarketNowDailyFact,
+  MarketNowQuoteFact,
+} from "@/components/home/homepage-facts";
 import type {
   AvailableMarketDatum,
   DataScope,
@@ -18,6 +23,7 @@ import type {
   MarketCapability,
 } from "@/server/data/contracts/market-data";
 import { unavailableDatum } from "@/server/data/contracts/market-data";
+import type { AssetChartSnapshot } from "@/server/data/services/asset-detail-service";
 import type { MarketSnapshot } from "@/server/data/services/market-snapshot-service";
 import type {
   EditorialEntry,
@@ -25,6 +31,8 @@ import type {
   TodayInCryptoContent,
   WiseTakeContent,
 } from "@/lib/editorial/homepage-editorial";
+import { ANONYMOUS_USER_ACCESS } from "@/lib/access/user-access";
+import { restrictHomepageEditorialForAccess } from "@/server/editorial/homepage-editorial-service";
 
 const UPDATED_AT = "2026-08-29T12:00:00.000Z";
 const RETRIEVED_AT = "2026-08-29T12:00:05.000Z";
@@ -234,7 +242,7 @@ const wiseTakeContent: WiseTakeContent = {
 };
 
 describe("homepage server-rendered market components", () => {
-  it("renders Market Pulse values with Chinese labels and auditable metadata", async () => {
+  it("renders Market Pulse values with update time but without source details", async () => {
     const html = renderToStaticMarkup(
       await MarketPulse({ snapshot: Promise.resolve(liveSnapshot()) }),
     );
@@ -246,11 +254,13 @@ describe("homepage server-rendered market components", () => {
     expect(html).toContain("贪婪");
     expect(html).toContain("57.25%");
     expect(html).toContain("0.03314 BTC");
-    expect(html).toContain("来源");
-    expect(html).toContain("已核验市场来源");
-    expect(html).toContain("数据截至 2026-08-29 12:00 UTC");
-    expect(html).toContain("获取于 2026-08-29 12:00 UTC");
-    expect(html).toContain("最新获取");
+    expect(html).toContain("更新于 2026-08-29 12:00 UTC");
+    expect(html).toContain("数据更新时间：");
+    expect(html).not.toContain("已核验市场来源");
+    expect(html).not.toContain("数据来源、范围与时间");
+    expect(html).not.toContain("查看数据口径");
+    expect(html).not.toContain("获取于 2026-08-29 12:00 UTC");
+    expect(html).not.toContain("最新获取");
   });
 
   it("renders BTC and ETH overview without losing price-change semantics", async () => {
@@ -258,16 +268,38 @@ describe("homepage server-rendered market components", () => {
       await AssetOverview({ snapshot: Promise.resolve(liveSnapshot()) }),
     );
 
-    expect(html).toContain("BTC 与 ETH 概览");
+    expect(html).toContain("BTC 与 ETH 市场概览");
     expect(html).toContain('href="/btc"');
     expect(html).toContain('href="/eth"');
     expect(html).toContain("$104,321.25");
     expect(html).toContain("$3,456.78");
     expect(html).toContain("+2.50%");
     expect(html).toContain("-0.75%");
-    expect(html).toContain("BTC/USD 多市场聚合现货");
-    expect(html).toContain("ETH/USD 多市场聚合现货");
-    expect(html).toContain("数据来源、范围与时间");
+    expect(html).toContain("更新于 2026-08-29 12:00 UTC");
+    expect(html).not.toContain("BTC/USD 多市场聚合现货");
+    expect(html).not.toContain("ETH/USD 多市场聚合现货");
+    expect(html).not.toContain("已核验市场来源");
+    expect(html).not.toContain("数据来源、范围与时间");
+    expect(html).not.toContain("查看数据口径");
+  });
+
+  it("marks the homepage quote layer as partial when only one asset is usable", async () => {
+    const snapshot = liveSnapshot();
+    snapshot.ethPrice = unavailableDatum("spot.eth-price", "no_data");
+
+    const updateHtml = renderToStaticMarkup(
+      await HomepageQuoteUpdatedAt({ snapshot: Promise.resolve(snapshot) }),
+    );
+    const factHtml = renderToStaticMarkup(
+      await MarketNowQuoteFact({ snapshot: Promise.resolve(snapshot) }),
+    );
+
+    expect(updateHtml).toContain("行情 1/2 项可用");
+    expect(updateHtml).toContain("最后更新 2026-08-29 12:00 UTC");
+    expect(factHtml).toContain("BTC 短期变化");
+    expect(factHtml).toContain("1/2 项可用");
+    expect(factHtml).not.toContain("ETH 24 小时");
+    expect(`${updateHtml}${factHtml}`).not.toContain("已核验市场来源");
   });
 
   it("renders derivatives units accurately and leaves unavailable data empty", async () => {
@@ -287,10 +319,40 @@ describe("homepage server-rendered market components", () => {
     expect(html).toContain("ETH ETF 净流量");
     expect(html).toContain("暂不可用");
     expect(html).toContain("尚未配置具备展示许可的数据源。");
-    expect(html).toContain("数据覆盖说明");
-    expect(html).toContain("6/7 项可用");
+    expect(html).toContain("暂不可用的数据");
+    expect(html).toContain("6/7");
+    expect(html).toContain("项可用");
     expect(html).toContain("coverage-row--unavailable");
     expect(html).not.toContain("indicator-item--unavailable");
+    expect(html).not.toContain("已核验市场来源");
+    expect(html).not.toContain("数据来源、范围与时间");
+    expect(html).not.toContain("查看数据口径");
+  });
+
+  it("renders an explicit unavailable daily-fact card without source details", async () => {
+    const snapshot = {
+      candles: unavailableDatum(
+        "historical.btc-daily-candles",
+        "no_data",
+      ),
+      technical: unavailableDatum(
+        "historical.btc-daily-candles",
+        "insufficient_history",
+      ),
+    } satisfies AssetChartSnapshot;
+    const html = renderToStaticMarkup(
+      await MarketNowDailyFact({
+        asset: "btc",
+        snapshot: Promise.resolve(snapshot),
+      }),
+    );
+
+    expect(html).toContain("BTC 已闭合日线");
+    expect(html).toContain("日线事实暂不可用");
+    expect(html).toContain("数据源当前未返回可用数据。");
+    expect(html).toContain("暂不可用");
+    expect(html).not.toContain("已核验市场来源");
+    expect(html).not.toContain("查看数据口径");
   });
 
   it("never renders synthetic values or their development-only source", async () => {
@@ -362,7 +424,28 @@ describe("homepage server-rendered market components", () => {
 });
 
 describe("homepage server-rendered editorial panels", () => {
-  it("renders active, reviewed editorial content with its sources", () => {
+  it("does not serialize subjective judgment for regular access", () => {
+    const config = restrictHomepageEditorialForAccess(
+      {
+        marketStatus: editorialEntry(marketStatusContent),
+        todayInCrypto: editorialEntry<TodayInCryptoContent>(
+          todayContentFixture,
+        ),
+        wiseTake: editorialEntry(wiseTakeContent),
+      },
+      ANONYMOUS_USER_ACCESS,
+    );
+    const html = renderToStaticMarkup(
+      HomepageEditorialPanels({ config, now: ACTIVE_NOW }),
+    );
+
+    expect(html).toContain("已核验市场事件");
+    expect(html).not.toContain("震荡等待确认");
+    expect(html).not.toContain("保持耐心");
+    expect(html).not.toContain("观点由编辑人工维护");
+  });
+
+  it("renders active editorial content with review timing but without source links", () => {
     const marketStatusHtml = renderToStaticMarkup(
       MarketStatusPanel({
         entry: editorialEntry(marketStatusContent),
@@ -385,18 +468,21 @@ describe("homepage server-rendered editorial panels", () => {
     expect(marketStatusHtml).toContain("当前有效");
     expect(marketStatusHtml).toContain("震荡等待确认");
     expect(marketStatusHtml).toContain("最近审核 2026-08-28 18:00 UTC");
-    expect(marketStatusHtml).toContain("已核验编辑来源");
+    expect(marketStatusHtml).toContain("有效期至 2026-08-29 23:59 UTC");
+    expect(marketStatusHtml).not.toContain("已核验编辑来源");
 
     expect(todayHtml).toContain("今日加密市场");
     expect(todayHtml).toContain("2026-08-29");
     expect(todayHtml).toContain("已核验市场事件");
-    expect(todayHtml).toContain("本条来源");
-    expect(todayHtml).toContain("已核验编辑来源");
+    expect(todayHtml).toContain("最近审核 2026-08-28 18:00 UTC");
+    expect(todayHtml).not.toContain("本条来源");
+    expect(todayHtml).not.toContain("已核验编辑来源");
 
     expect(wiseTakeHtml).toContain("Wise Take");
     expect(wiseTakeHtml).toContain("保持耐心");
     expect(wiseTakeHtml).toContain("观点由编辑人工维护");
-    expect(wiseTakeHtml).toContain("已核验编辑来源");
+    expect(wiseTakeHtml).toContain("最近审核 2026-08-28 18:00 UTC");
+    expect(wiseTakeHtml).not.toContain("已核验编辑来源");
   });
 
   it("hides scheduled content and its review metadata", () => {

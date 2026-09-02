@@ -3,7 +3,6 @@ export const navigation = [
   { href: "/btc", label: "BTC" },
   { href: "/eth", label: "ETH" },
   { href: "/tools", label: "工具" },
-  { href: "/products", label: "产品" },
 ] as const;
 
 export function isCurrentRoute(pathname: string, href: string) {

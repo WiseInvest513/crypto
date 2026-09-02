@@ -13,10 +13,13 @@ import {
   describeQuoteDirection,
 } from "@/lib/market/homepage-facts";
 import { formatUsdPrice } from "@/lib/market/formatters";
-import { presentMarketDatum } from "@/lib/market/homepage-presentation";
 import {
-  DatumMeta,
+  presentMarketDatum,
+  type DatumPresentation,
+} from "@/lib/market/homepage-presentation";
+import {
   DatumStatus,
+  DatumUpdatedAt,
 } from "@/components/market/datum-presentation";
 
 type QuoteFactEntry = {
@@ -37,7 +40,45 @@ export async function MarketNowQuoteFact({
   ].filter((entry): entry is QuoteFactEntry => entry !== null);
 
   if (entries.length === 0) {
-    return null;
+    const availableQuote = [data.btcPrice, data.ethPrice].find(
+      (datum) =>
+        (datum.status === "fresh" || datum.status === "stale") &&
+        datum.provenance !== "synthetic",
+    );
+    const fallbackDatum =
+      availableQuote ??
+      [data.btcPrice, data.ethPrice].find((datum) => datum.status === "error") ??
+      data.btcPrice;
+    const inputPresentation = presentMarketDatum(fallbackDatum, () => ({
+      primary: "—",
+    }));
+    const presentation = availableQuote
+      ? ({
+          ...inputPresentation,
+          state: "unavailable",
+          statusLabel: "变化数据不足",
+          value: { primary: "—", direction: "neutral" },
+          note: "当前报价缺少完整的 24 小时或 7 日变化。",
+        } satisfies DatumPresentation)
+      : inputPresentation;
+
+    return (
+      <article className="market-now-card market-now-card--lead market-now-card--unavailable">
+        <header className="market-now-card__header">
+          <div>
+            <p className="panel-kicker">BTC 与 ETH</p>
+            <h3>短期变化暂不可用</h3>
+          </div>
+          <DatumStatus presentation={presentation} compact />
+        </header>
+        <p className="market-now-card__summary">
+          {availableQuote
+            ? "当前报价缺少完整的 24 小时或 7 日变化，暂不能形成短期比较。"
+            : "当前没有可验证的报价，恢复后会自动显示 24 小时与 7 天方向。"}
+        </p>
+        <DatumUpdatedAt presentation={presentation} />
+      </article>
+    );
   }
 
   const summary = `${entries
@@ -45,32 +86,40 @@ export async function MarketNowQuoteFact({
     .join("；")}。`;
   const hasStaleInput = entries.some((entry) => entry.datum.status === "stale");
   const sharedPresentation = sharedQuotePresentation(entries);
+  const isPartial = entries.length < 2;
+  const statusLabel = isPartial
+    ? hasStaleInput
+      ? "1/2 项可用 · 延迟"
+      : "1/2 项可用"
+    : hasStaleInput
+      ? "数据延迟"
+      : "已更新";
 
   return (
-    <article className="market-now-card">
+    <article className="market-now-card market-now-card--lead">
       <header className="market-now-card__header">
         <div>
-          <p className="panel-kicker">同一报价内比较</p>
-          <h3>短期变化</h3>
+          <p className="panel-kicker">24 小时与 7 日</p>
+          <h3>{isPartial ? `${entries[0].symbol} 短期变化` : "短期变化"}</h3>
         </div>
         <span
-          className={`status-badge status-badge--${hasStaleInput ? "warning" : "success"} status-badge--compact`}
+          className={`status-badge status-badge--${hasStaleInput || isPartial ? "warning" : "success"} status-badge--compact`}
         >
           <span aria-hidden="true" />
-          {hasStaleInput ? "数据延迟" : "已更新"}
+          {statusLabel}
         </span>
       </header>
       <p className="market-now-card__summary">{summary}</p>
       {sharedPresentation ? (
         <div className="market-now-card__shared-meta">
-          <DatumMeta presentation={sharedPresentation} />
+          <DatumUpdatedAt presentation={sharedPresentation} />
         </div>
       ) : (
         <div className="market-now-card__meta-list">
           {entries.map((entry) => (
-            <div key={entry.symbol} aria-label={`${entry.symbol} 报价元数据`}>
+            <div key={entry.symbol}>
               <span className="market-now-card__meta-label">{entry.symbol}</span>
-              <DatumMeta
+              <DatumUpdatedAt
                 presentation={presentMarketDatum(entry.datum, () => ({
                   primary: entry.summary,
                 }))}
@@ -91,12 +140,31 @@ export async function MarketNowDailyFact({
   snapshot: Promise<AssetChartSnapshot>;
 }) {
   const data = await snapshot;
+  const symbol = asset.toUpperCase();
 
   if (
     (data.candles.status !== "fresh" && data.candles.status !== "stale") ||
     data.candles.provenance === "synthetic"
   ) {
-    return null;
+    const presentation = presentMarketDatum(data.candles, () => ({
+      primary: "—",
+    }));
+
+    return (
+      <article className="market-now-card market-now-card--unavailable">
+        <header className="market-now-card__header">
+          <div>
+            <p className="panel-kicker">{symbol} 已闭合日线</p>
+            <h3>日线事实暂不可用</h3>
+          </div>
+          <DatumStatus presentation={presentation} compact />
+        </header>
+        <p className="market-now-card__summary">
+          {presentation.note ?? "当前没有足够的已验证日线数据。"}
+        </p>
+        <DatumUpdatedAt presentation={presentation} />
+      </article>
+    );
   }
 
   const technical =
@@ -115,14 +183,37 @@ export async function MarketNowDailyFact({
     facts?.twentyDayRange?.summary ??
     facts?.previousDayRange?.summary;
   if (!facts || !summary) {
-    return null;
+    const inputPresentation = presentMarketDatum(data.candles, () => ({
+      primary: "—",
+    }));
+    const presentation = {
+      ...inputPresentation,
+      state: "unavailable",
+      statusLabel: "历史不足",
+      value: { primary: "—", direction: "neutral" },
+      note: "当前可用历史不足以形成可靠的区间或均线事实。",
+    } satisfies DatumPresentation;
+
+    return (
+      <article className="market-now-card market-now-card--unavailable">
+        <header className="market-now-card__header">
+          <div>
+            <p className="panel-kicker">{symbol} 已闭合日线</p>
+            <h3>日线历史不足</h3>
+          </div>
+          <DatumStatus presentation={presentation} compact />
+        </header>
+        <p className="market-now-card__summary">
+          当前可用历史不足以形成可靠的区间或均线事实。
+        </p>
+        <DatumUpdatedAt presentation={presentation} />
+      </article>
+    );
   }
 
   const presentation = technical
     ? presentMarketDatum(technical, () => ({ primary: summary }))
     : presentMarketDatum(data.candles, () => ({ primary: summary }));
-  const symbol = asset.toUpperCase();
-
   return (
     <article className="market-now-card">
       <header className="market-now-card__header">
@@ -136,7 +227,7 @@ export async function MarketNowDailyFact({
       <dl className="market-now-card__ranges">
         {facts.previousDayRange && (
           <div>
-            <dt>前一日区间</dt>
+            <dt>上一根日线区间</dt>
             <dd>
               {formatUsdtRange(
                 facts.previousDayRange.lowUsdt,
@@ -158,7 +249,7 @@ export async function MarketNowDailyFact({
           </div>
         )}
       </dl>
-      <DatumMeta presentation={presentation} />
+      <DatumUpdatedAt presentation={presentation} />
     </article>
   );
 }

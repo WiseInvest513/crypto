@@ -4,7 +4,14 @@ import {
   resolveEditorialEntry,
   resolveTodayInCryptoEntry,
 } from "../../src/lib/editorial/homepage-editorial";
-import { loadHomepageEditorial } from "../../src/server/editorial/homepage-editorial-service";
+import {
+  loadHomepageEditorialForAccess,
+  restrictHomepageEditorialForAccess,
+} from "../../src/server/editorial/homepage-editorial-service";
+import {
+  ANONYMOUS_USER_ACCESS,
+  type UserAccess,
+} from "../../src/lib/access/user-access";
 
 const EFFECTIVE_AT = "2026-08-29T00:00:00.000Z";
 const VALID_UNTIL = "2026-08-30T00:00:00.000Z";
@@ -251,8 +258,41 @@ describe("homepage editorial configuration", () => {
     ).toMatchObject({ state: "expired", content: null });
   });
 
-  it("loads the server-only production config through the validated service", () => {
-    const payload = loadHomepageEditorial(() => Date.parse(EFFECTIVE_AT));
+  it("redacts subjective homepage judgment for regular access", () => {
+    const config = parseHomepageEditorialConfig(validConfig());
+    const redacted = restrictHomepageEditorialForAccess(
+      config,
+      ANONYMOUS_USER_ACCESS,
+    );
+    const forgedVip = restrictHomepageEditorialForAccess(config, {
+      tier: "vip",
+      isAuthenticated: false,
+      source: "anonymous-default",
+    } as UserAccess);
+
+    expect(redacted.marketStatus.content).toBeNull();
+    expect(redacted.wiseTake.content).toBeNull();
+    expect(redacted.todayInCrypto).toBe(config.todayInCrypto);
+    expect(forgedVip.marketStatus.content).toBeNull();
+    expect(forgedVip.wiseTake.content).toBeNull();
+  });
+
+  it("keeps subjective homepage judgment for verified VIP access", () => {
+    const config = parseHomepageEditorialConfig(validConfig());
+    const access: UserAccess = {
+      tier: "vip",
+      isAuthenticated: true,
+      source: "verified-identity",
+    };
+
+    expect(restrictHomepageEditorialForAccess(config, access)).toBe(config);
+  });
+
+  it("loads the server-only production config through the gated service", async () => {
+    const payload = await loadHomepageEditorialForAccess(
+      Promise.resolve(ANONYMOUS_USER_ACCESS),
+      () => Date.parse(EFFECTIVE_AT),
+    );
 
     expect(payload.now).toBe(Date.parse(EFFECTIVE_AT));
     expect(Object.keys(payload.config)).toEqual([

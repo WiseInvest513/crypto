@@ -18,7 +18,10 @@ describe("Phase 4 BTC and ETH integrity", () => {
       expect(page).toContain(`loadAssetChartSnapshot("${asset}")`);
       expect(page).toContain(`loadAssetLiveChartDatum("${asset}")`);
       expect(page).toContain(`loadAssetContextSnapshot("${asset}")`);
-      expect(page).toContain(`loadAssetEditorial("${asset}")`);
+      expect(page).toContain(`loadAssetEditorialForAccess("${asset}", access)`);
+      expect(page).toContain("resolveUserAccess");
+      expect(page).toContain("access={access}");
+      expect(page).not.toContain("loadAssetEditorial(");
       expect(page).toContain('export const dynamic = "force-dynamic"');
       expect(page).toContain("AssetDetailStreamPage");
       expect(page).not.toMatch(/fetch\s*\(|MockMarketProvider|testing\//);
@@ -31,14 +34,29 @@ describe("Phase 4 BTC and ETH integrity", () => {
     expect(chart).toContain('"use client"');
     expect(chart).toContain("aria-labelledby");
     expect(chart).toContain("查看最近 20 根 K 线数据");
-    expect(chart).toContain("5 秒检查");
+    expect(chart).toContain("每 5 秒更新");
     expect(chart).toContain("summarizeVisibleChart");
     expect(chart).toContain("summarizeLiveTrend");
-    expect(chart).toContain("EMA10 / 20 / 50");
-    expect(chart).toContain("EMA20 / 50 / 200");
-    expect(chart).toContain("最新已闭合 K 线");
+    expect(chart).toContain("时间周期");
+    expect(chart).toContain("分析视角");
+    expect(chart).toContain("EMA 10 · 20 · 50");
+    expect(chart).toContain("EMA 20 · 50 · 200");
+    expect(chart).toContain("指标与范围");
+    expect(chart).toContain("开盘");
+    expect(chart).toContain("最高");
+    expect(chart).toContain("最低");
+    expect(chart).toContain("收盘 / 最新");
+    expect(chart).toContain("一眼结论");
+    expect(chart).toContain("已闭合 K 线区间位置");
+    expect(chart).toContain("下一次要确认什么");
+    expect(chart).toContain("事实会改变");
+    expect(chart).toContain("查看全部 EMA 对比");
     expect(chart).toContain("形成中 K 线不进入分析结论");
-    expect(chart).toContain("可见区间事实");
+    expect(chart).toContain('point.state === "closed"');
+    expect(chart).toContain("presentation: presentMarketDatum");
+    expect(chart).toContain('kind: "issue"');
+    expect(chart).toContain("可见区间统计");
+    expect(chart).toContain("图表范围与计算口径");
     expect(chart).toContain("所选历史窗口");
     expect(chart).toContain("safeEndOffset");
     expect(chart).toContain("requestAnimationFrame");
@@ -49,7 +67,28 @@ describe("Phase 4 BTC and ETH integrity", () => {
     expect(chart).not.toMatch(
       /@\/server|https?:\/\/|axios|coinmarketcap|binance\.vision|api\.binance/i,
     );
-    expect(chart).not.toMatch(/建议买|建议卖|止盈|止损|目标价/);
+    expect(chart).not.toMatch(
+      /(?:建议|立即)(?:买入|卖出)|止盈(?:价|位)|止损(?:价|位)|目标价/,
+    );
+  });
+
+  it("keeps the K-line and VIP strategy ahead of derivatives and risk tools", () => {
+    const workspace = read("src/components/assets/asset-detail-page.tsx");
+    const marketHeaderIndex = workspace.indexOf("<AssetMarketHeader");
+    const chartIndex = workspace.indexOf("<StreamedAssetWorkbench");
+    const vipIndex = workspace.indexOf("<AssetVipResearch");
+    const contextIndex = workspace.indexOf("<StreamedAssetContext");
+    const toolsIndex = workspace.indexOf("<AssetToolShortcuts");
+
+    expect(marketHeaderIndex).toBeGreaterThan(-1);
+    expect(chartIndex).toBeGreaterThan(marketHeaderIndex);
+    expect(vipIndex).toBeGreaterThan(chartIndex);
+    expect(contextIndex).toBeGreaterThan(vipIndex);
+    expect(toolsIndex).toBeGreaterThan(contextIndex);
+    expect(workspace).toContain("切换资产工作台");
+    expect(workspace).not.toContain("AssetCompactSummary");
+    expect(workspace).not.toContain("AssetPageActions");
+    expect(workspace).not.toContain('href="#vip-research"');
   });
 
   it("keeps all production support, resistance and scenario content unpublished", () => {

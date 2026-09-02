@@ -12,7 +12,9 @@ import type {
   AssetContextSnapshot,
   AssetDetailSnapshot,
 } from "@/server/data/services/asset-detail-service";
-import type { AssetEditorialEntries } from "@/lib/editorial/asset-editorial";
+import type { UserAccess } from "@/lib/access/user-access";
+import type { AssetEditorialPayload } from "@/server/editorial/asset-editorial-service";
+import type { MultiTimeframeAccessPayload } from "@/server/data/services/multi-timeframe-service";
 import type { TechnicalAnalysisResult } from "@/lib/market/technical-analysis";
 import {
   directionFor,
@@ -32,11 +34,9 @@ import {
   formatOpenInterestReading,
 } from "@/lib/market/reading-formatters";
 import { DatumMeta, DatumStatus } from "@/components/market/datum-presentation";
-import {
-  AssetEditorialPanels,
-  hasVisibleAssetEditorial,
-} from "./asset-editorial-panels";
+import { AssetLivePrice } from "./asset-live-price";
 import { AssetPriceChart } from "./asset-price-chart";
+import { AssetVipResearch } from "./asset-vip-research";
 
 const assetCopy = {
   btc: {
@@ -85,31 +85,28 @@ export function AssetDetailStreamPage({
   liveChart,
   context,
   editorial,
-  editorialNow,
+  access,
+  multiTimeframe,
 }: {
   asset: Asset;
   price: Promise<MarketDatum<PriceQuote>>;
   chart: Promise<AssetChartSnapshot>;
   liveChart: Promise<MarketDatum<readonly ChartCandle[]>>;
   context: Promise<AssetContextSnapshot>;
-  editorial: AssetEditorialEntries;
-  editorialNow: number;
+  editorial: Promise<AssetEditorialPayload>;
+  access: Promise<UserAccess>;
+  multiTimeframe: Promise<MultiTimeframeAccessPayload>;
 }) {
   const copy = assetCopy[asset];
-  const showEditorial = hasVisibleAssetEditorial(editorial, editorialNow);
 
   return (
-    <div className="asset-detail-page page-container">
-      <header className="asset-detail-header">
-        <AssetIdentity copy={copy} />
-      </header>
-
-      <AssetCompactSummary copy={copy} price={price} chart={chart} />
-
-      <AssetPageActions
+    <div className="asset-detail-page asset-detail-page--focus page-container">
+      <AssetMarketHeader
         asset={asset}
-        symbol={copy.symbol}
-        showEditorial={showEditorial}
+        chart={chart}
+        copy={copy}
+        liveChart={liveChart}
+        price={price}
       />
 
       <Suspense fallback={<AssetWorkbenchLoading symbol={copy.symbol} />}>
@@ -121,16 +118,52 @@ export function AssetDetailStreamPage({
         />
       </Suspense>
 
+      <Suspense fallback={<AssetVipResearchLoading symbol={copy.symbol} />}>
+        <StreamedAssetVipResearch
+          access={access}
+          editorial={editorial}
+          multiTimeframe={multiTimeframe}
+          symbol={copy.symbol}
+        />
+      </Suspense>
+
       <Suspense fallback={<AssetFactsLoading symbol={copy.symbol} />}>
         <StreamedAssetContext context={context} symbol={copy.symbol} />
       </Suspense>
 
-      <AssetEditorialPanels entries={editorial} now={editorialNow} />
+      <AssetToolShortcuts asset={asset} symbol={copy.symbol} />
 
       <p className="asset-detail-disclaimer">
-        图内 EMA 相对位置按所选周期的已闭合 K 线计算；下方 SMA 背景只使用已闭合日线。两者均为客观事实，不构成投资建议；人工关键位与 Wise Scenario 只有在审核并发布后才会显示。
+        图内 EMA 相对位置按所选周期的已闭合 K 线计算；下方 SMA 背景只使用已闭合日线。两者均为客观事实，不构成投资建议；VIP 人工关键位与 Wise Scenario 只有在身份校验、人工审核并处于有效期内时才会显示。
       </p>
     </div>
+  );
+}
+
+async function StreamedAssetVipResearch({
+  access,
+  editorial,
+  multiTimeframe,
+  symbol,
+}: {
+  access: Promise<UserAccess>;
+  editorial: Promise<AssetEditorialPayload>;
+  multiTimeframe: Promise<MultiTimeframeAccessPayload>;
+  symbol: "BTC" | "ETH";
+}) {
+  const [resolvedAccess, editorialPayload] = await Promise.all([
+    access,
+    editorial,
+  ]);
+
+  return (
+    <AssetVipResearch
+      access={resolvedAccess}
+      editorial={editorialPayload.config}
+      editorialNow={editorialPayload.now}
+      multiTimeframe={multiTimeframe}
+      symbol={symbol}
+    />
   );
 }
 
@@ -160,7 +193,7 @@ async function StreamedAssetWorkbench({
           liveCandles={liveCandles}
           copy={copy}
         />
-        <TechnicalRail datum={data.technical} symbol={copy.symbol} />
+        <AssetDailyContext datum={data.technical} symbol={copy.symbol} />
       </div>
     </div>
   );
@@ -178,233 +211,190 @@ async function StreamedAssetContext({
   return <AssetMarketFacts snapshot={data} symbol={symbol} />;
 }
 
-function AssetIdentity({ copy }: { copy: AssetCopy }) {
-  return (
-    <div className="asset-detail-header__identity">
-      <span className={`asset-mark ${copy.tone}`} aria-hidden="true">
-        {copy.symbol.slice(0, 1)}
-      </span>
-      <div>
-        <p className="page-kicker">资产工作台 · {copy.symbol}</p>
-        <h1>{copy.name}</h1>
-        <p className="asset-detail-header__description">{copy.description}</p>
-      </div>
-    </div>
-  );
-}
-
-function AssetCompactSummary({
+function AssetMarketHeader({
+  asset,
   copy,
   price,
   chart,
+  liveChart,
 }: {
+  asset: Asset;
   copy: AssetCopy;
   price: Promise<MarketDatum<PriceQuote>>;
   chart: Promise<AssetChartSnapshot>;
+  liveChart: Promise<MarketDatum<readonly ChartCandle[]>>;
 }) {
-  const summaryTitleId = `asset-summary-${copy.symbol.toLowerCase()}-title`;
+  const otherAsset = asset === "btc" ? "eth" : "btc";
+  const otherCopy = assetCopy[otherAsset];
+  const titleId = `asset-market-${asset}-title`;
 
   return (
     <section
       id="price"
-      className="asset-summary asset-page-anchor"
-      aria-labelledby={summaryTitleId}
+      className="asset-market-header asset-page-anchor"
+      aria-labelledby={titleId}
     >
-      <header className="asset-summary__header">
-        <div>
-          <p className="panel-kicker">快速摘要</p>
-          <h2 id={summaryTitleId}>{copy.symbol} 资产摘要</h2>
+      <div className="asset-market-header__identity">
+        <nav className="asset-switcher" aria-label="切换资产工作台">
+          <Link href={`/${asset}`} aria-current="page">
+            {copy.symbol}
+          </Link>
+          <Link href={`/${otherAsset}`}>{otherCopy.symbol}</Link>
+        </nav>
+        <div className="asset-market-header__title">
+          <span className={`asset-mark ${copy.tone}`} aria-hidden="true">
+            {copy.symbol.slice(0, 1)}
+          </span>
+          <div>
+            <p>资产工作台</p>
+            <h1 id={titleId}>
+              {copy.symbol} <span>{copy.name}</span>
+            </h1>
+          </div>
         </div>
-        <span>价格与日线使用各自标注的独立口径</span>
-      </header>
-      <div className="asset-summary__segments">
-        <Suspense fallback={<AssetSummarySegmentLoading label="价格数据" />}>
-          <StreamedAssetSummaryPrice price={price} chart={chart} />
-        </Suspense>
-        <Suspense
-          fallback={<AssetSummarySegmentLoading label="日线技术事实" />}
-        >
-          <StreamedAssetSummaryTechnical chart={chart} />
-        </Suspense>
       </div>
+      <Suspense fallback={<AssetMarketPriceLoading />}>
+        <StreamedAssetMarketPrice
+          asset={asset}
+          chart={chart}
+          liveChart={liveChart}
+          price={price}
+        />
+      </Suspense>
     </section>
   );
 }
 
-async function StreamedAssetSummaryPrice({
+async function StreamedAssetMarketPrice({
+  asset,
   price,
   chart,
-}: {
-  price: Promise<MarketDatum<PriceQuote>>;
-  chart: Promise<AssetChartSnapshot>;
-}) {
-  const priceDatum = await price;
-  const candles =
-    publicAvailableValue(priceDatum) === null
-      ? (await chart).candles
-      : null;
-  const headline = resolveAssetHeadline(priceDatum, candles);
-
-  return (
-    <div className="asset-summary__segment">
-      <dl className="asset-summary__grid">
-        <SummaryMetric
-          label="参考价格"
-          value={headline.presentation.value.primary}
-          unit={headline.currency}
-        />
-        <SummaryMetric
-          label="24 小时"
-          value={formatNullablePercent(headline.quote?.change24hPercent ?? null)}
-          direction={directionFor(headline.quote?.change24hPercent ?? null)}
-        />
-        <SummaryMetric
-          label="7 天"
-          value={formatNullablePercent(headline.quote?.change7dPercent ?? null)}
-          direction={directionFor(headline.quote?.change7dPercent ?? null)}
-        />
-      </dl>
-      {headline.note && (
-        <p className="asset-summary__notice">{headline.note}</p>
-      )}
-      <div className="asset-summary__meta">
-        <span>价格数据</span>
-        <DatumStatus presentation={headline.presentation} compact />
-        <DatumMeta presentation={headline.presentation} />
-      </div>
-    </div>
-  );
-}
-
-async function StreamedAssetSummaryTechnical({
-  chart,
-}: {
-  chart: Promise<AssetChartSnapshot>;
-}) {
-  const snapshot = await chart;
-  const technical = publicAvailableValue(snapshot.technical);
-  const latest = technical?.latest ?? null;
-  const presentation = presentMarketDatum(snapshot.technical, (value) => ({
-    primary: trendLabel(value.trend.state),
-    secondary: "已闭合日线 · SMA20 / SMA50",
-  }));
-
-  return (
-    <div className="asset-summary__segment">
-      <dl className="asset-summary__grid">
-        <SummaryMetric label="日线 SMA20" value={formatUsdt(latest?.ma20 ?? null)} />
-        <SummaryMetric label="日线 SMA50" value={formatUsdt(latest?.ma50 ?? null)} />
-        <SummaryMetric
-          label="客观趋势"
-          value={technical ? trendLabel(technical.trend.state) : "—"}
-          detail={
-            technical
-              ? trendDescription(technical)
-              : presentation.note ?? "日线技术事实暂不可用。"
-          }
-          emphasized
-        />
-      </dl>
-      <div className="asset-summary__meta">
-        <span>日线技术事实</span>
-        <DatumStatus presentation={presentation} compact />
-        <DatumMeta presentation={presentation} />
-      </div>
-    </div>
-  );
-}
-
-function SummaryMetric({
-  label,
-  value,
-  unit,
-  direction = "neutral",
-  detail,
-  emphasized = false,
-}: {
-  label: string;
-  value: string;
-  unit?: string;
-  direction?: "positive" | "negative" | "flat" | "neutral";
-  detail?: string;
-  emphasized?: boolean;
-}) {
-  return (
-    <div className={emphasized ? "asset-summary__metric--emphasized" : undefined}>
-      <dt>{label}</dt>
-      <dd className={`value-direction--${direction}`}>
-        {value}
-        {unit && <small>{unit}</small>}
-      </dd>
-      {detail && <small>{detail}</small>}
-    </div>
-  );
-}
-
-function AssetPageActions({
-  asset,
-  symbol,
-  showEditorial,
+  liveChart,
 }: {
   asset: Asset;
-  symbol: "BTC" | "ETH";
-  showEditorial: boolean;
+  price: Promise<MarketDatum<PriceQuote>>;
+  chart: Promise<AssetChartSnapshot>;
+  liveChart: Promise<MarketDatum<readonly ChartCandle[]>>;
 }) {
-  return (
-    <div className="asset-page-actions">
-      <nav className="asset-section-nav" aria-label={`${symbol} 页面章节`}>
-        <span>页面导览</span>
-        <a href="#price">价格</a>
-        <a href="#trend">趋势</a>
-        <a href="#derivatives">衍生品</a>
-        {showEditorial && <a href="#editorial">人工情景</a>}
-      </nav>
+  const [priceDatum, liveDatum] = await Promise.all([price, liveChart]);
+  const liveCandles = publicAvailableValue(liveDatum);
+  const latestChartCandle = liveCandles?.at(-1) ?? null;
+  const fallbackCandles =
+    latestChartCandle === null && publicAvailableValue(priceDatum) === null
+      ? (await chart).candles
+      : null;
+  const aggregateHeadline = resolveAssetHeadline(priceDatum, fallbackCandles);
+  const primaryPresentation = latestChartCandle
+    ? presentMarketDatum(liveDatum, (value) => ({
+        primary: formatPriceNumber(value.at(-1)?.close ?? Number.NaN),
+        secondary:
+          value.at(-1)?.state === "forming"
+            ? "Binance 最新价 · 当前 K 线形成中"
+            : value.at(-1)?.interval === "1d"
+              ? "Binance 最新已闭合日线收盘"
+              : "Binance 最新已闭合价",
+      }))
+    : aggregateHeadline.presentation;
+  const primaryCurrency = latestChartCandle ? "USDT" : aggregateHeadline.currency;
+  const quote = publicAvailableValue(priceDatum);
 
-      <section
-        className="asset-tool-shortcuts"
-        aria-labelledby={`asset-tools-${asset}-title`}
-      >
-        <div className="asset-tool-shortcuts__intro">
+  return (
+    <div className="asset-market-header__market">
+      <AssetLivePrice
+        key={asset}
+        asset={asset}
+        initialCurrency={primaryCurrency}
+        initialFormatted={primaryPresentation.value.primary}
+        initialLabel={
+          primaryPresentation.value.secondary ??
+          (aggregateHeadline.currency === "USDT"
+            ? "Binance 最新已闭合日线收盘"
+            : "聚合市场参考价")
+        }
+        initialNote={
+          latestChartCandle?.state === "closed" &&
+          latestChartCandle.interval === "1d"
+            ? "不是实时现货价"
+            : aggregateHeadline.note
+        }
+        initialPresentation={primaryPresentation}
+        aggregatePresentation={aggregateHeadline.presentation}
+        showAggregateProvenance={latestChartCandle !== null}
+      />
+      <div className="asset-market-header__change-block">
+        <dl className="asset-market-header__changes" aria-label="聚合市场涨跌">
           <div>
-            <p className="panel-kicker">下一步</p>
-            <h2 id={`asset-tools-${asset}-title`}>把观察带入计算</h2>
+            <dt>24 小时</dt>
+            <dd className={`value-direction--${directionFor(quote?.change24hPercent ?? null)}`}>
+              {formatNullablePercent(quote?.change24hPercent ?? null)}
+            </dd>
           </div>
-          <p>链接只携带 {symbol} 资产标识，不传递价格或金融输入。</p>
-        </div>
-        <div className="asset-tool-shortcuts__links">
-          {assetToolActions.map((action) => (
-            <Link
-              key={action.pathname}
-              href={{ pathname: action.pathname, query: { asset } }}
-            >
-              <span>
-                <strong>{action.label}</strong>
-                <small>{action.description}</small>
-              </span>
-              <span className="row-arrow" aria-hidden="true">→</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+          <div>
+            <dt>7 天</dt>
+            <dd className={`value-direction--${directionFor(quote?.change7dPercent ?? null)}`}>
+              {formatNullablePercent(quote?.change7dPercent ?? null)}
+            </dd>
+          </div>
+        </dl>
+        {aggregateHeadline.presentation.state !== "fresh" && (
+          <div className="asset-market-header__change-state">
+            <DatumStatus presentation={aggregateHeadline.presentation} compact />
+            <span>{aggregateHeadline.presentation.statusLabel}</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-function AssetSummarySegmentLoading({ label }: { label: string }) {
+function AssetMarketPriceLoading() {
   return (
     <div
-      className="asset-summary__segment asset-summary__segment--loading"
-      aria-label={`${label}正在加载`}
+      className="asset-market-header__market asset-market-header__market--loading"
+      aria-label="价格数据正在加载"
       aria-busy="true"
       role="status"
     >
-      <div className="asset-summary__grid" aria-hidden="true">
-        {Array.from({ length: 3 }, (_, index) => (
-          <span className="asset-summary__skeleton" key={index} />
+      <span className="asset-market-header__price-skeleton" aria-hidden="true" />
+      <span className="sr-only">价格数据正在加载。</span>
+    </div>
+  );
+}
+
+function AssetToolShortcuts({
+  asset,
+  symbol,
+}: {
+  asset: Asset;
+  symbol: "BTC" | "ETH";
+}) {
+  return (
+    <section
+      className="asset-tool-shortcuts asset-tool-shortcuts--standalone"
+      aria-labelledby={`asset-tools-${asset}-title`}
+    >
+      <div className="asset-tool-shortcuts__intro">
+        <div>
+          <p className="panel-kicker">风险工具</p>
+          <h2 id={`asset-tools-${asset}-title`}>把观察带入计算</h2>
+        </div>
+        <p>链接只携带 {symbol} 资产标识，不传递价格或金融输入。</p>
+      </div>
+      <div className="asset-tool-shortcuts__links">
+        {assetToolActions.map((action) => (
+          <Link
+            key={action.pathname}
+            href={{ pathname: action.pathname, query: { asset } }}
+          >
+            <span>
+              <strong>{action.label}</strong>
+              <small>{action.description}</small>
+            </span>
+            <span className="row-arrow" aria-hidden="true">→</span>
+          </Link>
         ))}
       </div>
-      <span className="sr-only">{label}正在加载。</span>
-    </div>
+    </section>
   );
 }
 
@@ -462,6 +452,24 @@ function AssetFactsLoading({ symbol }: { symbol: "BTC" | "ETH" }) {
   );
 }
 
+function AssetVipResearchLoading({ symbol }: { symbol: "BTC" | "ETH" }) {
+  return (
+    <section
+      id="vip-research"
+      className="asset-vip-research asset-vip-research--loading asset-page-anchor"
+      aria-busy="true"
+      aria-label={`${symbol} VIP 行情策略台正在确认访问权限`}
+      role="status"
+    >
+      <div aria-hidden="true">
+        <span className="skeleton-line skeleton-line--label" />
+        <span className="skeleton-line skeleton-line--value" />
+      </div>
+      <span className="sr-only">{symbol} VIP 行情策略台正在确认访问权限。</span>
+    </section>
+  );
+}
+
 function AssetDataNotice({
   datums,
   titleId,
@@ -510,17 +518,19 @@ function ChartWorkspace({
   const candlePresentation = presentMarketDatum(snapshot.candles, (value) => ({
     primary: `${value.length} 根已闭合日线`,
   }));
+  const liveValues = liveCandles
+    ? publicAvailableValue(liveCandles)
+    : null;
+  const hasLiveCandles = Boolean(liveValues && liveValues.length > 0);
+  const hasDailyCandles = Boolean(candles && candles.length > 0);
 
-  if (
-    liveCandles === undefined &&
-    (candles === null || candles.length === 0)
-  ) {
+  if (!hasLiveCandles && !hasDailyCandles) {
     return (
       <section className="asset-workbench__chart asset-chart-state" aria-labelledby="asset-chart-state-title">
         <div>
           <p className="panel-kicker">价格图表</p>
-          <h2 id="asset-chart-state-title">日线数据暂不可用</h2>
-          <p>{candlePresentation.note ?? "没有可用于绘制图表的可靠日线数据。"}</p>
+          <h2 id="asset-chart-state-title">K 线数据暂不可用</h2>
+          <p>{candlePresentation.note ?? "实时与已闭合日线当前都没有可用于绘图的可靠数据。"}</p>
           <DatumStatus presentation={candlePresentation} />
           <DatumMeta presentation={candlePresentation} />
         </div>
@@ -528,10 +538,16 @@ function ChartWorkspace({
     );
   }
 
-  const chartDatum =
-    liveCandles ?? dailyCandlesAsChartDatum(snapshot.candles);
+  const chartDatum = hasLiveCandles
+    ? liveCandles!
+    : dailyCandlesAsChartDatum(snapshot.candles);
   return (
     <section className="asset-workbench__chart">
+      {!hasLiveCandles && (
+        <div className="asset-chart__fallback-note" role="status">
+          实时 K 线暂不可用；当前显示 Binance 已闭合日线，不是实时现货走势。
+        </div>
+      )}
       <AssetPriceChart
         asset={asset}
         assetLabel={copy.name}
@@ -541,7 +557,7 @@ function ChartWorkspace({
   );
 }
 
-function TechnicalRail({
+function AssetDailyContext({
   datum,
   symbol,
 }: {
@@ -556,54 +572,55 @@ function TechnicalRail({
   const latest = technical?.latest ?? null;
 
   return (
-    <aside className="asset-workbench__rail" aria-labelledby="technical-title">
-      <header className="asset-rail-header">
+    <details className="asset-daily-context">
+      <summary>
         <div>
-          <p className="panel-kicker">Closed Daily</p>
-          <h2 id="technical-title">{symbol} 日线背景</h2>
+          <span className="panel-kicker">大周期背景 · 已闭合日线</span>
+          <strong>{symbol} SMA 结构：{technical ? trendLabel(technical.trend.state) : "暂不可用"}</strong>
         </div>
         <DatumStatus presentation={presentation} compact />
-      </header>
+      </summary>
+      <div className="asset-daily-context__body">
+        <section className="asset-trend-state">
+          <span>当前客观事实</span>
+          <strong>{technical ? trendLabel(technical.trend.state) : "—"}</strong>
+          <p>{technical ? trendDescription(technical) : presentation.note ?? "技术数据暂不可用。"}</p>
+        </section>
 
-      <section className="asset-trend-state">
-        <span>已闭合日线 SMA 结构</span>
-        <strong>{technical ? trendLabel(technical.trend.state) : "—"}</strong>
-        <p>{technical ? trendDescription(technical) : presentation.note ?? "技术数据暂不可用。"}</p>
-      </section>
+        <dl className="asset-ma-grid">
+          <div>
+            <dt>最新日线收盘</dt>
+            <dd>{formatUsdt(latest?.price ?? null)}</dd>
+          </div>
+          <div>
+            <dt>SMA20</dt>
+            <dd>{formatUsdt(latest?.ma20 ?? null)}</dd>
+          </div>
+          <div>
+            <dt>SMA50</dt>
+            <dd>{formatUsdt(latest?.ma50 ?? null)}</dd>
+          </div>
+        </dl>
 
-      <dl className="asset-ma-grid">
-        <div>
-          <dt>最新日线收盘</dt>
-          <dd>{formatUsdt(latest?.price ?? null)}</dd>
-        </div>
-        <div>
-          <dt>SMA20</dt>
-          <dd>{formatUsdt(latest?.ma20 ?? null)}</dd>
-        </div>
-        <div>
-          <dt>SMA50</dt>
-          <dd>{formatUsdt(latest?.ma50 ?? null)}</dd>
-        </div>
-      </dl>
+        <section className="asset-trend-facts" aria-labelledby="trend-facts-title">
+          <h3 id="trend-facts-title">相对位置</h3>
+          {latest ? (
+            <ul>
+              <li>{relativeFact("最新日线收盘", "SMA20", latest.priceVsMa20)}</li>
+              <li>{relativeFact("最新日线收盘", "SMA50", latest.priceVsMa50)}</li>
+              <li>{relativeFact("SMA20", "SMA50", latest.ma20VsMa50)}</li>
+            </ul>
+          ) : (
+            <p>至少需要 50 根已闭合日线才能形成完整的 SMA20 / SMA50 对比。</p>
+          )}
+        </section>
 
-      <section className="asset-trend-facts" aria-labelledby="trend-facts-title">
-        <h3 id="trend-facts-title">相对位置</h3>
-        {latest ? (
-          <ul>
-            <li>{relativeFact("最新日线收盘", "SMA20", latest.priceVsMa20)}</li>
-            <li>{relativeFact("最新日线收盘", "SMA50", latest.priceVsMa50)}</li>
-            <li>{relativeFact("SMA20", "SMA50", latest.ma20VsMa50)}</li>
-          </ul>
-        ) : (
-          <p>至少需要 50 根已闭合日线才能形成完整的 SMA20 / SMA50 对比。</p>
-        )}
-      </section>
-
-      <footer className="asset-technical-meta">
-        <p>独立日线背景：收盘价 &gt; SMA20 &gt; SMA50 为向上排列；反向为向下排列；其他情况为交错。不会跟随上方图表周期切换。</p>
-        <DatumMeta presentation={presentation} />
-      </footer>
-    </aside>
+        <footer className="asset-technical-meta">
+          <p>日线背景独立于上方所选图表周期，不会跟随 15 分钟、1 小时或 4 小时切换。</p>
+          <DatumMeta presentation={presentation} />
+        </footer>
+      </div>
+    </details>
   );
 }
 

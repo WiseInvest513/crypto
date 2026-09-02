@@ -1,11 +1,13 @@
 import "server-only";
 
 /**
- * Human-reviewed production product facts.
+ * Archived product facts retained only for schema and safety reuse.
  *
- * Every published record below was checked against the linked first-party
- * pages on 2026-08-31. There are deliberately no referral URLs, referral
- * codes, claimed Wise benefits, fixed fee quotes or ranking claims.
+ * Every record below was checked against the linked first-party pages on
+ * 2026-08-31, but all partners and products are now disabled and unpublished.
+ * Historical verification must not be treated as current. There are
+ * deliberately no referral URLs, referral codes, claimed Wise benefits,
+ * fixed fee quotes or ranking claims.
  */
 export const productCatalogDraft = {
   partners: [
@@ -15,7 +17,7 @@ export const productCatalogDraft = {
       website: "https://www.binance.com/en",
       allowedReferralHosts: [],
       logo: null,
-      enabled: true,
+      enabled: false,
     },
     {
       id: "coinbase",
@@ -23,7 +25,7 @@ export const productCatalogDraft = {
       website: "https://www.coinbase.com/",
       allowedReferralHosts: [],
       logo: null,
-      enabled: true,
+      enabled: false,
     },
     {
       id: "kraken",
@@ -31,7 +33,7 @@ export const productCatalogDraft = {
       website: "https://www.kraken.com/",
       allowedReferralHosts: [],
       logo: null,
-      enabled: true,
+      enabled: false,
     },
     {
       id: "okx",
@@ -39,7 +41,7 @@ export const productCatalogDraft = {
       website: "https://www.okx.com/",
       allowedReferralHosts: [],
       logo: null,
-      enabled: true,
+      enabled: false,
     },
     {
       id: "metamask",
@@ -47,7 +49,7 @@ export const productCatalogDraft = {
       website: "https://metamask.io/",
       allowedReferralHosts: [],
       logo: null,
-      enabled: true,
+      enabled: false,
     },
     {
       id: "ledger",
@@ -55,7 +57,7 @@ export const productCatalogDraft = {
       website: "https://www.ledger.com/",
       allowedReferralHosts: [],
       logo: null,
-      enabled: true,
+      enabled: false,
     },
     {
       id: "coingecko",
@@ -63,7 +65,7 @@ export const productCatalogDraft = {
       website: "https://www.coingecko.com/",
       allowedReferralHosts: [],
       logo: null,
-      enabled: true,
+      enabled: false,
     },
   ],
   products: [
@@ -101,7 +103,7 @@ export const productCatalogDraft = {
         description:
           "仅限年满 18 岁、具合法缔约能力、非受限人士且不在禁止国家或地区的用户；需完成身份验证，具体产品还受所在地资格规则影响，以最新条款及登录后提示为准。",
       },
-      enabled: true,
+      enabled: false,
       disclaimer:
         "数字资产价格、流动性及执行结果可能大幅波动，并可能损失部分或全部资金。平台信息不构成投资建议；使用前应确认所在地资格、具体产品条款、实时费用及自身风险承受能力。",
       sources: [
@@ -130,7 +132,7 @@ export const productCatalogDraft = {
       termsUrl: "https://www.binance.com/en/terms",
       promotionStartsAt: null,
       promotionEndsAt: null,
-      publicationStatus: "published",
+      publicationStatus: "unpublished",
       contentVersion: "phase6.2",
     },
     {
@@ -167,7 +169,7 @@ export const productCatalogDraft = {
         description:
           "服务受地区和账户资格限制。用户需满足适用地区用户协议、年龄、身份及支付方式验证要求；可用资产、法币账户、支付方式和 Advanced 功能以登录后账户实际显示为准。",
       },
-      enabled: true,
+      enabled: false,
       disclaimer:
         "本页不构成投资或平台推荐。数字资产价格波动可能导致本金损失；费用、价差、资产和功能均可能变化，下单前必须查看订单预览。地区、身份及支付资格以用户账户和当地条款为准。",
       sources: [
@@ -191,7 +193,7 @@ export const productCatalogDraft = {
       termsUrl: "https://www.coinbase.com/legal",
       promotionStartsAt: null,
       promotionEndsAt: null,
-      publicationStatus: "published",
+      publicationStatus: "unpublished",
       contentVersion: "phase6.2",
     },
     {
@@ -228,7 +230,7 @@ export const productCatalogDraft = {
         description:
           "Kraken 设有禁止服务地区，并在不同市场设置资产和产品限制。功能取决于验证居住地、账户验证等级及当地规则，必须查看最新官方地区说明和账户实际状态。",
       },
-      enabled: true,
+      enabled: false,
       disclaimer:
         "本页不是投资、财务或税务建议。加密资产交易可能导致资金损失；地区、产品、监管保护和税务待遇存在差异。下单前须核对费用、价差、资产、支付通道和账户资格。",
       sources: [
@@ -252,7 +254,7 @@ export const productCatalogDraft = {
       termsUrl: "https://www.kraken.com/legal",
       promotionStartsAt: null,
       promotionEndsAt: null,
-      publicationStatus: "published",
+      publicationStatus: "unpublished",
       contentVersion: "phase6.2",
     },
     {
@@ -288,7 +290,7 @@ export const productCatalogDraft = {
         description:
           "仅限年满 18 岁、当地法律允许且满足身份验证与合规要求的用户。官方设有完全或部分受限地区，并可能存在地区或产品级限制；请以最新披露和登录后结果为准。",
       },
-      enabled: true,
+      enabled: false,
       disclaimer:
         "数字资产交易和持有具有高风险，可能损失部分或全部资金；服务、支付方式和费率会随地区及账户资格变化。本页仅作产品事实说明，不构成投资、法律或税务建议。",
       sources: [
@@ -317,7 +319,7 @@ export const productCatalogDraft = {
       termsUrl: "https://www.okx.com/help/terms-of-service",
       promotionStartsAt: null,
       promotionEndsAt: null,
-      publicationStatus: "published",
+      publicationStatus: "unpublished",
       contentVersion: "phase6.2",
     },
     {
@@ -354,7 +356,7 @@ export const productCatalogDraft = {
         description:
           "钱包软件可以从官方支持的应用商店或扩展商店安装；默认节点、支付服务、交易功能及其他附加服务可能因所在地区、设备、服务商或制裁要求而不可用。",
       },
-      enabled: true,
+      enabled: false,
       disclaimer:
         "MetaMask 是自托管钱包，用户对助记词、私钥和交易确认承担直接责任。请只从官方入口安装，不向任何人披露助记词，并在签名前核对网络、合约和交易内容；第三方服务及链上交互另有费用与风险。",
       sources: [
@@ -383,7 +385,7 @@ export const productCatalogDraft = {
       termsUrl: "https://metamask.io/terms-of-use",
       promotionStartsAt: null,
       promotionEndsAt: null,
-      publicationStatus: "published",
+      publicationStatus: "unpublished",
       contentVersion: "phase6.2",
     },
     {
@@ -420,7 +422,7 @@ export const productCatalogDraft = {
         description:
           "网站可公开访问，但部分产品不能配送至特定地点，最终可购买型号、价格、税费、进口要求和配送方式以结账页面及当地法律为准；第三方功能也可能有地区限制。",
       },
-      enabled: true,
+      enabled: false,
       disclaimer:
         "硬件钱包可降低部分联网环境中的私钥暴露风险，但不能消除钓鱼、恶意合约、错误地址或用户操作风险。请从官方或授权渠道购买，保护 PIN 和恢复短语，并在设备上核对每笔交易。",
       sources: [
@@ -444,7 +446,7 @@ export const productCatalogDraft = {
       termsUrl: "https://shop.ledger.com/pages/terms-and-conditions",
       promotionStartsAt: null,
       promotionEndsAt: null,
-      publicationStatus: "published",
+      publicationStatus: "unpublished",
       contentVersion: "phase6.2",
     },
     {
@@ -480,7 +482,7 @@ export const productCatalogDraft = {
         description:
           "官网公开提供市场数据；API 端点、账户功能、调用额度、商业用途和第三方服务是否可用取决于所在地区、订阅方案、授权范围及最新条款。",
       },
-      enabled: true,
+      enabled: false,
       disclaimer:
         "CoinGecko 展示的是聚合信息，不是交易执行报价，也不构成投资建议。不同交易所的价格、流动性和时间戳可能不同；交易或开发使用前应核对原始市场、数据方法、更新频率和授权条件。",
       sources: [
@@ -509,7 +511,7 @@ export const productCatalogDraft = {
       termsUrl: "https://www.coingecko.com/en/terms",
       promotionStartsAt: null,
       promotionEndsAt: null,
-      publicationStatus: "published",
+      publicationStatus: "unpublished",
       contentVersion: "phase6.2",
     },
   ],

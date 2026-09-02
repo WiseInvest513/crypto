@@ -78,25 +78,17 @@ function validCatalog(): { partners: Partner[]; products: Product[] } {
 }
 
 describe("product catalog configuration", () => {
-  it("accepts an empty draft while loading the verified production catalog", () => {
+  it("accepts an empty draft while keeping the retired production catalog unpublished", () => {
     expect(parseProductCatalog({ partners: [], products: [] })).toEqual({
       partners: [],
       products: [],
     });
 
     const production = loadProductCatalog(NOW);
-    expect(production.publishedProducts).toHaveLength(7);
-    expect(production.unpublishedCount).toBe(0);
-    expect(listPublishedProducts(NOW)).toHaveLength(7);
-    expect(listPublishedProductSlugs(NOW)).toEqual([
-      "binance",
-      "coinbase",
-      "kraken",
-      "okx",
-      "metamask",
-      "ledger-hardware-wallet",
-      "coingecko",
-    ]);
+    expect(production.publishedProducts).toHaveLength(0);
+    expect(production.unpublishedCount).toBe(7);
+    expect(listPublishedProducts(NOW)).toHaveLength(0);
+    expect(listPublishedProductSlugs(NOW)).toEqual([]);
     expect(getPublishedProductBySlug("not-configured", NOW)).toBeNull();
   });
 

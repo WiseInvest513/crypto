@@ -194,11 +194,19 @@ export function RiskRewardCalculator() {
       <CalculatorResult
         title={result ? "价格距离比较" : "等待计算"}
         description="比值只比较你输入的价格距离，不包含成交概率、仓位、手续费、滑点或跳空。"
+        ready={Boolean(result)}
       >
         {result ? (
           <>
             <ResultGrid
               items={[
+                {
+                  label: "风险 / 回报",
+                  value: formatToolRatio(result.rewardToRiskRatio),
+                  detail: "每承担 1 单位价格风险对应的情景回报",
+                  tone: "neutral",
+                  primary: true,
+                },
                 {
                   label: "每单位风险",
                   value: formatToolPrice(result.riskPerUnit, form.currency),
@@ -208,12 +216,6 @@ export function RiskRewardCalculator() {
                   label: "每单位潜在回报",
                   value: formatToolPrice(result.rewardPerUnit, form.currency),
                   detail: "目标价与入场价的绝对距离",
-                },
-                {
-                  label: "风险 / 回报",
-                  value: formatToolRatio(result.rewardToRiskRatio),
-                  detail: "每承担 1 单位价格风险对应的情景回报",
-                  tone: "neutral",
                 },
               ]}
             />

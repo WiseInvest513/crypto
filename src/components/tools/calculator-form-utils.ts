@@ -19,12 +19,15 @@ export function calculatorInputA11y(
   error: string | undefined,
   hasHint = true,
 ) {
+  const describedBy = [
+    hasHint ? `${id}-hint` : null,
+    error ? `${id}-error` : null,
+  ]
+    .filter((descriptionId): descriptionId is string => descriptionId !== null)
+    .join(" ");
+
   return {
-    "aria-describedby": error
-      ? `${id}-error`
-      : hasHint
-        ? `${id}-hint`
-        : undefined,
+    "aria-describedby": describedBy || undefined,
     "aria-invalid": error ? (true as const) : undefined,
   };
 }
@@ -32,9 +35,23 @@ export function calculatorInputA11y(
 export function focusFirstCalculatorError(
   form: HTMLFormElement | null,
 ): void {
-  window.setTimeout(() => {
-    form
-      ?.querySelector<HTMLElement>('[aria-invalid="true"]')
-      ?.focus();
+  globalThis.setTimeout(() => {
+    const fieldWithError = form?.querySelector<HTMLElement>(
+      '[aria-invalid="true"]',
+    );
+    if (fieldWithError) {
+      fieldWithError.focus();
+      return;
+    }
+
+    const errorSummary = form?.querySelector<HTMLElement>(
+      ".calculator-form-error",
+    );
+    if (!errorSummary) {
+      return;
+    }
+
+    errorSummary.setAttribute("tabindex", "-1");
+    errorSummary.focus();
   }, 0);
 }

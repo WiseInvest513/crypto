@@ -18,6 +18,8 @@ export const marketCapabilities = [
   "historical.eth-daily-candles",
   "historical.btc-chart-candles",
   "historical.eth-chart-candles",
+  "analysis.btc-multi-timeframe",
+  "analysis.eth-multi-timeframe",
   "sentiment.fear-and-greed",
   "derivatives.btc-funding",
   "derivatives.eth-funding",
@@ -138,10 +140,10 @@ export type ErrorMarketDatum = DatumBase & {
 export type UnavailableMarketDatum = DatumBase & {
   status: "unavailable";
   value: null;
-  source: null;
-  scope: null;
+  source: DataSource | null;
+  scope: DataScope | null;
   updatedAt: null;
-  retrievedAt: null;
+  retrievedAt: string | null;
   loading: false;
   stale: false;
   error: null;
@@ -253,6 +255,16 @@ export function chartCandleCapability(
   | "historical.eth-chart-candles"
 > {
   return `historical.${asset}-chart-candles`;
+}
+
+export function multiTimeframeCapability(
+  asset: Asset,
+): Extract<
+  MarketCapability,
+  | "analysis.btc-multi-timeframe"
+  | "analysis.eth-multi-timeframe"
+> {
+  return `analysis.${asset}-multi-timeframe`;
 }
 
 export type SentimentReading = {

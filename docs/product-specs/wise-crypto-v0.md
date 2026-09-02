@@ -1,7 +1,7 @@
 # Wise Crypto V0 产品规范与分阶段执行计划
 
 > 状态：Phase 7 Production Quality 已完成，Wise Crypto V0 已收口  
-> 最后更新：2026-08-31  
+> 最后更新：2026-09-02
 > 仓库：<https://github.com/WiseInvest513/crypto.git>  
 > 计划生产域名：<https://crypto.wise-invest.org>
 
@@ -15,18 +15,21 @@
 
 ## 2. 产品目标
 
-Wise Crypto V0 是面向 Crypto / Web3 用户的独立市场信息、分析工具与合作产品入口，重点提供：
+Wise Crypto V0 是面向 Crypto / Web3 用户的独立市场信息与分析工具，重点提供：
 
 - 清晰的 BTC、ETH 和整体市场状态。
-- 每一项市场数据的来源、更新时间及可用状态。
+- 每一项市场数据的来源、更新时间及可用状态都保留在标准化数据合同中；首页摘要
+  只显示更新时间与异常状态，避免重复来源文本干扰主信息，资产核验界面继续提供完整口径。
 - 可解释、可人工维护的 Wise Take、Market Status 和 Wise Scenario。
 - 四个不误导用户的基础计算工具。
-- 客观、可审计的合作产品与 Referral 展示。
-- 为未来 Wise ID 集成预留边界，但 V0 不实现登录、会员或权限系统。
+- 主站与子站职责分离：产品、邀请码和 Crypto 权益内容统一由 Wise Invest 主站承接。
+- V0 不接入真实 Wise ID；在 V0 收口后的已批准优化中，仅建立 `regular / vip`
+  两级权限合同与服务端接入边界。
 
 ## 3. V0 明确不做
 
-- 不实现 Wise ID、登录、注册、用户数据库、VIP 或权益判断。
+- V0 阶段不实现 Wise ID、登录、注册、用户数据库、VIP 或权益判断；收口后的权限
+  基础批次也不提供真实登录、Session 或客户端 VIP 切换。
 - 不实现交易、钱包连接、下单、托管或资产管理。
 - 不实现自动投资建议或自动生成 Wise 的市场判断。
 - 不为填满页面而伪造市场数据、费用、资格、优惠或地区信息。
@@ -160,7 +163,7 @@ type MarketDatum<T> =
 - 缺失数据展示 `—` 或明确的 unavailable 状态，不能展示为 `0`。
 - API Secret 只能存在于服务端模块和服务端环境变量中。
 
-## 7. V0 路由
+## 7. 当前公开路由
 
 ```text
 /
@@ -171,11 +174,14 @@ type MarketDatum<T> =
 /tools/leverage
 /tools/dca
 /tools/risk-reward
-/products
-/products/[slug]
 ```
 
-V0 的全局导航至少包含：市场总览、BTC、ETH、工具、产品。
+全局导航包含：市场总览、BTC、ETH、工具。
+
+Phase 6 曾公开的 `/products` 与 `/products/[slug]` 已在 2026-09-02 退出子站
+核心体验。两个历史地址保留为固定服务端 `308` 永久重定向，统一前往
+`https://www.wise-invest.org/perk/crypto`；目的地址不由 path、slug 或查询参数
+构造。历史产品地址不进入导航、公开路由清单、sitemap 或 `page_view`。
 
 ---
 
@@ -362,7 +368,7 @@ interface FundFlowProvider {
 - Today in Crypto。
 - Wise Take。
 - 关键市场指标。
-- Data source / Updated At。
+- Data lineage / Updated At：完整来源链保留在数据层；首页视觉层只重复显示更新时间。
 - Responsive Design。
 - Loading / Error / Stale state。
 
@@ -382,9 +388,10 @@ interface FundFlowProvider {
   `loadMarketIndicatorSnapshot()` 并行加载，Binance Futures 超时不会阻塞
   BTC/ETH 首屏。路由使用动态渲染，production build 不依赖实时市场 API 成功。
 - Market Pulse 展示总市值、实际来源对应的 Fear & Greed、BTC Dominance 和 ETH/BTC；
-  BTC/ETH 概览分别展示价格、24 小时、7 天、状态、来源、数据截至时间与获取时间。
-- ETH/BTC 派生数据保留 BTC 与 ETH 两个输入的底层来源链接；同一来源会去重，
-  派生口径与较早的数据截至时间均明确展示。
+  BTC/ETH 概览分别展示价格、24 小时、7 天、状态与更新时间。2026-09-02 首页视觉
+  降噪后不再在每张卡重复 Provider 名称与获取链路，但标准化结果仍完整保留这些字段。
+- ETH/BTC 派生数据继续保留 BTC 与 ETH 两个输入的底层来源、派生口径与较早的
+  数据截至时间；完整链路用于服务端校验和资产详情核验，不在首页摘要重复展开。
 - 关键市场数据区分别展示 BTC/ETH Funding、单场所 OI、24 小时 Liquidations
   与 BTC/ETH ETF Flow；单交易所和日频口径均明确标注，缺少可靠来源时显示
   `unavailable`，不填 0。fresh/stale 数据保留完整指标卡；error/unavailable
@@ -445,12 +452,13 @@ interface FundFlowProvider {
 ### Phase 4 实施结果（2026-08-31）
 
 - `/btc` 与 `/eth` 使用同一个参数化资产工作台；页面继续由 Server
-  Component 调用统一领域服务，只有图表时间范围切换使用 Client Component。
-- 现货 headline 使用当前有效公共市场 Provider 的聚合 USD 报价；图表与日线
-  技术事实独立使用 Binance Spot `BTCUSDT` / `ETHUSDT`、USDT、UTC K 线。两种
-  口径在页面上明确分开；聚合 USD 报价不可用时，headline 可明确降级为
-  Binance 最新已闭合日线收盘并标记 USDT 与“非实时现货价”，绝不包装成
-  USD 聚合现货。
+  Component 调用统一领域服务，只有图表交互与随 K 线同步的顶部价格使用 Client
+  Component。
+- 顶部主价格使用 Binance 图表最新值并随同源图表刷新同步；24 小时与 7 天变化继续
+  使用当前有效公共市场 Provider 的聚合 USD 报价。图表与日线技术事实独立使用
+  Binance Spot `BTCUSDT` / `ETHUSDT`、USDT、UTC K 线。两种口径在页面上明确
+  分开；仅有已闭合日线可用时明确标记 USDT 与“非实时现货价”，绝不包装成 USD
+  聚合现货。
 - Candle Provider 保持两个隔离路径：日线技术事实与 DCA 只接受已闭合 `1d`
   K 线，使用 15 分钟缓存、七天 last-known-good 与 36 小时来源陈旧判定；
   交互图表支持 `15m / 1h / 4h / 1d`、最多 1000 根并允许最后一根明确标记为
@@ -471,6 +479,11 @@ interface FundFlowProvider {
   仍在形成，只将其当前成交量与前 20 根已闭合 K 线平均量作机械对比，并明确提示
   当前周期尚不完整。所有这些字段都随周期、可见数量和历史窗口变化，不生成支撑、
   阻力或交易判断。
+- 2026-09-02 的资产工作台重设计将原“大标题、双栏快速摘要、页内导览、三层图表
+  工具栏”合并为紧凑资产栏和单一命令区。首屏直接出现价格、周期、分析视角、K 线
+  与“一眼结论”；OHLCV 采用完整中文标签并作为图内读数，区间统计、完整 EMA、
+  日线 SMA 背景和原始数据改为渐进展开。右侧只优先显示已闭合收盘相对 EMA 的位置、
+  近三根变化、可见区间位置、距高点和下一次使当前事实改变的客观条件。
 - Funding、单场所 OI、全市场 Liquidations、ETF Flow 以及 BTC Dominance 或
   ETH/BTC 按各自来源与口径展示；无许可 ETF 数据继续明确 unavailable，不填 0。
 - BTC/ETH 的 Support、Resistance 与 Wise Scenario 使用独立人工配置 schema，
@@ -636,6 +649,9 @@ roe = pnl / margin × 100
 
 ### Phase 6 实施结果（2026-08-31）
 
+> 以下为 Phase 6 当时的历史实施记录。产品目录已在 2026-09-02 按最新产品决策
+> 退出公开体验；当前行为以第 7 节和第 12 节为准。
+
 - `/products` 已从路由骨架升级为客观的产品目录，并实现通用的
   `/products/[slug]` 动态详情页。详情页支持产品基础信息、适用场景、Pros / Cons、
   费用说明、可用性、Wise Benefit、来源、最后核验时间、条款和免责声明；未知或
@@ -735,15 +751,16 @@ Phase 7 完成后停止，不开始开发下一版本。
   小字号对比度、内联来源链接辨识和 loading/data fallback 播报。
 - 使用统一 Metadata helper 为所有公开路由补齐唯一 title、description、canonical、
   Open Graph 与 X 字段；加入 1200×630 Wise Crypto 分享图。根站点与栏目页使用
-  共享图，产品、资产和工具详情在没有真实主图时明确清除继承图片。
+  共享图，资产和工具详情在没有真实主图时明确清除继承图片。
 - Production canonical 对 `SITE_URL` 做 HTTPS 纯 origin 校验并固定为
-  `https://crypto.wise-invest.org`；Preview/Development 保持 `noindex`。404 与未知
-  产品明确 noindex 且没有错误 canonical。
-- Sitemap 只包含固定公开路由与当前 7 个 enabled/published 产品；robots、WebSite
-  JSON-LD 和与可见导航一致的工具/产品 Breadcrumb JSON-LD 已完成。
-- 新增 `page_view` provider-neutral facade，与既有 tool/product/referral 事件一起
+  `https://crypto.wise-invest.org`；Preview/Development 保持 `noindex`。404 明确
+  noindex 且没有错误 canonical；历史产品地址由固定 308 交给主站成为唯一归属。
+- Sitemap 当前只包含市场、BTC、ETH 与四个工具固定公开路由；robots、WebSite
+  JSON-LD 和与可见导航一致的工具 Breadcrumb JSON-LD 已完成。
+- 新增 `page_view` provider-neutral facade，与既有 tool 事件一起
   默认使用 noop adapter；payload 白名单不接收查询参数、用户标识、金融输入、
-  结果、Referral URL 或 code，Analytics 失败不阻断业务。
+  结果或 code，Analytics 失败不阻断业务。历史 product/referral facade 保留但
+  不再由公开路由调用。
 - 数据层补充 BTC/ETH headline 隔离、ETH/BTC 同 Provider 时间偏差上限、空 Binance
   K 线的 source/scope/retrievedAt 保留，以及 HTTPS-only、禁止 credentialed URL、
   禁止 redirect、2 MB 流式响应体上限。
@@ -768,7 +785,7 @@ Phase 7 完成后停止，不开始开发下一版本。
 - Preview 和非生产环境必须 `noindex`。
 - 每个公开页面提供唯一 title 和 description。
 - 动态价格不写入长期缓存的 metadata。
-- Sitemap 只包含 enabled、published 的页面和产品。
+- Sitemap 只包含当前仍公开且可索引的页面；重定向后的历史产品地址不得进入。
 - 使用语义化 heading、表格、列表和 `<time>`。
 - 结构化数据只描述真实存在的 Organization、WebSite、Breadcrumb 等实体。
 
@@ -781,20 +798,24 @@ V0 事件：
 - `page_view`
 - `tool_open`
 - `tool_complete`
-- `product_view`
-- `referral_click`
-- `tutorial_click`
 
-Analytics 失败不能阻断导航、工具计算或 Referral 跳转。没有确定隐私和 cookie 策略前，可以使用 noop adapter。
+Phase 6 的 `product_view`、`referral_click`、`tutorial_click` facade 作为历史安全
+基础设施保留，但产品路由退出公开体验后不再触发。
 
-## 10. 未来 Wise ID 边界
+Analytics 失败不能阻断导航或工具计算。历史 Referral facade 的失败隔离规则继续
+保留；没有确定隐私和 cookie 策略前，可以使用 noop adapter。
 
-- V0 不渲染假的登录入口。
-- 公共市场数据和公共页面缓存不得依赖用户身份。
+## 10. Wise ID 接入边界
+
+- 当前仍不渲染假的登录入口，也没有真实 Session。
+- 已建立 `regular / vip` 类型、统一功能权限表与 fail-closed 的服务端 Identity Adapter；
+  未接入身份时一律返回匿名普通权限。
+- 公共市场数据、Provider cache 和公开 Metadata 不得依赖用户身份。
 - Header 可以保留结构性 account slot，但 V0 默认不显示。
-- 未来身份读取集中在服务端 Identity Adapter。
+- 未来身份读取继续集中在服务端 Identity Adapter。
 - 权益判断集中在 Entitlement Service，不能散落在 Client Components。
-- 私有页面和公共缓存必须隔离。
+- 受限内容必须在服务端判断后才进入响应；真实身份接入时，个性化响应与公共缓存
+  必须使用 `private/no-store` 或等价方式严格隔离。
 - 未来优先采用标准 OIDC/OAuth、PKCE、state、nonce 和严格 callback allowlist。
 
 ## 11. 当前执行状态
@@ -808,5 +829,79 @@ Analytics 失败不能阻断导航、工具计算或 Referral 跳转。没有确
 | Phase 3：Homepage | 已完成 |
 | Phase 4：BTC & ETH | 已完成 |
 | Phase 5：Crypto Tools | 已完成 |
-| Phase 6：Products & Referral | 已完成 |
+| Phase 6：Products & Referral | 历史阶段已完成；公开产品线已退出，安全模型保留 |
 | Phase 7：Production Quality | 已完成，V0 收口 |
+| VIP 行情研究基础（V0 后优化） | 已完成权限合同、页面隔离与四周期客观参考；真实登录、周期模型和 AI 未接入 |
+| 首页信息层级重设计（V0 后优化） | 已完成；首屏聚焦 BTC/ETH，来源链保留但首页仅显示更新时间 |
+| 工具工作台重设计（V0 后优化） | 已完成；四个同权图标方块、输入与核心结果并列、公式渐进展开 |
+
+## 12. 2026-09-02 产品线退出决策
+
+- Wise Crypto 聚焦 BTC、ETH 行情工作台、K 线分析与实用工具，不再维护独立的
+  产品目录、邀请码或权益详情页。
+- Header、Footer 与首页不再展示 `/products` 入口。
+- `/products` 与全部 `/products/:path*` 不展示旧页面；原页面文件已删除，请求层
+  Proxy 固定返回永久重定向至 Wise Invest 主站 Crypto 福利页，请求参数不会参与
+  目的地址构造。
+- 历史产品地址不再生成自身 canonical、Open Graph 或索引页面，也不进入 sitemap
+  和公开 `page_view` 白名单，由主站页面成为内容与搜索引擎的唯一归属。
+- Phase 6 已建立的产品数据 schema、来源核验、Referral host allowlist、组件和
+  Analytics facade 暂时保留为未公开基础设施，避免未来确有需要时重建安全边界。
+- 所有历史 Partner / Product 已统一设为 disabled + unpublished；即使旧目录组件被
+  误接回路由，产品服务也不会返回可发布条目。
+- 若未来重新启用任何产品信息，必须重新确认事实、费用、地区、资格、条款与商业
+  关系；当前 2026-08-31 的历史核验结果不得自动视为仍然有效。
+
+## 13. 2026-09-02 VIP 行情研究基础
+
+- 当前产品主线调整为 `BTC / ETH 行情事实 → K 线与 EMA → VIP 人工策略 → 风险工具`。
+- 用户等级只定义 `regular` 与 `vip`。公开访问默认匿名普通权限；VIP 只能来自未来
+  Wise ID 的服务端已验证结果，不能由 URL、localStorage、客户端状态或环境变量授予。
+- BTC / ETH 页面已经加入 VIP 行情策略台。普通用户只看到能力边界与主站权益入口，
+  即使服务端已有 active 人工配置，关键价格、方向、条件与正文也不进入其响应。
+- 现有人工关键位与 Wise Scenario 配置复用为首个受限内容源；只有 VIP、已发布、
+  审核通过且处于有效期内才展示，过期与未发布状态不会伪装成当前策略。
+- 人工策略 schema 强制包含倾向、作者、适用窗口、判断依据、确认/失效条件、风险说明、
+  来源与有效期。真实 VIP 策略不得提交到 Git；当前仓库仅保留空生产配置和测试 fixture，
+  未来必须在服务端鉴权后从私有 CMS / 数据库读取。
+- 多周期客观参考已经在 VIP 服务端边界内实现：15m / 1h / 4h / 1d 各读取最多
+  1,000 根 Binance Spot K 线，排除形成中 K 线后计算 EMA10/20/50/200、近 3/20 根
+  变化、距近 20 根高点、区间位置与量能比例。四周期独立保留来源、口径、截至时间、
+  获取时间、stale、cache 和 error；普通权限不会触发行情请求或收到摘要数据。
+- 多周期顶部汇总仅陈述可验证的 EMA 相对位置与排列数量，不产生多空评分、方向、
+  支撑、阻力、目标价或交易建议。牛熊转接标记与 DeepSeek 回撤分析仍只保留透明规划状态。
+- 具体内容合同与后续边界见
+  `docs/product-specs/wise-crypto-vip-research-foundation.md`。
+
+## 14. 2026-09-02 首页信息层级重设计
+
+- 首页由“全部数据平铺”调整为清晰的任务顺序：市场入口与 BTC/ETH 核心报价、
+  “市场现在”三条客观事实、VIP 人工策略入口、有效的人工内容、市场脉搏、风险工具，
+  最后才是默认收起的衍生品与资金流。
+- 首屏使用大字号标题和两张资产主卡，价格、24 小时、7 天变化及进入 K 线工作台的
+  操作在同一视觉单元内完成；不添加伪造的小型趋势图或装饰性历史走势。
+- 首页卡片仅展示 `updatedAt`（上游无时间时才显示明确的检查时间）和异常状态，不再
+  重复显示 Provider 名称、scope、retrievedAt、cache 或“查看数据口径”。这些字段没有
+  从 `MarketDatum` / `DatumPresentation` 删除，资产详情与服务端审计继续使用完整链路。
+- 日线或报价失败时，“市场现在”保留明确的 unavailable/error 卡片，不再静默消失；
+  缺少可靠数据仍显示破折号或说明，不以零值补位。
+- 视觉系统参考 Wise Invest 主站的白色/暖灰表面、深色粗标题、琥珀色权益强调、较大
+  圆角和克制阴影。移动端改为自然纵向阅读，移除隐藏核心事实的横向卡片滚动。
+- 详细设计、概念稿与实现边界记录在
+  `docs/product-specs/wise-crypto-homepage-redesign.md`。
+
+## 15. 2026-09-02 工具工作台重设计
+
+- `/tools` 使用问题驱动的四张同权图标方块：仓位风险、杠杆、历史 DCA 与风险回报
+  在 Desktop 四列并排，分别明确“填写什么 / 得到什么”，不再形成主工具与附属工具层级。
+- 四个详情页统一为左侧输入、右侧核心结果的计算工作台；移动端保持输入后结果的自然
+  DOM 顺序。公式、输出和未计因素进入原生渐进展开，不再占据首屏固定侧栏。
+- 每个工具只突出一个核心结果：资产数量、初始保证金、风险回报比或历史期末价值；
+  其他数字作为次要事实展示，不增加推荐风险比例、杠杆、价位或交易方向。
+- DCA 完整来源、scope、截至时间、获取时间、cache 与错误元数据继续保留；fresh 时折叠
+  展示，error / unavailable 默认展开，可靠日线不可用时仍禁止计算。
+- 工具目录新增任务分类、问题、输入摘要、结果摘要和主结果字段，首页工具入口也从同一
+  目录派生，避免文案与顺序漂移。
+- 字段错误、通用错误焦点、hint/error 关联、结果播报和重复分享反馈完成无障碍修正。
+  详细结构、概念稿与保持不变的计算边界见
+  `docs/product-specs/wise-crypto-tools-redesign.md`。

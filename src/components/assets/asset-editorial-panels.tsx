@@ -137,18 +137,50 @@ function WiseScenarioPanel({
     <article className="asset-editorial-panel asset-wise-scenario">
       <PanelHeader kicker="Wise Scenario" title="人工情景" />
       <div className="asset-scenario-body">
+        <dl className="asset-scenario-context">
+          <div>
+            <dt>人工倾向</dt>
+            <dd>{scenarioStanceLabel(content.stance)}</dd>
+          </div>
+          <div>
+            <dt>适用窗口</dt>
+            <dd>{content.timeframe}</dd>
+          </div>
+          <div>
+            <dt>作者</dt>
+            <dd>{content.author}</dd>
+          </div>
+        </dl>
         <h3>{content.headline}</h3>
         <p>{content.summary}</p>
+        <ScenarioList title="判断依据" items={content.rationale} />
         <ScenarioList title="确认条件" items={content.confirmationConditions} />
         <ScenarioList title="失效条件" items={content.invalidationConditions} />
         {content.watchItems.length > 0 && (
           <ScenarioList title="持续观察" items={content.watchItems} />
         )}
+        <p className="asset-scenario-risk">
+          <strong>风险说明</strong>
+          {content.riskDisclosure}
+        </p>
         <ReferencedSources sourceIds={content.sourceIds} sources={sources} />
       </div>
       <EditorialMeta entry={entry} />
     </article>
   );
+}
+
+function scenarioStanceLabel(stance: WiseScenarioContent["stance"]): string {
+  switch (stance) {
+    case "bullish":
+      return "偏多";
+    case "bearish":
+      return "偏空";
+    case "neutral":
+      return "中性";
+    case "wait":
+      return "等待确认";
+  }
 }
 
 function PanelHeader({ kicker, title }: { kicker: string; title: string }) {

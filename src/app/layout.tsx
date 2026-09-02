@@ -10,6 +10,7 @@ import {
 } from "@/config/site";
 import { SITE_SOCIAL_IMAGE } from "@/lib/seo/page-metadata";
 import "./globals.css";
+import "./asset-workbench.css";
 
 const siteUrl = new URL(SITE_URL);
 const isProduction = isPublicIndexingEnabled();
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s | Wise Crypto",
   },
   description:
-    "面向加密市场用户的市场数据、人工审核背景、实用工具与产品指南工作台。",
+    "面向加密市场用户的 BTC、ETH 市场数据、人工审核背景与实用工具工作台。",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
@@ -56,11 +57,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     url: SITE_URL,
     inLanguage: "zh-CN",
     description:
-      "面向加密市场用户的市场数据、实用工具与客观产品指南工作台。",
+      "面向加密市场用户的 BTC、ETH 市场数据、实用工具与人工审核背景工作台。",
   } as const;
 
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" data-scroll-behavior="smooth">
       <body>
         <JsonLd data={websiteJsonLd} />
         <PageViewTracker />

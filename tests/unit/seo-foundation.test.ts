@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { metadata as rootMetadata } from "../../src/app/layout";
@@ -9,11 +9,8 @@ import { metadata as positionSizeMetadata } from "../../src/app/tools/position-s
 import { metadata as leverageMetadata } from "../../src/app/tools/leverage/page";
 import { metadata as dcaMetadata } from "../../src/app/tools/dca/page";
 import { metadata as riskRewardMetadata } from "../../src/app/tools/risk-reward/page";
-import { metadata as productsMetadata } from "../../src/app/products/page";
 import { metadata as notFoundMetadata } from "../../src/app/not-found";
-import { metadata as productNotFoundMetadata } from "../../src/app/products/not-found";
 import robots from "../../src/app/robots";
-import { generateMetadata as generateProductMetadata } from "../../src/app/products/[slug]/page";
 import {
   isPublicIndexingEnabled,
   PRODUCTION_SITE_URL,
@@ -28,7 +25,6 @@ const routeMetadata = [
   ["/tools/leverage", leverageMetadata],
   ["/tools/dca", dcaMetadata],
   ["/tools/risk-reward", riskRewardMetadata],
-  ["/products", productsMetadata],
 ] as const;
 
 describe("SEO foundation", () => {
@@ -66,7 +62,6 @@ describe("SEO foundation", () => {
       images: [expect.objectContaining({ url: "/og.png", width: 1200, height: 630 })],
     });
     expect(toRecord(toolsMetadata.openGraph).images).toHaveLength(1);
-    expect(toRecord(productsMetadata.openGraph).images).toHaveLength(1);
 
     for (const metadata of [
       btcMetadata,
@@ -90,35 +85,19 @@ describe("SEO foundation", () => {
     expect(image.byteLength).toBeLessThan(2_000_000);
   });
 
-  it("creates complete product metadata and fail-closed metadata for unknown slugs", async () => {
-    const published = await generateProductMetadata(
-      productMetadataProps("binance"),
+  it("keeps retired product routes free of competing canonical metadata", () => {
+    const productIndex = join(process.cwd(), "src/app/products/page.tsx");
+    const productDetail = join(
+      process.cwd(),
+      "src/app/products/[slug]/page.tsx",
     );
-    const missing = await generateProductMetadata(
-      productMetadataProps("not-published"),
-    );
+    const proxy = readFileSync(join(process.cwd(), "src/proxy.ts"), "utf8");
 
-    expect(published).toMatchObject({
-      title: "Binance",
-      alternates: { canonical: "/products/binance" },
-      openGraph: {
-        url: "/products/binance",
-        siteName: "Wise Crypto",
-        images: [],
-      },
-      twitter: { images: [] },
-    });
-    expect(missing).toMatchObject({
-      alternates: { canonical: null },
-      robots: { index: false, follow: false },
-      openGraph: { images: [] },
-      twitter: { images: [] },
-    });
+    expect(existsSync(productIndex)).toBe(false);
+    expect(existsSync(productDetail)).toBe(false);
+    expect(proxy).toContain('matcher: "/products/:path*"');
+    expect(proxy).not.toMatch(/generateMetadata|createPageMetadata|canonical/);
     expect(notFoundMetadata).toMatchObject({
-      alternates: { canonical: null },
-      robots: { index: false, follow: false },
-    });
-    expect(productNotFoundMetadata).toMatchObject({
       alternates: { canonical: null },
       robots: { index: false, follow: false },
     });
@@ -159,10 +138,4 @@ describe("SEO foundation", () => {
 
 function toRecord(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
-}
-
-function productMetadataProps(slug: string) {
-  return {
-    params: Promise.resolve({ slug }),
-  } as unknown as Parameters<typeof generateProductMetadata>[0];
 }

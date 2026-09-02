@@ -34,12 +34,23 @@ export type AssetKeyLevelsContent = {
   levels: readonly AssetKeyLevel[];
 };
 
+export type WiseScenarioStance =
+  | "bullish"
+  | "bearish"
+  | "neutral"
+  | "wait";
+
 export type WiseScenarioContent = {
+  stance: WiseScenarioStance;
+  author: string;
+  timeframe: string;
   headline: string;
   summary: string;
+  rationale: readonly string[];
   confirmationConditions: readonly string[];
   invalidationConditions: readonly string[];
   watchItems: readonly string[];
+  riskDisclosure: string;
   sourceIds: readonly string[];
 };
 
@@ -299,18 +310,31 @@ function parseWiseScenarioContent(
   sources: readonly AssetEditorialSource[],
 ): WiseScenarioContent {
   const content = asExactRecord(input, path, [
+    "stance",
+    "author",
+    "timeframe",
     "headline",
     "summary",
+    "rationale",
     "confirmationConditions",
     "invalidationConditions",
     "watchItems",
+    "riskDisclosure",
     "sourceIds",
   ]);
   const knownSourceIds = new Set(sources.map((source) => source.id));
 
   return {
+    stance: asWiseScenarioStance(content.stance, `${path}.stance`),
+    author: asBoundedString(content.author, `${path}.author`, 80),
+    timeframe: asBoundedString(content.timeframe, `${path}.timeframe`, 120),
     headline: asBoundedString(content.headline, `${path}.headline`, 100),
     summary: asBoundedString(content.summary, `${path}.summary`, 600),
+    rationale: asBoundedStringArray(
+      content.rationale,
+      `${path}.rationale`,
+      { minItems: 1, maxItems: 6, maxLength: 240 },
+    ),
     confirmationConditions: asBoundedStringArray(
       content.confirmationConditions,
       `${path}.confirmationConditions`,
@@ -326,12 +350,33 @@ function parseWiseScenarioContent(
       maxItems: 5,
       maxLength: 160,
     }),
+    riskDisclosure: asBoundedString(
+      content.riskDisclosure,
+      `${path}.riskDisclosure`,
+      320,
+    ),
     sourceIds: asSourceReferences(
       content.sourceIds,
       `${path}.sourceIds`,
       knownSourceIds,
     ),
   };
+}
+
+function asWiseScenarioStance(
+  input: unknown,
+  path: string,
+): WiseScenarioStance {
+  if (
+    input !== "bullish" &&
+    input !== "bearish" &&
+    input !== "neutral" &&
+    input !== "wait"
+  ) {
+    throw new Error(`${path} must be bullish, bearish, neutral or wait.`);
+  }
+
+  return input;
 }
 
 function asExactRecord(

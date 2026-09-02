@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { PUBLIC_ROUTES, SITE_URL } from "@/config/site";
-import { listPublishedProductSlugs } from "@/server/products/product-catalog-service";
 
 export const revalidate = 300;
 
@@ -11,13 +10,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route === "/" ? 1 : 0.8,
   }));
 
-  const productRoutes: MetadataRoute.Sitemap = listPublishedProductSlugs().map(
-    (slug) => ({
-      url: new URL(`/products/${slug}`, SITE_URL).toString(),
-      changeFrequency: "weekly",
-      priority: 0.7,
-    }),
-  );
-
-  return [...staticRoutes, ...productRoutes];
+  return staticRoutes;
 }

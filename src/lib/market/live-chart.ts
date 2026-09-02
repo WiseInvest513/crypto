@@ -2,6 +2,7 @@ import type {
   Asset,
   ChartCandle,
   ChartCandleInterval,
+  ChartCandleState,
   MarketDatum,
 } from "@/server/data/contracts/market-data";
 
@@ -9,6 +10,7 @@ export type {
   Asset,
   ChartCandle,
   ChartCandleInterval,
+  ChartCandleState,
   MarketDatum,
 };
 

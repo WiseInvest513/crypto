@@ -105,8 +105,8 @@ export function PositionSizeCalculator() {
   return (
     <>
       <CalculatorIntro
-        title="设置风险预算"
-        description="先定义最多愿意承担的价格距离风险，再反推仓位；所有输入只停留在当前页面。"
+        title="先确定这笔交易的风险边界"
+        description="用你自己的余额、风险比例和价格计划反推仓位；页面不会给出建议比例。"
       />
       <form className="calculator-form" noValidate onSubmit={submit} ref={formRef}>
         <CalculatorFormSection
@@ -229,11 +229,23 @@ export function PositionSizeCalculator() {
       <CalculatorResult
         title={result ? "仓位估算" : "等待计算"}
         description="结果按未取整的公式计算，页面仅限制显示精度；不含手续费、滑点与跳空。"
+        ready={Boolean(result)}
       >
         {result ? (
           <>
             <ResultGrid
               items={[
+                {
+                  label: "按当前输入估算的资产数量",
+                  value: formatToolQuantity(result.quantity),
+                  detail: "实际交易需按市场最小下单单位取整",
+                  primary: true,
+                },
+                {
+                  label: "名义仓位",
+                  value: formatToolMoney(result.notional, form.currency),
+                  detail: "数量 × 入场价",
+                },
                 {
                   label: "最大风险金额",
                   value: formatToolMoney(result.maxRisk, form.currency),
@@ -243,16 +255,6 @@ export function PositionSizeCalculator() {
                   label: "每单位价格风险",
                   value: formatToolPrice(result.riskPerUnit, form.currency),
                   detail: "入场价与止损价的绝对距离",
-                },
-                {
-                  label: "资产数量",
-                  value: formatToolQuantity(result.quantity),
-                  detail: "实际交易需按市场最小下单单位取整",
-                },
-                {
-                  label: "名义仓位",
-                  value: formatToolMoney(result.notional, form.currency),
-                  detail: "数量 × 入场价",
                 },
               ]}
             />

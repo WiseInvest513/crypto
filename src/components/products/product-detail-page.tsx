@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import type { ResolvedProduct } from "@/lib/products/product-catalog";
@@ -35,7 +36,7 @@ export function ProductDetailPage({ product }: ProductDetailPageProps) {
       />
 
       <nav className="product-breadcrumb" aria-label="面包屑导航">
-        <Link href="/products">产品指南</Link>
+        <Link href={"/products" as Route}>产品指南</Link>
         <span aria-hidden="true">/</span>
         <span aria-current="page">{product.name}</span>
       </nav>

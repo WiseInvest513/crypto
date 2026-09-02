@@ -7,10 +7,6 @@ import {
   type ProductAnalyticsSourcePage,
   type ProductViewContext,
 } from "@/lib/analytics/product-analytics";
-import {
-  pageAnalytics,
-  type PageAnalytics,
-} from "@/lib/analytics/page-analytics";
 
 type ProductViewTrackerProps = Readonly<{
   slug: string;
@@ -24,7 +20,6 @@ export function ProductViewTracker({
   contentVersion,
 }: ProductViewTrackerProps) {
   const trackedKey = useRef<string | null>(null);
-  const trackedPageKey = useRef<string | null>(null);
 
   useEffect(() => {
     const context = {
@@ -34,7 +29,6 @@ export function ProductViewTracker({
       contentVersion,
     } as const;
     trackProductViewOnce(trackedKey, context, productAnalytics);
-    trackProductPageViewOnce(trackedPageKey, context, pageAnalytics);
   }, [contentVersion, slug, sourcePage]);
 
   return null;
@@ -52,18 +46,4 @@ export function trackProductViewOnce(
 
   trackedKey.current = nextKey;
   analytics.trackProductView(context);
-}
-
-export function trackProductPageViewOnce(
-  trackedKey: { current: string | null },
-  context: Pick<ProductViewContext, "slug" | "contentVersion">,
-  analytics: Pick<PageAnalytics, "trackPageView"> = pageAnalytics,
-): void {
-  const nextKey = `${context.slug}:${context.contentVersion}`;
-  if (trackedKey.current === nextKey) {
-    return;
-  }
-
-  trackedKey.current = nextKey;
-  analytics.trackPageView(`/products/${context.slug}`);
 }

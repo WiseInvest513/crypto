@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   isCurrentRoute,
   navigation,
 } from "../../src/components/layout/navigation";
 
 describe("primary navigation", () => {
-  it("contains the five Phase 1 public routes", () => {
+  it("contains the four core market and tool routes", () => {
     expect(navigation.map((item) => item.href)).toEqual([
       "/",
       "/btc",
       "/eth",
       "/tools",
-      "/products",
     ]);
   });
 
@@ -21,7 +22,6 @@ describe("primary navigation", () => {
       "BTC",
       "ETH",
       "工具",
-      "产品",
     ]);
   });
 
@@ -30,5 +30,18 @@ describe("primary navigation", () => {
     expect(isCurrentRoute("/btc", "/")).toBe(false);
     expect(isCurrentRoute("/tools/dca", "/tools")).toBe(true);
     expect(isCurrentRoute("/toolsmith", "/tools")).toBe(false);
+  });
+
+  it("does not expose the retired product directory in header or footer", () => {
+    const headerNavigation = readFileSync(
+      join(process.cwd(), "src/components/layout/navigation.ts"),
+      "utf8",
+    );
+    const footer = readFileSync(
+      join(process.cwd(), "src/components/layout/site-footer.tsx"),
+      "utf8",
+    );
+
+    expect(`${headerNavigation}\n${footer}`).not.toContain('href: "/products"');
   });
 });

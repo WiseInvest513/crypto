@@ -1,8 +1,9 @@
+import "server-only";
+
 import {
   resolveEditorialEntry,
   resolveTodayInCryptoEntry,
   type EditorialEntry,
-  type EditorialSource,
   type HomepageEditorialConfig,
   type MarketStatusContent,
   type TodayInCryptoContent,
@@ -94,7 +95,6 @@ export function MarketStatusPanel({
       <EditorialMeta
         lastReviewedAt={resolved.lastReviewedAt}
         validUntil={resolved.validUntil}
-        sources={resolved.sources}
         visible={resolved.state === "active"}
       />
     </aside>
@@ -140,33 +140,18 @@ export function TodayInCryptoPanel({
 
       {resolved.content ? (
         <div className="today-list">
-          {resolved.content.items.map((item) => {
-            const itemSources = item.sourceIds.flatMap((sourceId) => {
-              const source = resolved.sources.find(
-                (candidate) => candidate.id === sourceId,
-              );
-              return source ? [source] : [];
-            });
-
-            return (
-              <article key={item.title}>
-                <h3>{item.title}</h3>
-                <p>{item.summary}</p>
-                <EditorialSourceLinks
-                  className="today-item-sources"
-                  label="本条来源"
-                  sources={itemSources}
-                />
-              </article>
-            );
-          })}
+          {resolved.content.items.map((item) => (
+            <article key={item.title}>
+              <h3>{item.title}</h3>
+              <p>{item.summary}</p>
+            </article>
+          ))}
         </div>
       ) : null}
 
       <EditorialMeta
         lastReviewedAt={resolved.lastReviewedAt}
         validUntil={resolved.validUntil}
-        sources={[]}
         visible={resolved.state === "active"}
       />
     </section>
@@ -229,7 +214,6 @@ export function WiseTakePanel({
       <EditorialMeta
         lastReviewedAt={resolved.lastReviewedAt}
         validUntil={resolved.validUntil}
-        sources={resolved.sources}
         visible={resolved.state === "active"}
       />
     </section>
@@ -277,12 +261,10 @@ function EditorialExpiredState({
 function EditorialMeta({
   lastReviewedAt,
   validUntil,
-  sources,
   visible,
 }: {
   lastReviewedAt: string | null;
   validUntil: string | null;
-  sources: readonly EditorialSource[];
   visible: boolean;
 }) {
   if (!visible) {
@@ -302,44 +284,6 @@ function EditorialMeta({
       {validIso && (
         <time dateTime={validIso}>有效期至 {formatUtcDateTime(validUntil)}</time>
       )}
-      {sources.length > 0 && (
-        <span>
-          <EditorialSourceLinks label="来源" sources={sources} />
-        </span>
-      )}
     </footer>
-  );
-}
-
-function EditorialSourceLinks({
-  sources,
-  label,
-  className,
-}: {
-  sources: readonly EditorialSource[];
-  label: string;
-  className?: string;
-}) {
-  if (sources.length === 0) {
-    return null;
-  }
-
-  return (
-    <span className={className}>
-      {label}{" "}
-      {sources.map((source, index) => (
-        <span key={source.id}>
-          {index > 0 && "、"}
-          <a
-            href={source.url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {source.label}
-            <span className="sr-only">（在新标签页打开）</span>
-          </a>
-        </span>
-      ))}
-    </span>
   );
 }

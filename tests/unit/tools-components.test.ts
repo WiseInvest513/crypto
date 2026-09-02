@@ -13,12 +13,32 @@ import type {
   DcaMarketHistory,
 } from "../../src/lib/tools/dca-market-data";
 import { getToolDefinition } from "../../src/lib/tools/catalog";
+import ToolsPage from "../../src/app/tools/page";
 
 describe("Phase 5 calculator components", () => {
+  it("presents all four tools as equal, icon-led task cards", () => {
+    const markup = renderToStaticMarkup(createElement(ToolsPage));
+
+    expect(markup).toContain("交易前，先把风险算清楚");
+    expect(markup).toContain("从当前问题开始");
+    expect(markup).toContain('aria-label="计算工具"');
+    expect(markup).toContain("输入仅在当前设备计算");
+    expect(markup.match(/class="tools-card"/g)).toHaveLength(4);
+    expect(markup.match(/class="tools-card__icon"/g)).toHaveLength(4);
+    for (const slug of ["position-size", "leverage", "dca", "risk-reward"]) {
+      expect(markup).toContain(`data-tool="${slug}"`);
+      expect(markup).toContain(`href="/tools/${slug}"`);
+    }
+    expect(markup).not.toContain("tool-feature");
+    expect(markup).not.toContain("tools-task-list");
+    expect(markup).not.toContain("tools-index__summary");
+    expect(markup).not.toContain("tool-card__index");
+  });
+
   it("renders an empty, labelled position-size form without a suggested risk value", () => {
     const markup = renderToStaticMarkup(createElement(PositionSizeCalculator));
 
-    expect(markup).toContain("设置风险预算");
+    expect(markup).toContain("先确定这笔交易的风险边界");
     expect(markup).toContain('id="position-balance"');
     expect(markup).toContain('id="position-risk-percent"');
     expect(markup).toContain("等待计算");
@@ -51,6 +71,20 @@ describe("Phase 5 calculator components", () => {
 
     expect(source).toContain('tone: "neutral"');
     expect(source).not.toMatch(/rewardToRiskRatio\s*>?=?.*positive/);
+    expect(source).toContain("primary: true");
+  });
+
+  it("gives each calculator one explicit primary result without changing formulas", () => {
+    const calculators = [
+      "src/components/tools/position-size-calculator.tsx",
+      "src/components/tools/leverage-calculator.tsx",
+      "src/components/tools/dca-calculator.tsx",
+      "src/components/tools/risk-reward-calculator.tsx",
+    ].map((path) => readFileSync(join(process.cwd(), path), "utf8"));
+
+    for (const source of calculators) {
+      expect(source.match(/primary: true/g)).toHaveLength(1);
+    }
   });
 
   it("shows a safe asset context and blank next-step tools", () => {
@@ -62,12 +96,12 @@ describe("Phase 5 calculator components", () => {
       }),
     );
 
-    expect(markup).toContain("来自 BTC 资产工作台");
-    expect(markup).toContain("价格、余额、交易计划和计算结果均未带入");
+    expect(markup).toContain("BTC 工具上下文");
+    expect(markup).toContain("没有带入价格、余额或交易计划");
     expect(markup).toContain('href="/btc"');
     expect(markup).toContain('href="/tools/risk-reward?asset=btc"');
     expect(markup).toContain('href="/tools/leverage?asset=btc"');
-    expect(markup).toContain("只打开空白工具");
+    expect(markup).toContain("只打开空白页面");
   });
 
   it("renders Binance source, UTC scope and an empty DCA result before submit", () => {

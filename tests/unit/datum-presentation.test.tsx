@@ -1,6 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { DatumMeta } from "@/components/market/datum-presentation";
+import {
+  DatumMeta,
+  DatumUpdatedAt,
+} from "@/components/market/datum-presentation";
 import type { DatumPresentation } from "@/lib/market/homepage-presentation";
 
 function presentation(
@@ -134,5 +137,77 @@ describe("DatumMeta", () => {
     );
 
     expect(html).toBe("");
+  });
+});
+
+describe("DatumUpdatedAt", () => {
+  it("renders only the update time for fresh homepage data", () => {
+    const html = renderToStaticMarkup(
+      <DatumUpdatedAt
+        presentation={presentation({
+          scopeLabel: "BTC/USD 多市场聚合现货",
+          retrievedAt: "2026-09-01T09:00:05.000Z",
+          retrievedAtLabel: "2026-09-01 09:00 UTC",
+          cacheLabel: "最新获取",
+        })}
+      />,
+    );
+
+    expect(html).toContain('<span class="sr-only">数据更新时间：</span>');
+    expect(html).toContain(
+      '<time dateTime="2026-09-01T09:00:00.000Z">更新于 2026-09-01 09:00 UTC</time>',
+    );
+    expect(html).not.toContain("主要来源");
+    expect(html).not.toContain("BTC/USD 多市场聚合现货");
+    expect(html).not.toContain("获取于");
+    expect(html).not.toContain("最新获取");
+    expect(html).not.toContain("已更新");
+    expect(html).not.toContain("<details");
+  });
+
+  it("keeps the stale update time without duplicating status or exposing lineage", () => {
+    const html = renderToStaticMarkup(
+      <DatumUpdatedAt
+        presentation={presentation({
+          state: "stale",
+          statusLabel: "数据延迟",
+          scopeLabel: "ETH/USD 除以 BTC/USD",
+          fallbackLabel: "主来源暂不可用，当前显示备用来源数据。",
+        })}
+      />,
+    );
+
+    expect(html).toContain("更新于 2026-09-01 09:00 UTC");
+    expect(html).not.toContain("数据延迟");
+    expect(html).not.toContain("主要来源");
+    expect(html).not.toContain("ETH/USD 除以 BTC/USD");
+    expect(html).not.toContain("备用来源");
+    expect(html).not.toContain("查看数据口径");
+  });
+
+  it("uses retrieval time without duplicating the separate failed status", () => {
+    const html = renderToStaticMarkup(
+      <DatumUpdatedAt
+        presentation={presentation({
+          state: "error",
+          statusLabel: "更新失败",
+          updatedAt: null,
+          updatedAtLabel: null,
+          retrievedAt: "2026-09-01T09:00:05.000Z",
+          retrievedAtLabel: "2026-09-01 09:00 UTC",
+          scopeLabel: "BTC/USD 多市场聚合现货",
+          cacheLabel: "未缓存",
+        })}
+      />,
+    );
+
+    expect(html).toContain(
+      '<time dateTime="2026-09-01T09:00:05.000Z">检查于 2026-09-01 09:00 UTC</time>',
+    );
+    expect(html).not.toContain("更新失败");
+    expect(html).not.toContain("主要来源");
+    expect(html).not.toContain("BTC/USD 多市场聚合现货");
+    expect(html).not.toContain("未缓存");
+    expect(html).not.toContain("查看数据口径");
   });
 });

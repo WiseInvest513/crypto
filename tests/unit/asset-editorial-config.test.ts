@@ -4,7 +4,11 @@ import {
   parseAssetEditorialConfig,
   resolveAssetEditorialEntry,
 } from "../../src/lib/editorial/asset-editorial";
-import { loadAssetEditorial } from "../../src/server/editorial/asset-editorial-service";
+import { loadAssetEditorialForAccess } from "../../src/server/editorial/asset-editorial-service";
+import {
+  ANONYMOUS_USER_ACCESS,
+  type UserAccess,
+} from "../../src/lib/access/user-access";
 
 const EFFECTIVE_AT = "2026-08-31T00:00:00.000Z";
 const VALID_UNTIL = "2026-09-02T00:00:00.000Z";
@@ -63,11 +67,16 @@ function wiseScenarioEntry() {
   return {
     ...entryBase(),
     content: {
+      stance: "wait",
+      author: "Wise 研究团队",
+      timeframe: "未来 24–72 小时",
       headline: "人工情景标题",
       summary: "这是经过人工维护的情景配置测试内容。",
+      rationale: ["价格结构仍需确认。"],
       confirmationConditions: ["确认条件完成后才视为情景成立。"],
       invalidationConditions: ["失效条件出现后不再展示为当前情景。"],
       watchItems: ["持续观察市场结构。"],
+      riskDisclosure: "该情景仅用于研究参考，不替代独立风险判断。",
       sourceIds: ["verified-market-source"],
     },
   };
@@ -107,7 +116,11 @@ describe("asset editorial configuration", () => {
       ],
     });
     expect(config.eth.wiseScenario.content).toMatchObject({
+      stance: "wait",
+      author: "Wise 研究团队",
+      timeframe: "未来 24–72 小时",
       headline: "人工情景标题",
+      rationale: ["价格结构仍需确认。"],
       confirmationConditions: ["确认条件完成后才视为情景成立。"],
       invalidationConditions: ["失效条件出现后不再展示为当前情景。"],
       sourceIds: ["verified-market-source"],
@@ -281,6 +294,24 @@ describe("asset editorial configuration", () => {
     expect(() => parseAssetEditorialConfig(tooManyWatchItems)).toThrow(
       "more than 5 items",
     );
+
+    const invalidStance = validConfig();
+    invalidStance.btc.wiseScenario.content.stance = "certain-rise";
+    expect(() => parseAssetEditorialConfig(invalidStance)).toThrow(
+      "must be bullish, bearish, neutral or wait",
+    );
+
+    const missingRationale = validConfig();
+    missingRationale.eth.wiseScenario.content.rationale = [];
+    expect(() => parseAssetEditorialConfig(missingRationale)).toThrow(
+      "must contain at least 1 item",
+    );
+
+    const missingRiskDisclosure = validConfig();
+    missingRiskDisclosure.btc.wiseScenario.content.riskDisclosure = " ";
+    expect(() => parseAssetEditorialConfig(missingRiskDisclosure)).toThrow(
+      "must be a non-empty string",
+    );
   });
 
   it("rejects unknown fields instead of silently ignoring editor typos", () => {
@@ -326,9 +357,37 @@ describe("asset editorial configuration", () => {
     ).toMatchObject({ state: "unpublished", content: null });
   });
 
-  it("keeps production drafts server-only and safely unpublished", () => {
-    const btc = loadAssetEditorial("btc", () => Date.parse(EFFECTIVE_AT));
-    const eth = loadAssetEditorial("eth", () => Date.parse(EFFECTIVE_AT));
+  it("keeps production drafts server-only, access-gated and safely unpublished", async () => {
+    const vipAccess: UserAccess = {
+      tier: "vip",
+      isAuthenticated: true,
+      source: "verified-identity",
+    };
+    const now = () => Date.parse(EFFECTIVE_AT);
+    const btc = await loadAssetEditorialForAccess(
+      "btc",
+      Promise.resolve(vipAccess),
+      now,
+    );
+    const eth = await loadAssetEditorialForAccess(
+      "eth",
+      Promise.resolve(vipAccess),
+      now,
+    );
+    const regular = await loadAssetEditorialForAccess(
+      "btc",
+      Promise.resolve(ANONYMOUS_USER_ACCESS),
+      now,
+    );
+    const forgedVip = await loadAssetEditorialForAccess(
+      "btc",
+      Promise.resolve({
+        tier: "vip",
+        isAuthenticated: false,
+        source: "anonymous-default",
+      } as UserAccess),
+      now,
+    );
 
     expect(btc).toMatchObject({ asset: "btc", now: Date.parse(EFFECTIVE_AT) });
     for (const payload of [btc, eth]) {
@@ -343,6 +402,13 @@ describe("asset editorial configuration", () => {
         sources: [],
       });
     }
+    expect(regular.config).not.toBe(btc.config);
+    expect(forgedVip.config).toBe(regular.config);
+    expect(regular.config.keyLevels).toMatchObject({
+      publicationStatus: "unpublished",
+      content: null,
+      sources: [],
+    });
 
     const contentSource = readFileSync(
       new URL("../../src/content/asset-editorial.ts", import.meta.url),
@@ -357,5 +423,6 @@ describe("asset editorial configuration", () => {
     );
     expect(contentSource).toContain('import "server-only"');
     expect(serviceSource).toContain('import "server-only"');
+    expect(serviceSource).not.toContain("export function loadAssetEditorial(");
   });
 });

@@ -58,11 +58,23 @@ export function presentMarketDatum<T>(
   }
 
   if (datum.status === "unavailable") {
-    return emptyPresentation(
-      "unavailable",
-      "暂不可用",
-      unavailableMessage(datum.reason),
+    const hasMetadata = Boolean(
+      datum.source || datum.scope || datum.retrievedAt,
     );
+    return {
+      ...emptyPresentation(
+        "unavailable",
+        "暂不可用",
+        unavailableMessage(datum.reason),
+      ),
+      source: datum.source,
+      scopeLabel: datum.scope
+        ? formatScopeLabel(datum.capability, datum.scope)
+        : null,
+      retrievedAt: normalizeIsoTimestamp(datum.retrievedAt),
+      retrievedAtLabel: safeTimeLabel(datum.retrievedAt),
+      cacheLabel: hasMetadata ? cacheLabel(datum.cache.status) : null,
+    };
   }
 
   if (datum.status === "error") {

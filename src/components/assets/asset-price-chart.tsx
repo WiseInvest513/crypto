@@ -33,10 +33,14 @@ import {
 } from "@/lib/market/live-chart";
 import { presentMarketDatum } from "@/lib/market/homepage-presentation";
 import { DatumMeta, DatumStatus } from "@/components/market/datum-presentation";
+import {
+  ASSET_LIVE_PRICE_EVENT,
+  type AssetLivePriceEventDetail,
+} from "./asset-live-price";
 
 type ChartViewCount = 200 | 500 | 1_000;
 type ChartRequestMode = "full" | "tail";
-type EmaPresetId = "short" | "trend";
+type EmaPresetId = "price" | "short" | "trend";
 
 const CHART_WIDTH = 1_200;
 const CHART_HEIGHT = 560;
@@ -49,17 +53,41 @@ const PRICE_PLOT = {
 const VOLUME_PLOT = { top: 434, bottom: 510 } as const;
 const chartIntervals = ["15m", "1h", "4h", "1d"] as const;
 const viewCounts = [200, 500, 1_000] as const satisfies readonly ChartViewCount[];
+const chartPriceFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+const compactAxisPriceFormatter = new Intl.NumberFormat("zh-CN", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+const compactLatestWholePriceFormatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 0,
+});
+const compactLatestPrecisePriceFormatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 2,
+});
+const compactVolumeFormatter = new Intl.NumberFormat("zh-CN", {
+  notation: "compact",
+  maximumFractionDigits: 2,
+});
 const emaPresets = [
+  {
+    id: "price",
+    label: "价格",
+    description: "只看 K 线",
+    keys: [],
+  },
   {
     id: "short",
     label: "短线",
-    description: "EMA10 / 20 / 50",
+    description: "EMA 10 · 20 · 50",
     keys: ["ema10", "ema20", "ema50"],
   },
   {
     id: "trend",
     label: "趋势",
-    description: "EMA20 / 50 / 200",
+    description: "EMA 20 · 50 · 200",
     keys: ["ema20", "ema50", "ema200"],
   },
 ] as const satisfies readonly {
@@ -69,7 +97,7 @@ const emaPresets = [
   keys: readonly LiveEmaKey[];
 }[];
 
-const defaultEmaKeys: readonly LiveEmaKey[] = emaPresets[0].keys;
+const defaultEmaKeys: readonly LiveEmaKey[] = emaPresets[1].keys;
 
 export function AssetPriceChart({
   asset,
@@ -96,6 +124,8 @@ export function AssetPriceChart({
   const [refreshIssue, setRefreshIssue] = useState<string | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
   const inFlightRef = useRef(false);
+  const settingsRef = useRef<HTMLDetailsElement | null>(null);
+  const settingsSummaryRef = useRef<HTMLElement | null>(null);
   const chartViewportRef = useRef<HTMLDivElement | null>(null);
   const pointerFrameRef = useRef<number | null>(null);
   const pendingPointerOpenedAtRef = useRef<string | null>(null);
@@ -107,8 +137,9 @@ export function AssetPriceChart({
     (next: MarketDatum<readonly ChartCandle[]>) => {
       datumRef.current = next;
       setDatum(next);
+      dispatchLivePrice(asset, next);
     },
-    [],
+    [asset],
   );
 
   const refresh = useCallback(
@@ -160,6 +191,8 @@ export function AssetPriceChart({
         if (resolvedCandles === null) {
           if (currentCandles === null) {
             commitDatum(next);
+          } else {
+            dispatchLivePriceIssue(asset, refreshFailureLabel(next));
           }
           setRefreshIssue(refreshFailureLabel(next));
           return;
@@ -189,7 +222,11 @@ export function AssetPriceChart({
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
-        setRefreshIssue("实时 K 线刷新失败，正在保留上一次可用数据。");
+        const issue = "实时 K 线刷新失败，正在保留上一次可用数据。";
+        if (publicChartCandles(datumRef.current) !== null) {
+          dispatchLivePriceIssue(asset, issue);
+        }
+        setRefreshIssue(issue);
       } finally {
         if (controllerRef.current === controller) {
           controllerRef.current = null;
@@ -253,6 +290,15 @@ export function AssetPriceChart({
       return null;
     }
   }, [visible]);
+  const closedVisibleSummary = useMemo(() => {
+    try {
+      return summarizeVisibleChart(
+        visible.filter((point) => point.state === "closed"),
+      );
+    } catch {
+      return null;
+    }
+  }, [visible]);
   const trendSummary = useMemo(() => {
     try {
       return summarizeLiveTrend(visible, selectedEmaKeys);
@@ -285,6 +331,11 @@ export function AssetPriceChart({
             (candidate) => candidate === key || current.includes(candidate),
           ),
     );
+  };
+
+  const closeSettings = () => {
+    settingsRef.current?.removeAttribute("open");
+    settingsSummaryRef.current?.focus();
   };
 
   useEffect(() => {
@@ -378,24 +429,34 @@ export function AssetPriceChart({
 
   return (
     <figure className="asset-chart" aria-labelledby={titleId}>
-      <div className="asset-chart__toolbar">
+      <header className="asset-chart__toolbar">
         <div className="asset-chart__heading">
           <div className="asset-chart__title-row">
-            <h2 id={titleId}>实时 K 线工作台</h2>
+            <h2 id={titleId}>{assetLabel}行情图表</h2>
             <span className="asset-chart__live-badge">
-              <i aria-hidden="true" />5 秒检查
+              <i aria-hidden="true" />每 5 秒更新
             </span>
             {hasLater && (
               <span className="asset-chart__history-badge">历史浏览中</span>
             )}
           </div>
           <p>
-            {candles?.at(-1)?.symbol ?? `${asset.toUpperCase()}USDT`} · {chartIntervalLabels[interval]} ·
-            USDT · 已载入 {candles?.length ?? 0} 根
+            {candles?.at(-1)?.symbol ?? `${asset.toUpperCase()}USDT`} · Binance 现货 · USDT
           </p>
         </div>
+        <button
+          className="asset-chart__refresh"
+          type="button"
+          disabled={isRefreshing}
+          onClick={() => void refresh(interval, "full", true)}
+        >
+          {isRefreshing ? "刷新中…" : "刷新"}
+        </button>
+      </header>
 
-        <div className="asset-chart__controls">
+      <div className="asset-chart__command-bar">
+        <div className="asset-chart__command-group">
+          <span>时间周期</span>
           <div className="asset-chart__ranges" role="group" aria-label="选择 K 线周期">
             {chartIntervals.map((candidate) => (
               <button
@@ -409,92 +470,110 @@ export function AssetPriceChart({
               </button>
             ))}
           </div>
-          <button
-            className="asset-chart__refresh"
-            type="button"
-            disabled={isRefreshing}
-            onClick={() => void refresh(interval, "full", true)}
-          >
-            {isRefreshing ? "刷新中…" : "立即刷新"}
-          </button>
         </div>
-      </div>
+        <div className="asset-chart__command-group asset-chart__command-group--views">
+          <span>分析视角</span>
+          <div className="asset-chart__presets" role="group" aria-label="选择均线分析视角">
+            {emaPresets.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                aria-pressed={activeEmaPreset === preset.id}
+                title={preset.description}
+                onClick={() => setSelectedEmaKeys(preset.keys)}
+              >
+                <strong>{preset.label}</strong>
+                <small>{preset.description}</small>
+              </button>
+            ))}
+            {activeEmaPreset === null && <em>自定义</em>}
+          </div>
+        </div>
 
-      <div className="asset-chart__subtoolbar">
-        <div className="asset-chart__view-counts" role="group" aria-label="选择可见 K 线数量">
-          <span>可见数量</span>
-          {viewCounts.map((count) => (
+        <details
+          ref={settingsRef}
+          className="asset-chart__settings"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              closeSettings();
+            }
+          }}
+        >
+          <summary ref={settingsSummaryRef}>指标与范围</summary>
+          <div className="asset-chart__settings-panel">
             <button
-              key={count}
+              className="asset-chart__settings-close"
               type="button"
-              aria-pressed={count === viewCount}
-              onClick={() => {
-                setViewCount(count);
-                setEndOffset(0);
-                setSelectedOpenedAt(null);
-                setKeyboardAnnouncement("");
-              }}
+              onClick={closeSettings}
             >
-              {count === 1_000 ? "全部" : `${count} 根`}
+              关闭设置
             </button>
-          ))}
-        </div>
-        <div className="asset-chart__navigation" role="group" aria-label="浏览更早或更新的 K 线">
-          <button
-            type="button"
-            disabled={!hasEarlier}
-            onClick={() => {
-              setEndOffset((value) => Math.min(points.length - 1, value + Math.floor(viewCount / 2)));
-              setSelectedOpenedAt(null);
-              setKeyboardAnnouncement("");
-            }}
-          >
-            ← 更早
-          </button>
-          <button
-            type="button"
-            disabled={!hasLater}
-            onClick={() => {
-              setEndOffset(0);
-              setSelectedOpenedAt(null);
-              setKeyboardAnnouncement("");
-            }}
-          >
-            回到最新
-          </button>
-        </div>
-      </div>
-
-      <div className="asset-chart__indicator-toolbar">
-        <div className="asset-chart__presets" role="group" aria-label="选择均线分析视角">
-          <span>分析视角 <small>只切换 EMA，不改变 K 线周期</small></span>
-          {emaPresets.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              aria-pressed={activeEmaPreset === preset.id}
-              onClick={() => setSelectedEmaKeys(preset.keys)}
-            >
-              <strong>{preset.label}</strong>
-              <small>{preset.description}</small>
-            </button>
-          ))}
-          {activeEmaPreset === null && <em>自定义</em>}
-        </div>
-        <div className="asset-chart__indicator-toggles" role="group" aria-label="选择图表 EMA 指标">
-          <span>图表指标</span>
-          {liveEmaKeys.map((key) => (
-            <button
-              key={key}
-              type="button"
-              aria-pressed={selectedEmaKeys.includes(key)}
-              onClick={() => toggleEma(key)}
-            >
-              <i className={`chart-key chart-key--${key}`} aria-hidden="true" />
-              {liveEmaDefinitions[key].label}
-            </button>
-          ))}
-        </div>
+            <div className="asset-chart__indicator-toggles" role="group" aria-label="选择图表 EMA 指标">
+              <span>单独选择 EMA</span>
+              <div>
+                {liveEmaKeys.map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    aria-pressed={selectedEmaKeys.includes(key)}
+                    onClick={() => toggleEma(key)}
+                  >
+                    <i className={`chart-key chart-key--${key}`} aria-hidden="true" />
+                    {liveEmaDefinitions[key].label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="asset-chart__view-counts" role="group" aria-label="选择可见 K 线数量">
+              <span>可见数量</span>
+              <div>
+                {viewCounts.map((count) => (
+                  <button
+                    key={count}
+                    type="button"
+                    aria-pressed={count === viewCount}
+                    onClick={() => {
+                      setViewCount(count);
+                      setEndOffset(0);
+                      setSelectedOpenedAt(null);
+                      setKeyboardAnnouncement("");
+                    }}
+                  >
+                    {count === 1_000 ? "全部" : `${count} 根`}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="asset-chart__navigation" role="group" aria-label="浏览更早或更新的 K 线">
+              <span>历史窗口</span>
+              <div>
+                <button
+                  type="button"
+                  disabled={!hasEarlier}
+                  onClick={() => {
+                    setEndOffset((value) => Math.min(points.length - 1, value + Math.floor(viewCount / 2)));
+                    setSelectedOpenedAt(null);
+                    setKeyboardAnnouncement("");
+                  }}
+                >
+                  ← 更早
+                </button>
+                <button
+                  type="button"
+                  disabled={!hasLater}
+                  onClick={() => {
+                    setEndOffset(0);
+                    setSelectedOpenedAt(null);
+                    setKeyboardAnnouncement("");
+                  }}
+                >
+                  回到最新
+                </button>
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
 
       {refreshIssue && (
@@ -514,14 +593,6 @@ export function AssetPriceChart({
         </div>
       ) : (
         <>
-          <ChartReadout
-            point={selected}
-            interval={interval}
-            position={selectedIndex + 1}
-            selectedKeys={selectedEmaKeys}
-            total={visible.length}
-            volumeUnit={baseAssetUnit}
-          />
           <p className="sr-only" role="status" aria-live="polite">
             {keyboardAnnouncement}
           </p>
@@ -530,15 +601,22 @@ export function AssetPriceChart({
             <div className="asset-chart__plot-area">
               <div className="asset-chart__legend" aria-label="图表图例">
                 <span><i className="chart-key chart-key--candle" />K 线</span>
-                <span><i className="chart-key chart-key--forming" />形成中</span>
                 {selectedEmaKeys.map((key) => (
                   <span key={key}>
                     <i className={`chart-key chart-key--${key}`} />
-                    {liveEmaDefinitions[key].label}（当前周期）
+                    {liveEmaDefinitions[key].label}
                   </span>
                 ))}
-                <span><i className="chart-key chart-key--volume" />成交量（{baseAssetUnit}）</span>
+                <span><i className="chart-key chart-key--volume" />成交量</span>
               </div>
+
+              <ChartReadout
+                point={selected}
+                interval={interval}
+                position={selectedIndex + 1}
+                total={visible.length}
+                volumeUnit={baseAssetUnit}
+              />
 
               <div
                 ref={chartViewportRef}
@@ -653,6 +731,7 @@ export function AssetPriceChart({
               selectedKeys={selectedEmaKeys}
               summary={trendSummary}
               symbol={latest.symbol}
+              closedVisibleSummary={closedVisibleSummary}
             />
           </div>
 
@@ -667,9 +746,11 @@ export function AssetPriceChart({
             />
           )}
 
-          <p className="asset-chart__summary">
-            {summary}
-          </p>
+          <details className="asset-chart__method-details">
+            <summary>图表范围与计算口径</summary>
+            <p className="asset-chart__summary">{summary}</p>
+            <p>EMA 只使用当前所选周期的数据计算；形成中的 K 线不进入右侧客观分析。</p>
+          </details>
 
           <details className="asset-chart__data">
             <summary>
@@ -742,15 +823,53 @@ const LiveTrendPanel = memo(function LiveTrendPanel({
   selectedKeys,
   summary,
   symbol,
+  closedVisibleSummary,
 }: {
   historicalWindow: boolean;
   interval: ChartCandleInterval;
   selectedKeys: readonly LiveEmaKey[];
   summary: LiveTrendSummary | null;
   symbol: string;
+  closedVisibleSummary: VisibleChartSummary | null;
 }) {
   const scopeLabel = historicalWindow ? "历史窗口末端" : "当前窗口";
   const latestClosed = summary?.point ?? null;
+  const rangeSpan = closedVisibleSummary
+    ? closedVisibleSummary.highestPrice - closedVisibleSummary.lowestPrice
+    : 0;
+  const closedRangePosition =
+    latestClosed && closedVisibleSummary && rangeSpan > 0
+      ? Math.max(
+          0,
+          Math.min(
+            100,
+            ((latestClosed.close - closedVisibleSummary.lowestPrice) /
+              rangeSpan) *
+              100,
+          ),
+        )
+      : null;
+  const distanceFromHigh =
+    latestClosed &&
+    closedVisibleSummary &&
+    closedVisibleSummary.highestPrice > 0
+      ? ((latestClosed.close - closedVisibleSummary.highestPrice) /
+          closedVisibleSummary.highestPrice) *
+        100
+      : null;
+  const nearestComparison = summary
+    ? summary.comparisons
+        .filter(
+          (comparison) =>
+            comparison.relation !== "unavailable" &&
+            comparison.distancePercent !== null,
+        )
+        .sort(
+          (left, right) =>
+            Math.abs(left.distancePercent ?? Number.POSITIVE_INFINITY) -
+            Math.abs(right.distancePercent ?? Number.POSITIVE_INFINITY),
+        )[0] ?? null
+    : null;
 
   return (
     <section
@@ -759,18 +878,18 @@ const LiveTrendPanel = memo(function LiveTrendPanel({
     >
       <header>
         <div>
-          <p>当前周期分析</p>
-          <h3>先看价格与均线的位置</h3>
+          <p>一眼结论</p>
+          <h3>{chartIntervalLabels[interval]}客观位置</h3>
         </div>
         <span>
-          {symbol} · {chartIntervalLabels[interval]} · {scopeLabel} · 最新已闭合 K 线
+          {symbol} · {scopeLabel} · 只使用已闭合 K 线
         </span>
       </header>
 
       {selectedKeys.length === 0 ? (
         <div className="asset-chart__trend-empty">
-          <strong>当前没有选择 EMA</strong>
-          <p>可从上方选择短线或趋势视角，也可以逐条打开 EMA10 / 20 / 50 / 200。</p>
+          <strong>当前为纯价格视图</strong>
+          <p>图表已隐藏均线。切换到“短线”或“趋势”，即可比较已闭合收盘与 EMA 的位置。</p>
         </div>
       ) : summary === null || latestClosed === null ? (
         <div className="asset-chart__trend-empty">
@@ -783,38 +902,77 @@ const LiveTrendPanel = memo(function LiveTrendPanel({
             <span>截至 {formatChartTime(latestClosed.closedAt)}</span>
             <strong>{trendPositionHeadline(summary)}</strong>
             <p>{trendOrderingLabel(summary.ordering)}</p>
-            <dl>
-              <div>
-                <dt>已闭合收盘</dt>
-                <dd>{formatChartPrice(latestClosed.close)} USDT</dd>
+          </div>
+
+          <section className="asset-chart__watch-condition" aria-label="客观事实变化条件">
+            <span>下一次要确认什么</span>
+            <strong>{factChangeCondition(nearestComparison)}</strong>
+            <p>这是指标状态的变化条件，不是开仓或止损建议。</p>
+          </section>
+
+          <div className="asset-chart__evidence" aria-label="当前结论的客观证据">
+            {closedRangePosition !== null && closedVisibleSummary && (
+              <div className="asset-chart__range-position">
+                <div>
+                  <span>已闭合 K 线区间位置</span>
+                  <strong>{closedRangePosition.toFixed(1)}%</strong>
+                </div>
+                <div className="asset-chart__range-track" aria-hidden="true">
+                  <i style={{ left: `${closedRangePosition}%` }} />
+                </div>
+                <div>
+                  <small>{formatChartPrice(closedVisibleSummary.lowestPrice)}</small>
+                  <small>{formatChartPrice(closedVisibleSummary.highestPrice)}</small>
+                </div>
               </div>
+            )}
+            <dl className="asset-chart__key-facts">
               <div>
                 <dt>近 3 根累计</dt>
-                <dd>{summary.recentThreeChangePercent === null ? "样本不足" : formatSignedPercent(summary.recentThreeChangePercent)}</dd>
+                <dd className={
+                  summary.recentThreeChangePercent === null
+                    ? undefined
+                    : summary.recentThreeChangePercent > 0
+                      ? "is-positive"
+                      : summary.recentThreeChangePercent < 0
+                        ? "is-negative"
+                        : undefined
+                }>
+                  {summary.recentThreeChangePercent === null
+                    ? "样本不足"
+                    : formatSignedPercent(summary.recentThreeChangePercent)}
+                </dd>
+              </div>
+              <div>
+                <dt>距闭合区间高点</dt>
+                <dd>{distanceFromHigh === null ? "—" : formatSignedPercent(distanceFromHigh)}</dd>
               </div>
             </dl>
           </div>
 
-          <dl className="asset-chart__ema-comparisons">
-            {summary.comparisons.map((comparison) => (
-              <div key={comparison.key}>
-                <dt>
-                  <i className={`chart-key chart-key--${comparison.key}`} aria-hidden="true" />
-                  {liveEmaDefinitions[comparison.key].label}
-                </dt>
-                <dd>
-                  <strong>{formatChartPrice(comparison.value)}</strong>
-                  <span>{emaRelationLabel(comparison)}</span>
-                  <small>{emaSlopeLabel(comparison)}</small>
-                </dd>
-              </div>
-            ))}
-          </dl>
+          <details className="asset-chart__ema-details">
+            <summary>查看全部 EMA 对比</summary>
+            <dl className="asset-chart__ema-comparisons">
+              {summary.comparisons.map((comparison) => (
+                <div key={comparison.key}>
+                  <dt>
+                    <i className={`chart-key chart-key--${comparison.key}`} aria-hidden="true" />
+                    {liveEmaDefinitions[comparison.key].label}
+                  </dt>
+                  <dd>
+                    <strong>{formatChartPrice(comparison.value)}</strong>
+                    <span>{emaRelationLabel(comparison)}</span>
+                    <small>{emaSlopeLabel(comparison)}</small>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </details>
         </div>
       )}
 
       <footer>
-        以上只比较当前周期最新已闭合 K 线与所选 EMA；图上形成中 K 线会继续变化。机械指标事实不代表价格将延续，也不构成买卖建议。
+        机械指标事实不代表价格将延续，也不构成买卖建议。
       </footer>
     </section>
   );
@@ -824,14 +982,12 @@ function ChartReadout({
   point,
   interval,
   position,
-  selectedKeys,
   total,
   volumeUnit,
 }: {
   point: LiveChartPoint;
   interval: ChartCandleInterval;
   position: number;
-  selectedKeys: readonly LiveEmaKey[];
   total: number;
   volumeUnit: string;
 }) {
@@ -846,19 +1002,13 @@ function ChartReadout({
           {point.state === "forming" ? "当前形成中" : "已闭合"}
         </span>
       </div>
-      <dl style={{ gridTemplateColumns: `repeat(${6 + selectedKeys.length}, minmax(4.5rem, 1fr))` }}>
-        <div><dt>开</dt><dd>{formatChartPrice(point.open)}</dd></div>
-        <div><dt>高</dt><dd>{formatChartPrice(point.high)}</dd></div>
-        <div><dt>低</dt><dd>{formatChartPrice(point.low)}</dd></div>
-        <div><dt>{point.state === "forming" ? "最新" : "收"}</dt><dd>{formatChartPrice(point.close)}</dd></div>
+      <dl>
+        <div><dt>开盘</dt><dd>{formatChartPrice(point.open)}</dd></div>
+        <div><dt>最高</dt><dd>{formatChartPrice(point.high)}</dd></div>
+        <div><dt>最低</dt><dd>{formatChartPrice(point.low)}</dd></div>
+        <div><dt>{point.state === "forming" ? "最新" : "收盘"}</dt><dd>{formatChartPrice(point.close)}</dd></div>
         <div><dt>涨跌</dt><dd className={changePercent > 0 ? "is-positive" : changePercent < 0 ? "is-negative" : ""}>{formatSignedPercent(changePercent)}</dd></div>
-        <div><dt>量（{volumeUnit}）</dt><dd>{formatVolume(point.volume)}</dd></div>
-        {selectedKeys.map((key) => (
-          <div key={key}>
-            <dt>{liveEmaDefinitions[key].label}</dt>
-            <dd>{formatChartPrice(point[key])}</dd>
-          </div>
-        ))}
+        <div><dt>成交量（{volumeUnit}）</dt><dd>{formatVolume(point.volume)}</dd></div>
       </dl>
     </div>
   );
@@ -886,78 +1036,82 @@ const VisibleWindowFacts = memo(function VisibleWindowFacts({
   const formingComparison = summary.formingVolumeComparison;
 
   return (
-    <section className="asset-chart__window-facts" aria-labelledby={id}>
-      <header>
+    <details className="asset-chart__window-facts">
+      <summary>
         <div>
-          <p>可见窗口</p>
-          <h3 id={id}>可见区间事实</h3>
+          <span>可见区间统计</span>
+          <strong id={id}>
+            区间涨跌 {formatSignedPercent(summary.openToCloseChangePercent)} · 末值位置 {rangePosition}
+          </strong>
         </div>
         <span>
           {pointCount} 根 · {chartIntervalLabels[interval]}
           {latestIsForming ? " · 含形成中 K 线" : " · 全部已闭合"}
         </span>
-      </header>
-      <dl>
-        <div>
-          <dt>区间涨跌</dt>
-          <dd>
-            <span className={`asset-chart__fact-value ${summary.openToCloseChangePercent > 0 ? "is-positive" : summary.openToCloseChangePercent < 0 ? "is-negative" : ""}`}>
-              {formatSignedPercent(summary.openToCloseChangePercent)}
-            </span>
-            <small>首根开盘 → 末根收盘 / 最新</small>
-          </dd>
-        </div>
-        <div>
-          <dt>区间最高</dt>
-          <dd>
-            <span className="asset-chart__fact-value">{formatChartPrice(summary.highestPrice)}</span>
-            <small>USDT</small>
-          </dd>
-        </div>
-        <div>
-          <dt>区间最低</dt>
-          <dd>
-            <span className="asset-chart__fact-value">{formatChartPrice(summary.lowestPrice)}</span>
-            <small>USDT</small>
-          </dd>
-        </div>
-        <div>
-          <dt>区间振幅</dt>
-          <dd>
-            <span className="asset-chart__fact-value">{summary.amplitudePercent.toFixed(2)}%</span>
-            <small>（最高 − 最低）÷ 首根开盘</small>
-          </dd>
-        </div>
-        <div>
-          <dt>末值区间位置</dt>
-          <dd>
-            <span className="asset-chart__fact-value">{rangePosition}</span>
-            <small>最低为 0%，最高为 100%</small>
-          </dd>
-        </div>
-        <div>
-          <dt>区间总成交量</dt>
-          <dd>
-            <span className="asset-chart__fact-value">{formatVolume(summary.totalVolume)}</span>
-            <small>{volumeUnit} 基础资产成交量</small>
-          </dd>
-        </div>
-      </dl>
-      <footer>
-        <p>
-          以上均为所选可见窗口的机械统计，不构成支撑位、阻力位或投资判断。
-          {latestIsForming && " 窗口末端包含形成中 K 线，价格、振幅及成交量等相关数值会继续变化。"}
-        </p>
-        {formingComparison && (
-          <p className="asset-chart__forming-volume">
-            当前形成中成交量 {formatVolume(formingComparison.formingVolume)} {volumeUnit}；
-            {formingComparison.ratioToAverage === null
-              ? "前 20 根已闭合 K 线平均量为 0，暂不计算倍数。"
-              : `约为前 20 根已闭合 K 线平均量的 ${formingComparison.ratioToAverage.toFixed(2)} 倍；当前周期尚未闭合，不可与完整周期直接等同。`}
+      </summary>
+      <div className="asset-chart__window-facts-body">
+        <dl>
+          <div>
+            <dt>区间涨跌</dt>
+            <dd>
+              <span className={`asset-chart__fact-value ${summary.openToCloseChangePercent > 0 ? "is-positive" : summary.openToCloseChangePercent < 0 ? "is-negative" : ""}`}>
+                {formatSignedPercent(summary.openToCloseChangePercent)}
+              </span>
+              <small>首根开盘 → 末根收盘 / 最新</small>
+            </dd>
+          </div>
+          <div>
+            <dt>区间最高</dt>
+            <dd>
+              <span className="asset-chart__fact-value">{formatChartPrice(summary.highestPrice)}</span>
+              <small>USDT</small>
+            </dd>
+          </div>
+          <div>
+            <dt>区间最低</dt>
+            <dd>
+              <span className="asset-chart__fact-value">{formatChartPrice(summary.lowestPrice)}</span>
+              <small>USDT</small>
+            </dd>
+          </div>
+          <div>
+            <dt>区间振幅</dt>
+            <dd>
+              <span className="asset-chart__fact-value">{summary.amplitudePercent.toFixed(2)}%</span>
+              <small>（最高 − 最低）÷ 首根开盘</small>
+            </dd>
+          </div>
+          <div>
+            <dt>末值区间位置</dt>
+            <dd>
+              <span className="asset-chart__fact-value">{rangePosition}</span>
+              <small>最低为 0%，最高为 100%</small>
+            </dd>
+          </div>
+          <div>
+            <dt>区间总成交量</dt>
+            <dd>
+              <span className="asset-chart__fact-value">{formatVolume(summary.totalVolume)}</span>
+              <small>{volumeUnit} 基础资产成交量</small>
+            </dd>
+          </div>
+        </dl>
+        <footer>
+          <p>
+            以上均为所选可见窗口的机械统计，不构成支撑位、阻力位或投资判断。
+            {latestIsForming && " 窗口末端包含形成中 K 线，价格、振幅及成交量等相关数值会继续变化。"}
           </p>
-        )}
-      </footer>
-    </section>
+          {formingComparison && (
+            <p className="asset-chart__forming-volume">
+              当前形成中成交量 {formatVolume(formingComparison.formingVolume)} {volumeUnit}；
+              {formingComparison.ratioToAverage === null
+                ? "前 20 根已闭合 K 线平均量为 0，暂不计算倍数。"
+                : `约为前 20 根已闭合 K 线平均量的 ${formingComparison.ratioToAverage.toFixed(2)} 倍；当前周期尚未闭合，不可与完整周期直接等同。`}
+            </p>
+          )}
+        </footer>
+      </div>
+    </details>
   );
 });
 
@@ -1226,6 +1380,57 @@ function publicChartCandles(
     : null;
 }
 
+function dispatchLivePrice(
+  asset: Asset,
+  datum: MarketDatum<readonly ChartCandle[]>,
+): void {
+  const latest = publicChartCandles(datum)?.at(-1);
+  if (!latest) {
+    return;
+  }
+
+  const detail: AssetLivePriceEventDetail = {
+    kind: "value",
+    asset,
+    currency: "USDT",
+    interval: latest.interval,
+    price: latest.close,
+    state: latest.state,
+    updatedAt: datum.updatedAt ?? datum.retrievedAt ?? latest.openedAt,
+    presentation: presentMarketDatum(datum, (value) => {
+      const current = value.at(-1);
+      return {
+        primary: formatChartPrice(current?.close ?? null),
+        secondary: current
+          ? livePriceEventLabel(current.state, current.interval)
+          : "Binance 市场参考价",
+      };
+    }),
+  };
+  window.dispatchEvent(new CustomEvent(ASSET_LIVE_PRICE_EVENT, { detail }));
+}
+
+function dispatchLivePriceIssue(asset: Asset, message: string): void {
+  const detail: AssetLivePriceEventDetail = {
+    kind: "issue",
+    asset,
+    message,
+  };
+  window.dispatchEvent(new CustomEvent(ASSET_LIVE_PRICE_EVENT, { detail }));
+}
+
+function livePriceEventLabel(
+  state: ChartCandle["state"],
+  interval: ChartCandleInterval,
+): string {
+  if (state === "forming") {
+    return "Binance 最新价 · 当前 K 线形成中";
+  }
+  return interval === "1d"
+    ? "Binance 最新已闭合日线收盘"
+    : "Binance 最新已闭合价";
+}
+
 function refreshFailureLabel(
   datum: MarketDatum<readonly ChartCandle[]>,
 ): string {
@@ -1359,6 +1564,28 @@ function emaSlopeLabel(
   return `近 3 根已闭合 K 线：${direction} ${Math.abs(comparison.slope.changePercent).toFixed(2)}%`;
 }
 
+function factChangeCondition(
+  comparison: LiveTrendSummary["comparisons"][number] | null,
+): string {
+  if (
+    comparison === null ||
+    comparison.relation === "unavailable" ||
+    comparison.value === null
+  ) {
+    return "等待下一根 K 线闭合后重新计算均线位置。";
+  }
+
+  const label = liveEmaDefinitions[comparison.key].label;
+  const value = `${formatChartPrice(comparison.value)} USDT`;
+  if (comparison.relation === "above") {
+    return `若新的已闭合收盘回到 ${label}（${value}）下方，当前“高于 ${label}”的事实会改变。`;
+  }
+  if (comparison.relation === "below") {
+    return `若新的已闭合收盘回到 ${label}（${value}）上方，当前“低于 ${label}”的事实会改变。`;
+  }
+  return `当前收盘接近 ${label}（${value}）；等待下一根 K 线闭合确认相对位置。`;
+}
+
 function keyboardEmaFacts(
   point: LiveChartPoint,
   selectedKeys: readonly LiveEmaKey[],
@@ -1385,30 +1612,21 @@ function keyboardEmaFacts(
 function formatChartPrice(value: number | null): string {
   return value === null || !Number.isFinite(value)
     ? "—"
-    : new Intl.NumberFormat("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(value);
+    : chartPriceFormatter.format(value);
 }
 
 function compactAxisPrice(value: number): string {
-  return new Intl.NumberFormat("zh-CN", {
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
+  return compactAxisPriceFormatter.format(value);
 }
 
 function compactLatestPrice(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: value >= 1_000 ? 0 : 2,
-  }).format(value);
+  return value >= 1_000
+    ? compactLatestWholePriceFormatter.format(value)
+    : compactLatestPrecisePriceFormatter.format(value);
 }
 
 function formatVolume(value: number): string {
-  return new Intl.NumberFormat("zh-CN", {
-    notation: "compact",
-    maximumFractionDigits: 2,
-  }).format(value);
+  return compactVolumeFormatter.format(value);
 }
 
 function formatSignedPercent(value: number): string {

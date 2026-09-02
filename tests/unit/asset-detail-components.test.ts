@@ -5,11 +5,20 @@ import type {
   AssetEditorialEntries,
   AssetEditorialEntry,
 } from "@/lib/editorial/asset-editorial";
+import {
+  ANONYMOUS_USER_ACCESS,
+  type UserAccess,
+} from "@/lib/access/user-access";
 import { analyzeDailyCandles } from "@/lib/market/technical-analysis";
+import {
+  analyzeMultiTimeframeCandles,
+  MULTI_TIMEFRAME_INTERVALS,
+} from "@/lib/market/multi-timeframe";
 import type {
   Asset,
   AvailableMarketDatum,
   ChartCandle,
+  ChartCandleInterval,
   DailyCandle,
   DataScope,
   DataSource,
@@ -18,12 +27,14 @@ import type {
 } from "@/server/data/contracts/market-data";
 import {
   chartCandleCapability,
+  multiTimeframeCapability,
   unavailableDatum,
 } from "@/server/data/contracts/market-data";
 import type {
   AssetChartSnapshot,
   AssetDetailSnapshot,
 } from "@/server/data/services/asset-detail-service";
+import type { MultiTimeframeAccessPayload } from "@/server/data/services/multi-timeframe-service";
 
 const UPDATED_AT = "2026-08-30T23:59:59.999Z";
 const RETRIEVED_AT = "2026-08-31T00:05:00.000Z";
@@ -43,6 +54,11 @@ const EDITORIAL_SOURCE = {
   label: "人工研究记录",
   url: "https://example.com/research-note",
 };
+const VIP_ACCESS = Object.freeze({
+  tier: "vip",
+  isAuthenticated: true,
+  source: "verified-identity",
+} satisfies UserAccess);
 
 function available<T>(
   capability: MarketCapability,
@@ -249,11 +265,16 @@ function publishedEditorial({
       lastReviewedAt: "2026-08-30T20:00:00.000Z",
       sources: [EDITORIAL_SOURCE],
       content: {
+        stance: "wait",
+        author: "Wise 测试研究员",
+        timeframe: "未来 24 小时",
         headline: "人工测试情景",
         summary: "仅验证已审核情景的展示结构。",
+        rationale: ["测试判断依据"],
         confirmationConditions: ["测试确认条件"],
         invalidationConditions: ["测试情景失效条件"],
         watchItems: ["测试观察项"],
+        riskDisclosure: "测试风险说明",
         sourceIds: [EDITORIAL_SOURCE.id],
       },
     },
@@ -280,10 +301,84 @@ function liveChartDatum(
   };
 }
 
+function multiTimeframePayload(asset: Asset): MultiTimeframeAccessPayload {
+  const intervalMilliseconds = {
+    "15m": 15 * 60 * 1_000,
+    "1h": 60 * 60 * 1_000,
+    "4h": 4 * 60 * 60 * 1_000,
+    "1d": 24 * 60 * 60 * 1_000,
+  } as const satisfies Record<ChartCandleInterval, number>;
+  const intervalBase = {
+    "15m": 1_000,
+    "1h": 2_000,
+    "4h": 3_000,
+    "1d": 4_000,
+  } as const satisfies Record<ChartCandleInterval, number>;
+  const start = Date.parse("2026-01-01T00:00:00.000Z");
+
+  return {
+    status: "granted",
+    asset,
+    intervals: MULTI_TIMEFRAME_INTERVALS.map((interval) => {
+      const duration = intervalMilliseconds[interval];
+      const source = Array.from({ length: 221 }, (_, index) => {
+        const close = intervalBase[interval] + index;
+        const openedAt = start + index * duration;
+        return {
+          asset,
+          symbol: asset === "btc" ? "BTCUSDT" as const : "ETHUSDT" as const,
+          interval,
+          quoteCurrency: "USDT" as const,
+          state: index === 220 ? "forming" as const : "closed" as const,
+          openedAt: new Date(openedAt).toISOString(),
+          closedAt: new Date(openedAt + duration - 1).toISOString(),
+          open: close - 0.5,
+          high: close + 1,
+          low: close - 1,
+          close,
+          volume: 100 + index,
+        } satisfies ChartCandle;
+      });
+      const analysis = analyzeMultiTimeframeCandles(source);
+      if (analysis === null) {
+        throw new Error("Multi-timeframe fixture requires sufficient history.");
+      }
+
+      return {
+        interval,
+        datum: available(
+          multiTimeframeCapability(asset),
+          analysis,
+          {
+            kind: "derived",
+            label: `${asset.toUpperCase()}USDT ${interval} closed-candle facts`,
+          },
+          {
+            source: {
+              id: "wise-mtf-test",
+              label: "Wise 多周期测试计算",
+              url: "https://example.com/wise-mtf",
+              components: [CANDLE_SOURCE],
+            },
+            updatedAt: analysis.latestClosedAt,
+            provenance: "derived",
+          },
+        ),
+      };
+    }),
+  };
+}
+
 async function renderAssetDetail(
   data: AssetDetailSnapshot,
   editorial: AssetEditorialEntries = unpublishedEditorial(),
   editorialNow = NOW,
+  access: UserAccess = ANONYMOUS_USER_ACCESS,
+  multiTimeframe: MultiTimeframeAccessPayload = {
+    status: "locked",
+    asset: data.asset,
+  },
+  liveChart: MarketDatum<readonly ChartCandle[]> = liveChartDatum(data),
 ): Promise<string> {
   const stream = await renderToReadableStream(
     AssetDetailStreamPage({
@@ -293,7 +388,7 @@ async function renderAssetDetail(
         candles: data.candles,
         technical: data.technical,
       }),
-      liveChart: Promise.resolve(liveChartDatum(data)),
+      liveChart: Promise.resolve(liveChart),
       context: Promise.resolve({
         funding: data.funding,
         openInterest: data.openInterest,
@@ -301,8 +396,13 @@ async function renderAssetDetail(
         etfFlow: data.etfFlow,
         comparison: data.comparison,
       }),
-      editorial,
-      editorialNow,
+      editorial: Promise.resolve({
+        asset: data.asset,
+        config: editorial,
+        now: editorialNow,
+      }),
+      access: Promise.resolve(access),
+      multiTimeframe: Promise.resolve(multiTimeframe),
     }),
   );
   await stream.allReady;
@@ -332,28 +432,53 @@ async function readStreamChunk(
 }
 
 describe("asset detail server rendering", () => {
-  it("renders a usable BTC workbench with chart, SMA facts and source metadata", async () => {
+  it("renders a chart-first BTC workbench with a compact market header and progressive details", async () => {
     const html = await renderAssetDetail(snapshot("btc"));
 
-    expect(html).toContain("资产工作台 · BTC");
-    expect(html).toContain("$100,000.00");
-    expect(html).toContain("实时 K 线工作台");
-    expect(html).toContain("BTCUSDT · 1 日 · USDT");
+    expect(html).toContain('class="asset-switcher"');
+    expect(html).toContain('aria-label="切换资产工作台"');
+    expect(html).toContain('<a aria-current="page" href="/btc">BTC</a>');
+    expect(html).toContain('<a href="/eth">ETH</a>');
+    expect(html).toContain("BTC <span>比特币</span>");
+    expect(html).toContain("95,900.00");
+    expect(html).toContain("USDT");
+    expect(html).toContain("Binance 最新已闭合日线收盘");
+    expect(html).not.toContain("$100,000.00");
+    expect(html).toContain("比特币行情图表");
+    expect(html).toContain("BTCUSDT · Binance 现货 · USDT");
     expect(html).toContain('role="img"');
-    expect(html).toContain("查看最近 20 根 K 线数据");
-    expect(html).toContain("5 秒检查");
+    expect(html).toContain("每 5 秒更新");
+    expect(html).toContain("时间周期");
+    expect(html).toContain("15 分");
+    expect(html).toContain("1 小时");
+    expect(html).toContain("4 小时");
+    expect(html).toContain("日线");
     expect(html).toContain("分析视角");
+    expect(html).toContain("价格");
     expect(html).toContain("短线");
-    expect(html).toContain("EMA10 / 20 / 50");
-    expect(html).toContain("当前周期分析");
-    expect(html).toContain("先看价格与均线的位置");
-    expect(html).toContain("最新已闭合 K 线");
+    expect(html).toContain("趋势");
+    expect(html).toContain("EMA 10 · 20 · 50");
+    expect(html).toContain("EMA 20 · 50 · 200");
+    expect(html).toContain("指标与范围");
+    expect(html).toContain("单独选择 EMA");
+    expect(html).toContain("可见数量");
+    expect(html).toContain("历史窗口");
+    expect(html).toContain("开盘");
+    expect(html).toContain("最高");
+    expect(html).toContain("最低");
+    expect(html).toContain("收盘");
+    expect(html).toContain("涨跌");
+    expect(html).toContain("一眼结论");
+    expect(html).toContain("已闭合 K 线区间位置");
+    expect(html).toContain("下一次要确认什么");
+    expect(html).toContain("事实会改变");
+    expect(html).toContain("查看全部 EMA 对比");
     expect(html).toContain("EMA10");
     expect(html).toContain("EMA20");
     expect(html).toContain("EMA50");
     expect(html).toContain("近 3 根累计");
     expect(html).toContain("成交量（BTC）");
-    expect(html).toContain("可见区间事实");
+    expect(html).toContain("可见区间统计");
     expect(html).toContain("区间涨跌");
     expect(html).toContain("区间最高");
     expect(html).toContain("区间最低");
@@ -361,28 +486,38 @@ describe("asset detail server rendering", () => {
     expect(html).toContain("末值区间位置");
     expect(html).toContain("机械统计");
     expect(html).toContain("全部已闭合");
+    expect(html).toContain("图表范围与计算口径");
+    expect(html).toContain("查看最近 20 根 K 线数据");
     expect(html).toContain("均线向上排列");
-    expect(html).toContain("BTC 日线背景");
+    expect(html).toContain("大周期背景 · 已闭合日线");
+    expect(html).toContain("BTC SMA 结构");
     expect(html).toContain("SMA20");
     expect(html).toContain("SMA50");
     expect(html).toContain("全市场 24 小时强平");
     expect(html).toContain("BTC 市占率");
     expect(html).toContain("57.25%");
     expect(html).toContain("Binance 现货市场数据");
-    expect(html).toContain("BTC 资产摘要");
     expect(html).toContain("24 小时");
     expect(html).toContain("7 天");
-    expect(html).toContain("日线 SMA20");
-    expect(html).toContain("日线 SMA50");
-    expect(html).toContain("客观趋势");
-    expect(html).toContain('href="#price"');
-    expect(html).toContain('href="#trend"');
-    expect(html).toContain('href="#derivatives"');
+    expect(html).not.toContain("BTC 资产摘要");
+    expect(html).not.toContain("asset-summary");
+    expect(html).not.toContain('href="#price"');
+    expect(html).not.toContain('href="#trend"');
+    expect(html).not.toContain('href="#vip-research"');
+    expect(html).not.toContain('href="#derivatives"');
     expect(html).toContain('href="/tools/position-size?asset=btc"');
     expect(html).toContain('href="/tools/risk-reward?asset=btc"');
     expect(html).toContain('href="/tools/leverage?asset=btc"');
     expect(html).toContain('href="/tools/dca?asset=btc"');
     expect(html).toContain("链接只携带 BTC 资产标识");
+    expect(html).toContain("BTC 行情策略台");
+    expect(html).toContain("普通权限 · 内容已锁定");
+    expect(html).toContain("查看 Wise Crypto VIP 权益");
+    expect(html).toContain(
+      'href="https://www.wise-invest.org/perk/crypto"',
+    );
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('rel="noopener noreferrer"');
     expect(html).not.toContain('href="#editorial"');
     expect(html).not.toContain("人工关键位尚未发布");
     expect(html).not.toContain("Wise Scenario 尚未发布");
@@ -409,14 +544,28 @@ describe("asset detail server rendering", () => {
           etfFlow: data.etfFlow,
           comparison: data.comparison,
         }),
-        editorial: unpublishedEditorial(),
-        editorialNow: NOW,
+        editorial: Promise.resolve({
+          asset: "btc",
+          config: unpublishedEditorial(),
+          now: NOW,
+        }),
+        access: Promise.resolve(ANONYMOUS_USER_ACCESS),
+        multiTimeframe: Promise.resolve({
+          status: "locked",
+          asset: "btc",
+        }),
       }),
     );
     const reader = stream.getReader();
     const decoder = new TextDecoder();
     let initialHtml = "";
-    for (let index = 0; index < 8 && !initialHtml.includes("$100,000.00"); index += 1) {
+    const streamedMarketFacts = ["95,900.00", "+2.50%", "-1.25%"];
+    for (
+      let index = 0;
+      index < 16 &&
+      !streamedMarketFacts.every((fact) => initialHtml.includes(fact));
+      index += 1
+    ) {
       const chunk = await readStreamChunk(reader);
       initialHtml += decoder.decode(chunk.value, { stream: !chunk.done });
       if (chunk.done) {
@@ -425,10 +574,14 @@ describe("asset detail server rendering", () => {
     }
     initialHtml = initialHtml.replace(/<!--[\s\S]*?-->/g, "");
 
-    expect(initialHtml).toContain("$100,000.00");
+    expect(initialHtml).toContain("95,900.00");
+    expect(initialHtml).toContain("USDT");
+    expect(initialHtml).toContain("Binance 最新已闭合日线收盘");
+    expect(initialHtml).not.toContain("$100,000.00");
     expect(initialHtml).toContain("+2.50%");
     expect(initialHtml).toContain("-1.25%");
-    expect(initialHtml).toContain("asset-summary__segment--loading");
+    expect(initialHtml).toContain("asset-workbench--loading");
+    expect(initialHtml).not.toContain("BTC SMA 结构");
 
     resolveChart({ candles: data.candles, technical: data.technical });
     while (!(await reader.read()).done) {
@@ -439,7 +592,9 @@ describe("asset detail server rendering", () => {
   it("renders ETH/BTC on ETH without presenting BTC dominance", async () => {
     const html = await renderAssetDetail(snapshot("eth"));
 
-    expect(html).toContain("资产工作台 · ETH");
+    expect(html).toContain('<a aria-current="page" href="/eth">ETH</a>');
+    expect(html).toContain('<a href="/btc">BTC</a>');
+    expect(html).toContain("ETH <span>以太坊</span>");
     expect(html).toContain("ETH / BTC");
     expect(html).toContain("成交量（ETH）");
     expect(html).toContain("0.04000 BTC");
@@ -459,6 +614,73 @@ describe("asset detail server rendering", () => {
     expect(html).toContain("不是实时现货价");
     expect(html).toContain("Binance 现货市场数据");
     expect(html).not.toContain("$95,900.00");
+  });
+
+  it("uses the verified closed daily chart when both live K-lines and aggregate price are unavailable", async () => {
+    const data = snapshot("btc");
+    data.price = unavailableDatum("spot.btc-price", "no_data");
+    const liveUnavailable = unavailableDatum(
+      chartCandleCapability("btc"),
+      "no_data",
+    );
+
+    const html = await renderAssetDetail(
+      data,
+      unpublishedEditorial(),
+      NOW,
+      ANONYMOUS_USER_ACCESS,
+      { status: "locked", asset: "btc" },
+      liveUnavailable,
+    );
+
+    expect(html).toContain("Binance 最新已闭合日线收盘");
+    expect(html).toContain(
+      "聚合 USD 报价暂不可用；当前显示 Binance 最新已闭合日线收盘，不是实时现货价。",
+    );
+    expect(html).toContain(
+      "实时 K 线暂不可用；当前显示 Binance 已闭合日线，不是实时现货走势。",
+    );
+    expect(html).toContain("95,900.00");
+    expect(html).toContain('aria-pressed="true">日线</button>');
+  });
+
+  it("keeps forming-candle extremes out of the closed-only analysis range", async () => {
+    const data = snapshot("btc");
+    const baseLive = liveChartDatum(data);
+    if (baseLive.status !== "fresh" && baseLive.status !== "stale") {
+      throw new Error("Fixture live chart must be available.");
+    }
+    const lastClosed = baseLive.value.at(-1)!;
+    const forming: ChartCandle = {
+      ...lastClosed,
+      state: "forming",
+      openedAt: "2026-07-31T00:00:00.000Z",
+      closedAt: "2026-07-31T23:59:59.999Z",
+      high: 200_000,
+      low: 1_000,
+      close: 95_000,
+    };
+    const liveWithOutlier: MarketDatum<readonly ChartCandle[]> = {
+      ...baseLive,
+      value: [...baseLive.value, forming],
+      updatedAt: "2026-07-31T12:00:00.000Z",
+      updatedAtKind: "observed",
+    };
+
+    const html = await renderAssetDetail(
+      data,
+      unpublishedEditorial(),
+      NOW,
+      ANONYMOUS_USER_ACCESS,
+      { status: "locked", asset: "btc" },
+      liveWithOutlier,
+    );
+
+    expect(html).toContain("已闭合 K 线区间位置");
+    expect(html).toContain(
+      "<small>89,940.00</small><small>95,950.00</small>",
+    );
+    expect(html).toContain('<span class="asset-chart__fact-value">200,000.00</span>');
   });
 
   it("preserves stale, observation, retrieval and cache metadata in the asset summary", async () => {
@@ -512,7 +734,7 @@ describe("asset detail server rendering", () => {
     const html = await renderAssetDetail(data);
 
     expect(html).toContain("公开页面不会展示开发测试数据");
-    expect(html).toContain("实时 K 线暂不可用");
+    expect(html).toContain("K 线数据暂不可用");
     expect(html).not.toContain("Mock / Development only");
     expect(html).not.toContain("95,900.00");
   });
@@ -560,7 +782,224 @@ describe("asset detail server rendering", () => {
       expect(html).not.toContain("asset-editorial-section");
       expect(html).not.toContain('href="#editorial"');
       expect(html).not.toContain("人工测试情景");
+      expect(html).toContain("普通权限 · 内容已锁定");
     }
+  });
+
+  it("does not serialize active strategy content for a regular user", async () => {
+    const html = await renderAssetDetail(
+      snapshot("btc"),
+      publishedEditorial(),
+    );
+
+    expect(html).toContain("普通权限 · 内容已锁定");
+    expect(html).toContain("人工关键位与主观策略");
+    expect(html).not.toContain("90,000.00 USDT");
+    expect(html).not.toContain("110,000.00 USDT");
+    expect(html).not.toContain("人工测试情景");
+    expect(html).not.toContain("测试情景失效条件");
+    expect(html).not.toContain("测试确认条件");
+    expect(html).not.toContain("测试观察项");
+    expect(html).not.toContain("仅用于渲染测试的人工说明");
+    expect(html).not.toContain("人工研究记录");
+    expect(html).not.toContain("审核于 2026-08-30 20:00 UTC");
+    expect(html).not.toContain("Wise 测试研究员");
+    expect(html).not.toContain("未来 24 小时");
+    expect(html).not.toContain("测试判断依据");
+    expect(html).not.toContain("测试风险说明");
+  });
+
+  it("does not render multi-timeframe facts when a regular response receives a forged granted payload", async () => {
+    const html = await renderAssetDetail(
+      snapshot("btc"),
+      unpublishedEditorial(),
+      NOW,
+      ANONYMOUS_USER_ACCESS,
+      multiTimeframePayload("btc"),
+    );
+
+    expect(html).toContain("多周期客观参考");
+    expect(html).toContain("VIP 内容");
+    expect(html).not.toContain("asset-mtf__grid");
+    expect(html).not.toContain("Wise 多周期测试计算");
+    expect(html).not.toContain("1,219.00");
+    expect(html).not.toContain("closed-ema-v1");
+  });
+
+  it("renders four closed-candle multi-timeframe fact sets only for a verified VIP", async () => {
+    const html = await renderAssetDetail(
+      snapshot("btc"),
+      unpublishedEditorial(),
+      NOW,
+      VIP_ACCESS,
+      multiTimeframePayload("btc"),
+    );
+
+    expect(html).toContain("数据能力已上线");
+    expect(html).toContain("4/4 个周期可用");
+    expect(html).toContain("15 分钟");
+    expect(html).toContain("1 小时");
+    expect(html).toContain("4 小时");
+    expect(html).toContain("1 日");
+    expect(html).toContain("1,219.00");
+    expect(html).toContain("2,219.00");
+    expect(html).toContain("3,219.00");
+    expect(html).toContain("4,219.00");
+    expect(html).toContain("EMA10 &gt; EMA20 &gt; EMA50 &gt; EMA200");
+    expect(html).toContain("收盘在上");
+    expect(html).toContain("距近 20 根高点");
+    expect(html).toContain("此前 20 根均量");
+    expect(html).toContain("查看计算口径");
+    expect(html).toContain("closed-ema-v1");
+    expect(html).toContain("本次输入已发现并排除");
+    expect(html).toContain("最低为 0%，最高为 100%");
+    expect(html).toContain("Wise 多周期测试计算");
+    expect(html).toContain("底层来源");
+    expect(html).not.toMatch(/买入|卖出|目标价|保证收益/);
+  });
+
+  it("blocks synthetic multi-timeframe values while retaining honest coverage", async () => {
+    const payload = multiTimeframePayload("btc");
+    if (payload.status !== "granted") {
+      throw new Error("Fixture must be granted.");
+    }
+    const syntheticPayload: MultiTimeframeAccessPayload = {
+      ...payload,
+      intervals: payload.intervals.map((item, index) =>
+        index === 0 &&
+        (item.datum.status === "fresh" || item.datum.status === "stale")
+          ? {
+              ...item,
+              datum: {
+                ...item.datum,
+                provenance: "synthetic" as const,
+              },
+            }
+          : item,
+      ),
+    };
+
+    const html = await renderAssetDetail(
+      snapshot("btc"),
+      unpublishedEditorial(),
+      NOW,
+      VIP_ACCESS,
+      syntheticPayload,
+    );
+
+    expect(html).toContain("3/4 个周期可用");
+    expect(html).toContain("公开页面不会展示开发测试数据");
+    expect(html).not.toContain("1,219.00");
+    expect(html).toContain("2,219.00");
+  });
+
+  it("keeps stale data visible while isolating multi-timeframe error and unavailable states", async () => {
+    const payload = multiTimeframePayload("btc");
+    if (payload.status !== "granted") {
+      throw new Error("Fixture must be granted.");
+    }
+    const [staleItem, errorItem, unavailableItem, freshItem] = payload.intervals;
+    if (
+      staleItem.datum.status !== "fresh" &&
+      staleItem.datum.status !== "stale"
+    ) {
+      throw new Error("Fixture interval must be available.");
+    }
+    const mixedPayload: MultiTimeframeAccessPayload = {
+      ...payload,
+      intervals: [
+        {
+          ...staleItem,
+          datum: {
+            ...staleItem.datum,
+            status: "stale",
+            stale: true,
+            error: { code: "timeout", retryable: true },
+          },
+        },
+        {
+          interval: errorItem.interval,
+          datum: {
+            status: "error",
+            capability: multiTimeframeCapability("btc"),
+            value: null,
+            source: CANDLE_SOURCE,
+            scope: { kind: "derived", label: "BTCUSDT 1h 测试口径" },
+            updatedAt: null,
+            retrievedAt: RETRIEVED_AT,
+            loading: false,
+            stale: false,
+            cache: errorItem.datum.cache,
+            error: { code: "timeout", retryable: true },
+          },
+        },
+        {
+          interval: unavailableItem.interval,
+          datum: {
+            status: "unavailable",
+            capability: multiTimeframeCapability("btc"),
+            value: null,
+            source: CANDLE_SOURCE,
+            scope: { kind: "derived", label: "BTCUSDT 4h 测试口径" },
+            updatedAt: null,
+            retrievedAt: RETRIEVED_AT,
+            loading: false,
+            stale: false,
+            cache: unavailableItem.datum.cache,
+            error: null,
+            reason: "insufficient_history",
+          },
+        },
+        freshItem,
+      ],
+    };
+
+    const html = await renderAssetDetail(
+      snapshot("btc"),
+      unpublishedEditorial(),
+      NOW,
+      VIP_ACCESS,
+      mixedPayload,
+    );
+
+    expect(html).toContain("2/4 个周期可用");
+    expect(html).toContain("数据延迟");
+    expect(html).toContain("更新失败");
+    expect(html).toContain("暂不可用");
+    expect(html).toContain("历史数据不足，暂无法完成计算。");
+    expect(html).toContain("Binance 现货市场数据");
+  });
+
+  it("shows an honest unpublished state to a verified VIP", async () => {
+    const html = await renderAssetDetail(
+      snapshot("btc"),
+      unpublishedEditorial(),
+      NOW,
+      VIP_ACCESS,
+    );
+
+    expect(html).toContain("VIP 权限已验证");
+    expect(html).toContain("本期人工策略尚未发布");
+    expect(html).toContain("不复用过期内容");
+    expect(html).not.toContain("asset-editorial-section");
+    expect(html).not.toContain("查看 Wise Crypto VIP 权益");
+  });
+
+  it("distinguishes scheduled VIP strategy from unpublished content", async () => {
+    const html = await renderAssetDetail(
+      snapshot("btc"),
+      publishedEditorial({
+        effectiveAt: "2026-09-02T00:00:00.000Z",
+        validUntil: "2026-09-03T00:00:00.000Z",
+      }),
+      NOW,
+      VIP_ACCESS,
+    );
+
+    expect(html).toContain("本期人工策略已排期，尚未生效");
+    expect(html).toContain("当前不会提前披露");
+    expect(html).not.toContain("本期人工策略尚未发布");
+    expect(html).not.toContain("人工测试情景");
   });
 
   it("reduces expired editorial content to a compact review notice", async () => {
@@ -570,12 +1009,14 @@ describe("asset detail server rendering", () => {
         effectiveAt: "2026-08-30T21:00:00.000Z",
         validUntil: "2026-08-31T11:00:00.000Z",
       }),
+      NOW,
+      VIP_ACCESS,
     );
 
     expect(html).toContain("asset-editorial-expired");
     expect(html).toContain("人工关键位已过期");
     expect(html).toContain("Wise Scenario已过期");
-    expect(html).toContain('href="#editorial"');
+    expect(html).not.toContain('href="#vip-research"');
     expect(html).not.toContain("90,000.00 USDT");
     expect(html).not.toContain("人工测试情景");
     expect(html).not.toContain("asset-editorial-panel");
@@ -584,15 +1025,30 @@ describe("asset detail server rendering", () => {
   it("renders reviewed levels and scenario metadata only when active", async () => {
     const editorial = publishedEditorial();
 
-    const html = await renderAssetDetail(snapshot("btc"), editorial);
+    const html = await renderAssetDetail(
+      snapshot("btc"),
+      editorial,
+      NOW,
+      VIP_ACCESS,
+    );
 
+    expect(html).toContain("VIP 权限已验证");
     expect(html).toContain("90,000.00 USDT");
     expect(html).toContain("110,000.00 USDT");
     expect(html).toContain("日线收盘跌破后失效");
     expect(html).toContain("人工测试情景");
+    expect(html).toContain("人工倾向");
+    expect(html).toContain("等待确认");
+    expect(html).toContain("适用窗口");
+    expect(html).toContain("未来 24 小时");
+    expect(html).toContain("Wise 测试研究员");
+    expect(html).toContain("判断依据");
+    expect(html).toContain("测试判断依据");
+    expect(html).toContain("风险说明");
+    expect(html).toContain("测试风险说明");
     expect(html).toContain("测试情景失效条件");
     expect(html).toContain("审核于 2026-08-30 20:00 UTC");
     expect(html).toContain("人工研究记录");
-    expect(html).toContain('href="#editorial"');
+    expect(html).not.toContain('href="#vip-research"');
   });
 });

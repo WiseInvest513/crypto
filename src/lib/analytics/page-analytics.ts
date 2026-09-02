@@ -6,9 +6,7 @@ export type PageViewPath =
   | "/tools/position-size"
   | "/tools/leverage"
   | "/tools/dca"
-  | "/tools/risk-reward"
-  | "/products"
-  | `/products/${string}`;
+  | "/tools/risk-reward";
 
 export type PageViewEvent = Readonly<{
   name: "page_view";
@@ -70,21 +68,13 @@ const STATIC_PAGE_PATHS = new Set<string>([
   "/tools/leverage",
   "/tools/dca",
   "/tools/risk-reward",
-  "/products",
 ]);
-const PRODUCT_DETAIL_PATH =
-  /^\/products\/(?=[a-z0-9-]{1,64}$)[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export function isPublicPagePath(path: unknown): path is PageViewPath {
-  return (
-    typeof path === "string" &&
-    (STATIC_PAGE_PATHS.has(path) || PRODUCT_DETAIL_PATH.test(path))
-  );
+  return typeof path === "string" && STATIC_PAGE_PATHS.has(path);
 }
 
-export function isStaticPageViewPath(
-  path: unknown,
-): path is Exclude<PageViewPath, `/products/${string}`> {
+export function isStaticPageViewPath(path: unknown): path is PageViewPath {
   return typeof path === "string" && STATIC_PAGE_PATHS.has(path);
 }
 

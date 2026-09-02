@@ -1,5 +1,7 @@
 export const SITE_NAME = "Wise Crypto";
 export const PRODUCTION_SITE_URL = "https://crypto.wise-invest.org";
+export const WISE_INVEST_CRYPTO_PERKS_URL =
+  "https://www.wise-invest.org/perk/crypto";
 
 export function resolveSiteUrl(
   value: string | undefined = process.env.SITE_URL,
@@ -47,7 +49,6 @@ export const PUBLIC_ROUTES = [
   "/tools/leverage",
   "/tools/dca",
   "/tools/risk-reward",
-  "/products",
 ] as const;
 
 export function isPublicIndexingEnabled(

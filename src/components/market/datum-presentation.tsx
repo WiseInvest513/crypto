@@ -131,3 +131,40 @@ export function DatumMeta({
     </div>
   );
 }
+
+/**
+ * Homepage-only compact metadata. The normalized presentation still retains
+ * its complete source, scope, cache and fallback lineage; this component keeps
+ * the public market scan focused on freshness rather than repeating provider
+ * names beneath every value.
+ */
+export function DatumUpdatedAt({
+  presentation,
+  label = "更新于",
+}: {
+  presentation: DatumPresentation;
+  label?: string;
+}) {
+  const usesSourceTime = Boolean(
+    presentation.updatedAt && presentation.updatedAtLabel,
+  );
+  const timestamp = usesSourceTime
+    ? presentation.updatedAt
+    : presentation.retrievedAt;
+  const timestampLabel = usesSourceTime
+    ? presentation.updatedAtLabel
+    : presentation.retrievedAtLabel;
+
+  if (!timestamp || !timestampLabel) {
+    return null;
+  }
+
+  return (
+    <span className="datum-updated-at">
+      <span className="sr-only">数据更新时间：</span>
+      <time dateTime={timestamp}>
+        {usesSourceTime ? label : "检查于"} {timestampLabel}
+      </time>
+    </span>
+  );
+}

@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useEffect, useRef, type ReactNode } from "react";
 
 export type ToolDirection = "long" | "short";
 export type ToolCurrency = "USD" | "USDT";
@@ -58,13 +60,14 @@ export function CalculatorField({
     <div className={`calculator-field${full ? " calculator-field--full" : ""}`}>
       <label htmlFor={id}>{label}</label>
       {children}
-      {error ? (
-        <p className="calculator-field__error" id={`${id}-error`} role="alert">
-          {error}
-        </p>
-      ) : hint ? (
+      {hint ? (
         <p className="calculator-field__hint" id={`${id}-hint`}>
           {hint}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="calculator-field__error" id={`${id}-error`}>
+          {error}
         </p>
       ) : null}
     </div>
@@ -79,7 +82,7 @@ export function DirectionField({
   onChange: (value: ToolDirection) => void;
 }) {
   return (
-    <fieldset className="calculator-choice calculator-field--full">
+    <fieldset className="calculator-choice">
       <legend>方向</legend>
       <div>
         <label>
@@ -157,16 +160,41 @@ export function CalculatorResult({
   title,
   description,
   children,
+  ready = false,
 }: {
   title: string;
   description: string;
   children: ReactNode;
+  ready?: boolean;
 }) {
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!ready) return;
+
+    sectionRef.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "nearest",
+    });
+  }, [ready]);
+
   return (
-    <section className="calculator-result" aria-live="polite" aria-atomic="true">
+    <section
+      className="calculator-result"
+      aria-labelledby="calculator-result-title"
+      ref={sectionRef}
+    >
       <header>
         <p className="panel-kicker">估算结果</p>
-        <h2>{title}</h2>
+        <h2
+          id="calculator-result-title"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {title}
+        </h2>
         <p>{description}</p>
       </header>
       {children}
@@ -182,12 +210,18 @@ export function ResultGrid({
     value: string;
     detail?: string;
     tone?: "positive" | "negative" | "neutral";
+    primary?: boolean;
   }[];
 }) {
   return (
-    <dl className="calculator-result-grid">
+    <dl className={`calculator-result-grid calculator-result-grid--${items.length}`}>
       {items.map((item) => (
-        <div key={item.label}>
+        <div
+          className={
+            item.primary ? "calculator-result-grid__item--primary" : undefined
+          }
+          key={item.label}
+        >
           <dt>{item.label}</dt>
           <dd className={`value-direction--${item.tone ?? "neutral"}`}>
             {item.value}

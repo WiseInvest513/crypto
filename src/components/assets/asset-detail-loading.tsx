@@ -7,50 +7,100 @@ export function AssetDetailLoading({
 }) {
   return (
     <div
-      className="asset-detail-page page-container"
+      className="asset-detail-page asset-detail-page--focus page-container"
       role="status"
       aria-live="polite"
       aria-busy="true"
     >
-      <section className="asset-detail-header">
-        <div className="asset-detail-header__identity">
-          <span
-            className={`asset-mark ${symbol === "BTC" ? "asset-mark--bitcoin" : "asset-mark--ethereum"}`}
-            aria-hidden="true"
-          >
-            {symbol.slice(0, 1)}
-          </span>
-          <div>
-            <p className="page-kicker">资产工作台 · {symbol}</p>
-            <h1>{name}</h1>
+      <div className="asset-detail-loading" aria-hidden="true">
+        <section className="asset-detail-loading__market">
+          <div className="asset-detail-loading__identity">
+            <div className="asset-detail-loading__switcher">
+              <span data-current={symbol === "BTC"}>BTC</span>
+              <span data-current={symbol === "ETH"}>ETH</span>
+            </div>
+            <div className="asset-detail-loading__title">
+              <span
+                className={`asset-mark ${symbol === "BTC" ? "asset-mark--bitcoin" : "asset-mark--ethereum"}`}
+              >
+                {symbol.slice(0, 1)}
+              </span>
+              <div>
+                <small>资产工作台</small>
+                <h1>
+                  {symbol} <span>{name}</span>
+                </h1>
+              </div>
+            </div>
           </div>
-        </div>
-        <span className="status-badge status-badge--neutral">
-          <span aria-hidden="true" />加载中
-        </span>
-      </section>
 
-      <div className="asset-workbench asset-workbench--loading" aria-hidden="true">
-        <div className="asset-workbench__chart">
-          <span className="skeleton-line skeleton-line--label" />
-          <span className="asset-chart-skeleton" />
-        </div>
-        <div className="asset-workbench__rail">
-          {Array.from({ length: 4 }, (_, index) => (
-            <div className="asset-rail-skeleton" key={index}>
+          <div className="asset-detail-loading__quote">
+            <div>
+              <span className="skeleton-line skeleton-line--price" />
+              <span className="skeleton-line skeleton-line--label" />
+            </div>
+            <div className="asset-detail-loading__changes">
+              <span className="skeleton-line skeleton-line--label" />
+              <span className="skeleton-line skeleton-line--label" />
+            </div>
+          </div>
+        </section>
+
+        <section className="asset-detail-loading__terminal">
+          <div className="asset-detail-loading__controls">
+            <div className="asset-detail-loading__control-group">
+              <span className="skeleton-line skeleton-line--label" />
+              <div>
+                {Array.from({ length: 4 }, (_, index) => (
+                  <span className="asset-detail-loading__control" key={index} />
+                ))}
+              </div>
+            </div>
+            <div className="asset-detail-loading__control-group asset-detail-loading__control-group--view">
+              <span className="skeleton-line skeleton-line--label" />
+              <div>
+                {Array.from({ length: 3 }, (_, index) => (
+                  <span className="asset-detail-loading__control" key={index} />
+                ))}
+              </div>
+            </div>
+            <span className="asset-detail-loading__settings" />
+          </div>
+
+          <div className="asset-detail-loading__stage">
+            <div className="asset-detail-loading__chart">
+              <div className="asset-detail-loading__legend">
+                {Array.from({ length: 4 }, (_, index) => (
+                  <span className="skeleton-line skeleton-line--label" key={index} />
+                ))}
+              </div>
+              <div className="asset-detail-loading__canvas">
+                <div className="asset-detail-loading__ohlc">
+                  <span className="skeleton-line skeleton-line--label" />
+                  <span className="skeleton-line skeleton-line--value" />
+                </div>
+              </div>
+            </div>
+
+            <aside className="asset-detail-loading__analysis">
               <span className="skeleton-line skeleton-line--label" />
               <span className="skeleton-line skeleton-line--value" />
-            </div>
-          ))}
-        </div>
+              <span className="skeleton-line skeleton-line--meta" />
+              <div className="asset-detail-loading__analysis-facts">
+                {Array.from({ length: 3 }, (_, index) => (
+                  <div key={index}>
+                    <span className="skeleton-line skeleton-line--label" />
+                    <span className="skeleton-line skeleton-line--value" />
+                  </div>
+                ))}
+              </div>
+            </aside>
+          </div>
+        </section>
       </div>
-
-      <div className="asset-facts-grid asset-facts-grid--loading" aria-hidden="true">
-        {Array.from({ length: 5 }, (_, index) => (
-          <span className="asset-fact-skeleton" key={index} />
-        ))}
-      </div>
-      <span className="sr-only">{symbol} 资产工作台正在加载。</span>
+      <span className="sr-only">
+        {symbol} {name} 行情、K 线与分析正在加载。
+      </span>
     </div>
   );
 }

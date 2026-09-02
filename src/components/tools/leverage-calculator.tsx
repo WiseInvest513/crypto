@@ -107,8 +107,8 @@ export function LeverageCalculator() {
   return (
     <>
       <CalculatorIntro
-        title="拆解杠杆仓位"
-        description="用名义仓位与杠杆倍数估算初始保证金，再根据退出价计算线性盈亏和 ROE。"
+        title="先拆解保证金与价格情景"
+        description="估算初始保证金和线性价格盈亏；本工具不会计算交易所强平价。"
       />
       <form className="calculator-form" noValidate onSubmit={submit} ref={formRef}>
         <CalculatorFormSection
@@ -126,7 +126,7 @@ export function LeverageCalculator() {
           <CalculatorField
             id="leverage-notional"
             label="仓位名义价值"
-            hint={`单位：${form.currency}`}
+            hint={`仓位对应的标的总价值，不是投入保证金；单位：${form.currency}`}
             error={errors.notional}
           >
             <input
@@ -230,25 +230,27 @@ export function LeverageCalculator() {
       <CalculatorResult
         title={result ? "保证金与盈亏估算" : "等待计算"}
         description="这是线性价格变化模型，不包含交易所的维持保证金、资金费与费用规则。"
+        ready={Boolean(result)}
       >
         {result ? (
           <ResultGrid
             items={[
               {
-                label: "仓位数量",
-                value: formatToolQuantity(result.quantity),
-                detail: "名义仓位 ÷ 入场价",
-              },
-              {
                 label: "初始保证金",
                 value: formatToolMoney(result.margin, form.currency),
                 detail: "名义仓位 ÷ 杠杆倍数",
+                primary: true,
               },
               {
                 label: "情景盈亏",
                 value: formatToolMoney(result.pnl, form.currency),
                 detail: "未扣手续费与资金费",
                 tone: pnlTone,
+              },
+              {
+                label: "仓位数量",
+                value: formatToolQuantity(result.quantity),
+                detail: "名义仓位 ÷ 入场价",
               },
               {
                 label: "保证金 ROE",

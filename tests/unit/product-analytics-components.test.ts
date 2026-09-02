@@ -8,7 +8,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ProductViewTracker,
-  trackProductPageViewOnce,
   trackProductViewOnce,
 } from "../../src/components/products/product-view-tracker";
 import { ReferralLink } from "../../src/components/products/referral-link";
@@ -161,29 +160,6 @@ describe("product analytics client components", () => {
     );
 
     expect(trackProductView).toHaveBeenCalledTimes(2);
-  });
-
-  it("emits product-detail page_view only from a resolved product component", () => {
-    const tracked = { current: null as string | null };
-    const trackPageView = vi.fn();
-
-    trackProductPageViewOnce(tracked, detailProps, { trackPageView });
-    trackProductPageViewOnce(tracked, detailProps, { trackPageView });
-    trackProductPageViewOnce(
-      tracked,
-      {
-        slug: "coinbase",
-        contentVersion: "2026-08-31-coinbase-v1",
-      },
-      { trackPageView },
-    );
-
-    expect(trackPageView).toHaveBeenCalledTimes(2);
-    expect(trackPageView).toHaveBeenNthCalledWith(
-      1,
-      "/products/example-product",
-    );
-    expect(trackPageView).toHaveBeenNthCalledWith(2, "/products/coinbase");
   });
 
   it("renders no visible product-view tracking markup", () => {

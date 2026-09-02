@@ -10,7 +10,9 @@ function readSource(path: string) {
 
 describe("Simplified Chinese interface foundation", () => {
   it("declares zh-CN as the document language", () => {
-    expect(readSource("src/app/layout.tsx")).toContain('<html lang="zh-CN">');
+    expect(readSource("src/app/layout.tsx")).toContain(
+      '<html lang="zh-CN" data-scroll-behavior="smooth">',
+    );
     expect(readSource("src/app/global-error.tsx")).toContain(
       '<html lang="zh-CN">',
     );
@@ -40,11 +42,6 @@ describe("Simplified Chinese interface foundation", () => {
 
   it.each([
     ["src/app/tools/page.tsx", "加密工具", "每个工具都有独立分享 URL"],
-    [
-      "src/components/products/product-directory.tsx",
-      "加密产品指南",
-      "暂无可用的产品指南",
-    ],
   ])("localizes the public copy in %s", (path, title, status) => {
     const source = readSource(path);
 
@@ -67,8 +64,22 @@ describe("Simplified Chinese interface foundation", () => {
     expect(source).toContain(serviceCall);
     expect(source).toContain("loadAssetChartSnapshot");
     expect(source).toContain("loadAssetContextSnapshot");
-    expect(chart).toContain("实时 K 线工作台");
-    expect(chart).toContain("5 秒检查");
+    expect(workspace).toContain("切换资产工作台");
+    expect(chart).toContain("行情图表");
+    expect(chart).toContain("时间周期");
+    expect(chart).toContain("分析视角");
+    expect(chart).toContain("每 5 秒更新");
+    expect(chart).toContain("EMA 10 · 20 · 50");
+    expect(chart).toContain("EMA 20 · 50 · 200");
+    expect(chart).toContain("开盘");
+    expect(chart).toContain("最高");
+    expect(chart).toContain("最低");
+    expect(chart).toContain("收盘 / 最新");
+    expect(chart).toContain("一眼结论");
+    expect(chart).toContain("已闭合 K 线区间位置");
+    expect(chart).toContain("下一次要确认什么");
+    expect(chart).toContain("查看全部 EMA 对比");
+    expect(chart).toContain("图表范围与计算口径");
     expect(workspace).toContain("衍生品与市场背景");
     expect(workspace).toContain("数据暂不可用");
     expect(`${source}\n${workspace}`).not.toMatch(

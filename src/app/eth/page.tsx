@@ -6,25 +6,29 @@ import {
   loadAssetLiveChartDatum,
   loadAssetPriceDatum,
 } from "@/server/data/services/market-data-service";
-import { loadAssetEditorial } from "@/server/editorial/asset-editorial-service";
+import { loadAssetEditorialForAccess } from "@/server/editorial/asset-editorial-service";
 import { createPageMetadata } from "@/lib/seo/page-metadata";
+import { resolveUserAccess } from "@/server/access/resolve-user-access";
+import { loadAssetMultiTimeframeForAccess } from "@/server/data/services/multi-timeframe-service";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createPageMetadata({
   title: "以太坊（ETH）",
   description:
-    "Wise Crypto 以太坊工作台：ETH 价格、日线、MA20、MA50、ETH/BTC、衍生品数据与人工审核情景。",
+    "Wise Crypto 以太坊工作台：ETH 价格、实时 K 线、EMA、VIP 多周期客观参考、ETH/BTC 与人工审核情景。",
   path: "/eth",
   socialTitle: "以太坊（ETH）市场工作台",
 });
 
 export default function EthereumPage() {
+  const access = resolveUserAccess();
   const price = loadAssetPriceDatum("eth");
   const chart = loadAssetChartSnapshot("eth");
   const liveChart = loadAssetLiveChartDatum("eth");
   const context = loadAssetContextSnapshot("eth");
-  const { config, now } = loadAssetEditorial("eth");
+  const editorial = loadAssetEditorialForAccess("eth", access);
+  const multiTimeframe = loadAssetMultiTimeframeForAccess("eth", access);
 
   return (
     <AssetDetailStreamPage
@@ -33,8 +37,9 @@ export default function EthereumPage() {
       chart={chart}
       liveChart={liveChart}
       context={context}
-      editorial={config}
-      editorialNow={now}
+      editorial={editorial}
+      access={access}
+      multiTimeframe={multiTimeframe}
     />
   );
 }

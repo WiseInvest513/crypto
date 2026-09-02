@@ -28,6 +28,8 @@ describe("page analytics facade", () => {
     for (const path of [
       "/btc?ref=secret",
       "/unknown",
+      "/products",
+      "/products/ledger-hardware-wallet",
       "/products/UPPERCASE",
       "/products/a--b",
       `/products/${"a".repeat(65)}`,
@@ -35,10 +37,9 @@ describe("page analytics facade", () => {
       expect(isPublicPagePath(path)).toBe(false);
     }
 
-    expect(isPublicPagePath("/products/ledger-hardware-wallet")).toBe(true);
     expect(isStaticPageViewPath("/products/ledger-hardware-wallet")).toBe(false);
     expect(isStaticPageViewPath("/products/not-published")).toBe(false);
-    expect(isStaticPageViewPath("/products")).toBe(true);
+    expect(isStaticPageViewPath("/products")).toBe(false);
   });
 
   it("never lets synchronous or asynchronous adapters block navigation", async () => {
@@ -52,7 +53,7 @@ describe("page analytics facade", () => {
     });
 
     expect(() => synchronous.trackPageView("/tools")).not.toThrow();
-    expect(() => asynchronous.trackPageView("/products")).not.toThrow();
+    expect(() => asynchronous.trackPageView("/eth")).not.toThrow();
     await Promise.resolve();
   });
 
@@ -72,18 +73,18 @@ describe("page analytics facade", () => {
     expect(trackPageView).toHaveBeenNthCalledWith(2, "/eth");
   });
 
-  it("tracks a static page again after traversing an excluded detail path", () => {
+  it("tracks a static page again after traversing a retired product path", () => {
     const previous = { current: null as string | null };
     const trackPageView = vi.fn();
     const analytics: Pick<PageAnalytics, "trackPageView"> = { trackPageView };
 
-    trackPageViewOnce(previous, "/products", analytics);
+    trackPageViewOnce(previous, "/tools", analytics);
     trackPageViewOnce(previous, "/products/binance", analytics);
-    trackPageViewOnce(previous, "/products", analytics);
+    trackPageViewOnce(previous, "/tools", analytics);
 
     expect(trackPageView).toHaveBeenCalledTimes(2);
-    expect(trackPageView).toHaveBeenNthCalledWith(1, "/products");
-    expect(trackPageView).toHaveBeenNthCalledWith(2, "/products");
+    expect(trackPageView).toHaveBeenNthCalledWith(1, "/tools");
+    expect(trackPageView).toHaveBeenNthCalledWith(2, "/tools");
   });
 
   it("keeps the adapter contract free of identifiers and arbitrary metadata", () => {

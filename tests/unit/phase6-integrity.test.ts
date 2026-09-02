@@ -12,27 +12,19 @@ function readSource(path: string) {
   return readFileSync(join(PROJECT_ROOT, path), "utf8");
 }
 
-describe("Phase 6 products and referral integrity", () => {
-  const publishedSlugs = [
-    "binance",
-    "coinbase",
-    "kraken",
-    "okx",
-    "metamask",
-    "ledger-hardware-wallet",
-    "coingecko",
-  ] as const;
-
-  it("ships sourced production guides without inventing a referral relationship", () => {
+describe("retired product-line integrity", () => {
+  it("archives sourced historical guides without inventing a referral relationship", () => {
     const source = readSource("src/content/products.ts");
 
     expect(productCatalogDraft.partners).toHaveLength(7);
     for (const partner of productCatalogDraft.partners) {
       expect(partner.allowedReferralHosts).toEqual([]);
+      expect(partner.enabled).toBe(false);
     }
     expect(productCatalogDraft.products).toHaveLength(7);
     for (const product of productCatalogDraft.products) {
-      expect(product.publicationStatus).toBe("published");
+      expect(product.publicationStatus).toBe("unpublished");
+      expect(product.enabled).toBe(false);
       expect(product.sources.length).toBeGreaterThanOrEqual(3);
       expect(product.referralUrl).toBeNull();
       expect(product.referralCode).toBeNull();
@@ -46,35 +38,29 @@ describe("Phase 6 products and referral integrity", () => {
     expect(source).not.toMatch(/[?&](?:ref|referral|affiliate|code)=/i);
   });
 
-  it("uses async Next.js params and returns notFound for non-public product slugs", () => {
-    const route = readSource("src/app/products/[slug]/page.tsx");
+  it("permanently redirects legacy product URLs to the fixed main-site perks page", () => {
+    const proxy = readSource("src/proxy.ts");
+    const siteConfig = readSource("src/config/site.ts");
 
-    expect(route).toContain("generateStaticParams");
-    expect(route).toContain("listPublishedProductSlugs().map");
-    expect(route).toContain("export async function generateMetadata");
-    expect(route).toContain('PageProps<"/products/[slug]">');
-    expect(route.match(/const \{ slug \} = await params/g)).toHaveLength(2);
-    expect(route.match(/notFound\(\)/g)).toHaveLength(1);
-    expect(route).toContain("dynamicParams = false");
-    expect(route).not.toMatch(
-      /\bsearchParams\b|\bredirect\s*\(|\bpermanentRedirect\s*\(|NextResponse\.redirect/,
+    expect(siteConfig).toContain(
+      '"https://www.wise-invest.org/perk/crypto"',
     );
+    expect(proxy).toContain('matcher: "/products/:path*"');
+    expect(proxy).toContain(
+      "NextResponse.redirect(WISE_INVEST_CRYPTO_PERKS_URL, 308)",
+    );
+    expect(proxy).not.toMatch(/\bsearchParams\b|\bparams\b|request\.nextUrl/);
   });
 
-  it("adds only published product-detail slugs to the sitemap", () => {
+  it("removes retired product URLs from the public route list and sitemap", () => {
     const source = readSource("src/app/sitemap.ts");
     const paths = sitemap().map((entry) => new URL(entry.url).pathname);
 
-    expect(listPublishedProductSlugs()).toEqual(publishedSlugs);
-    expect(paths).toEqual([
-      ...PUBLIC_ROUTES,
-      ...publishedSlugs.map((slug) => `/products/${slug}`),
-    ]);
-    expect(source).toContain(
-      'import { listPublishedProductSlugs } from "@/server/products/product-catalog-service"',
-    );
-    expect(source).toContain("listPublishedProductSlugs().map");
-    expect(source).toContain("`/products/${slug}`");
+    expect(listPublishedProductSlugs()).toEqual([]);
+    expect(PUBLIC_ROUTES).not.toContain("/products");
+    expect(paths).toEqual(PUBLIC_ROUTES);
+    expect(paths.every((path) => !path.startsWith("/products"))).toBe(true);
+    expect(source).not.toContain("listPublishedProductSlugs");
     expect(source).not.toMatch(/productCatalogDraft|publicationStatus/);
   });
 
@@ -100,30 +86,12 @@ describe("Phase 6 products and referral integrity", () => {
     );
   });
 
-  it("keeps the new public product experience in Simplified Chinese", () => {
-    const publicUi = [
-      "src/components/products/product-directory.tsx",
-      "src/components/products/product-detail-page.tsx",
-      "src/app/products/not-found.tsx",
-      "src/app/products/loading.tsx",
-    ]
-      .map(readSource)
-      .join("\n");
+  it("keeps the dormant validated catalog reusable without serving it publicly", () => {
+    const proxy = readSource("src/proxy.ts");
 
-    for (const copy of [
-      "加密产品指南",
-      "暂无可用的产品指南",
-      "客观对照",
-      "来源与条款",
-      "合作链接披露",
-      "这份产品资料暂不可用",
-      "尚未完成事实核验",
-      "正在加载产品目录",
-    ]) {
-      expect(publicUi).toContain(copy);
-    }
-    expect(publicUi).not.toMatch(
-      /No product guides|Product not found|Loading products|View partner|Referral disclosure/,
+    expect(productCatalogDraft.products).toHaveLength(7);
+    expect(proxy).not.toMatch(
+      /product-catalog-service|components\/products/,
     );
   });
 });
