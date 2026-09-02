@@ -76,7 +76,10 @@ export function DatumMeta({
         )}
         {hasUpdatedAt && (
           <time dateTime={presentation.updatedAt!}>
-            数据截至 {presentation.updatedAtLabel}
+            {presentation.updatedAtKind === "observed"
+              ? "服务器观测于"
+              : "数据截至"}{" "}
+            {presentation.updatedAtLabel}
           </time>
         )}
         {(presentation.state === "fresh" ||

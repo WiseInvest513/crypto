@@ -6,7 +6,7 @@ export type CachePolicy = {
 
 export const cachePolicies = {
   quote: {
-    revalidateSeconds: 10 * 60,
+    revalidateSeconds: 5 * 60,
     staleIfErrorSeconds: 15 * 60,
     maxSourceAgeSeconds: 5 * 60,
   },
@@ -16,7 +16,7 @@ export const cachePolicies = {
     maxSourceAgeSeconds: 10 * 60,
   },
   global: {
-    revalidateSeconds: 30 * 60,
+    revalidateSeconds: 15 * 60,
     staleIfErrorSeconds: 60 * 60,
     maxSourceAgeSeconds: 15 * 60,
   },
@@ -56,7 +56,7 @@ export const cachePolicies = {
     maxSourceAgeSeconds: 10 * 60,
   },
   liquidations: {
-    revalidateSeconds: 10 * 60,
+    revalidateSeconds: 5 * 60,
     staleIfErrorSeconds: 30 * 60,
     maxSourceAgeSeconds: 5 * 60,
   },

@@ -4,6 +4,11 @@ import { DcaCalculator } from "@/components/tools/dca-calculator";
 import { ResultEmpty } from "@/components/tools/calculator-ui";
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
 import { getToolDefinition } from "@/lib/tools/catalog";
+import {
+  parseToolAsset,
+  type ToolAssetSlug,
+  type ToolPageSearchParams,
+} from "@/lib/tools/tool-navigation";
 import { getDcaMarketHistory } from "@/server/tools/dca-history-service";
 import { createPageMetadata } from "@/lib/seo/page-metadata";
 
@@ -19,20 +24,36 @@ export const metadata: Metadata = createPageMetadata({
   socialTitle: "历史 DCA 定投计算器｜Wise Crypto",
 });
 
-export default function DcaToolPage() {
+export default async function DcaToolPage({
+  searchParams,
+}: {
+  searchParams: Promise<ToolPageSearchParams>;
+}) {
+  const asset = parseToolAsset((await searchParams).asset);
+
   return (
-    <ToolPageShell tool={tool}>
+    <ToolPageShell asset={asset} tool={tool}>
       <Suspense fallback={<DcaLoadingState />}>
-        <DcaCalculatorWithData />
+        <DcaCalculatorWithData initialAsset={asset} />
       </Suspense>
     </ToolPageShell>
   );
 }
 
-async function DcaCalculatorWithData() {
+async function DcaCalculatorWithData({
+  initialAsset,
+}: {
+  initialAsset: ToolAssetSlug | null;
+}) {
   const datasets = await getDcaMarketHistory();
 
-  return <DcaCalculator datasets={datasets} />;
+  return (
+    <DcaCalculator
+      datasets={datasets}
+      initialAsset={initialAsset ?? undefined}
+      key={initialAsset ?? "btc"}
+    />
+  );
 }
 
 function DcaLoadingState() {

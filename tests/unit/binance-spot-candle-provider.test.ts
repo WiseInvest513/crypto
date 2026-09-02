@@ -339,6 +339,7 @@ describe("Binance Spot live chart candle provider", () => {
         label: expect.stringContaining("BTCUSDT 现货 1h K 线"),
       },
       updatedAt: "2026-08-31T12:00:00.000Z",
+      updatedAtKind: "observed",
       retrievedAt: "2026-08-31T12:00:00.000Z",
       stale: false,
       cache: {
@@ -376,6 +377,7 @@ describe("Binance Spot live chart candle provider", () => {
       });
     }
     expect(second.cache.status).toBe("hit");
+    expect(second).toMatchObject({ updatedAtKind: "observed" });
     expect(get).toHaveBeenCalledTimes(1);
 
     const requestedUrl = new URL(String(get.mock.calls[0]?.[0]));
@@ -439,6 +441,28 @@ describe("Binance Spot live chart candle provider", () => {
       });
     },
   );
+
+  it("uses the latest close as a source timestamp when every chart candle is closed", async () => {
+    const observedAt = Date.parse("2026-08-31T13:00:00.000Z");
+    const provider = createProvider(
+      vi.fn(async () => [
+        chartKline("2026-08-31T10:00:00.000Z", "1h"),
+        chartKline("2026-08-31T11:00:00.000Z", "1h"),
+      ]),
+      () => observedAt,
+    );
+
+    await expect(
+      provider.getChartCandles("btc", { interval: "1h", limit: 500 }),
+    ).resolves.toMatchObject({
+      status: "stale",
+      stale: true,
+      updatedAt: "2026-08-31T11:59:59.999Z",
+      updatedAtKind: "source",
+      retrievedAt: "2026-08-31T13:00:00.000Z",
+      value: [{ state: "closed" }, { state: "closed" }],
+    });
+  });
 
   it("serves validated last-known-good chart candles as stale after a failed refresh", async () => {
     let current = NOW;

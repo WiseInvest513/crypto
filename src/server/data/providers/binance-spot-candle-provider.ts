@@ -226,6 +226,8 @@ export class BinanceSpotCandleProvider implements CandleProvider {
             latest.state === "forming"
               ? new Date(observedAtMilliseconds).toISOString()
               : latest.closedAt,
+          updatedAtKind:
+            latest.state === "forming" ? ("observed" as const) : ("source" as const),
           provenance: "live" as const,
         };
       },

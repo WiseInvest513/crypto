@@ -1,6 +1,6 @@
 # Wise Crypto 实用性优化规格
 
-> 状态：优化批次 A 已完成；BTC/ETH K 线专项已单独确认并实施；批次 B 其余内容未开始  
+> 状态：优化批次 A、BTC/ETH K 线专项及批次 B 的 B1–B4 已完成；B5 与批次 C 未开始
 > 建立日期：2026-09-01  
 > 基线版本：Wise Crypto V0（Phase 1–7 已完成）  
 > 基线规范：`docs/product-specs/wise-crypto-v0.md`  
@@ -726,3 +726,43 @@ pnpm build      通过，17 个静态页面完成生成
 ```
 
 生产预览继续固定使用端口 `2222`。
+
+## 16. 优化批次 B（B1–B4）实施记录
+
+实施日期：2026-09-02。本轮只收口资产到工具的任务闭环，并同步修复全局审阅中发现的
+数据时间语义与工程质量问题；没有实施 B5 的 DCA 三基线，也没有进入批次 C 或下一版本。
+
+已完成：
+
+- `/btc`、`/eth` 顶部新增紧凑资产摘要，集中展示参考价格、24 小时、7 天、已闭合
+  日线 SMA20/SMA50、客观趋势、来源、状态与时间。价格和日线事实使用两个独立
+  Suspense 边界；聚合报价可用时不会等待 K 线请求。
+- 增加价格、趋势、衍生品和条件式人工情景页内导航，以及仓位、风险回报、杠杆、
+  DCA 四个工具入口。工具 URL 只允许携带 `asset=btc|eth`，不传价格、余额、止损、
+  目标价或计算结果。
+- 衍生品的 fresh/stale 项继续显示完整数据卡；error/unavailable 收进单一数据覆盖说明。
+  人工内容只有 active 时展示全文，unpublished/scheduled 不进入页面，expired 只保留
+  等待复核的紧凑提示。
+- 四个工具页压缩首屏头部与表单前空白，将复制空白链接降为次要操作，并增加中性的
+  下一步路径。风险回报比不再根据数值使用红绿暗示优劣。DCA 可用安全资产参数选择
+  初始数据集，但不会自动填入任何金融数值。
+- 仓位、杠杆和风险回报页把 URL 查询读取限制在 Suspense 内的 Client Component，
+  页面主体继续静态预渲染；DCA 因服务端历史数据保持动态渲染。
+- 形成中 Binance K 线新增 `updatedAtKind: observed` 语义，页面显示“服务器观测于”；
+  已闭合数据继续显示上游“数据截至”。Quote、Global 与 Liquidations 的刷新周期收紧
+  为 5、15、5 分钟，并有通用测试保证缓存刷新不晚于来源 freshness SLA。
+- 删除未被真实路由使用的旧资产页入口；资产组件测试改为直接流式渲染生产使用的
+  `AssetDetailStreamPage`，覆盖摘要、metadata、降级、数据真实性、人工内容生命周期、
+  衍生品覆盖摘要与安全工具链接。
+- 建立本地 Git 基线，并新增 GitHub Actions 质量门禁；Pull Request 与 `main` push
+  都会执行 frozen install、lint、typecheck、tests 和 production build。没有 Git push、
+  部署或 DNS 修改。
+
+本轮明确暂缓：
+
+- B5 的按计划 DCA、首日一次性投入与保留 USDT 现金三条机械基线。
+- 批次 C 的产品筛选/对比、推广生命周期与复访能力。
+- 自动支撑阻力、自动 Wise Scenario、买卖信号或任何自动投资判断。
+
+最终质量结果记录在 `docs/wise-crypto-v0-completion-report.md`；生产预览仍固定使用
+`http://localhost:2222`。

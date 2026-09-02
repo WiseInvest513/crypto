@@ -2,7 +2,7 @@
 
 Wise Crypto 是面向 Crypto / Web3 用户的中文市场工作台，提供可追溯的
 BTC/ETH 市场信息、人工审核背景、四个风险计算工具，以及客观的产品指南。
-V0 按七个阶段完成，权威范围见
+V0 按七个阶段完成，并已完成实用性批次 A、K 线专项与批次 B 的 B1–B4。权威范围见
 [`docs/product-specs/wise-crypto-v0.md`](docs/product-specs/wise-crypto-v0.md)，最终验收见
 [`docs/wise-crypto-v0-completion-report.md`](docs/wise-crypto-v0-completion-report.md)。
 
@@ -13,9 +13,11 @@ Wise Crypto V0 的 Phase 1–7 已完成。当前公开体验包括：
 - 中文响应式 Layout、Header、Footer、Navigation、loading、error 与 404。
 - 首页 Market Pulse、BTC/ETH 概览、关键市场数据、人工配置的 Market Status、
   Today in Crypto 和 Wise Take。
-- BTC/ETH 资产工作台：聚合 USD 价格、Binance 现货实时 K 线工作台、已闭合 UTC
-  日线 SMA20/SMA50 与客观趋势、Funding、OI、Liquidations、ETF 状态，以及人工配置槽位。
-- 仓位风险、杠杆与盈亏、历史 DCA、风险回报四个独立计算器。
+- BTC/ETH 资产工作台：价格与涨跌摘要、Binance 现货实时 K 线、当前周期 EMA 分析、
+  已闭合 UTC 日线 SMA20/SMA50 与客观趋势、Funding、OI、Liquidations、ETF 状态，
+  以及只在有效期内展示的人工配置内容。
+- 仓位风险、杠杆与盈亏、历史 DCA、风险回报四个独立计算器；资产页可用只含
+  `asset=btc|eth` 的链接进入工具，金融输入与计算结果不会通过 URL 传递。
 - 七份已核验产品指南：Binance、Coinbase、Kraken、OKX、MetaMask、
   Ledger 硬件钱包和 CoinGecko。
 - 完整 canonical、Open Graph/X、分享图、robots、sitemap、WebSite 与真实面包屑
@@ -65,7 +67,7 @@ pnpm start
 | BTC/ETH USD、总市值、BTC Dominance | CoinMarketCap + Alternative.me 降级链 | 显示实际返回 Provider 的覆盖范围、source、数据时间、获取时间与 cache 状态 |
 | Fear & Greed | CMC Crypto F&G 或 Alternative.me Bitcoin F&G | 两个独立专有序列，只做 latest 故障降级，不拼成一条历史；主序列仍有 stale 值时不会跨方法替换 |
 | ETH/BTC | Wise Crypto 由同一 Provider 的 BTC/USD、ETH/USD 派生 | 两个报价源时间差不得超过 10 分钟，采用较早数据时间；不满足时返回 error |
-| BTC/ETH 交互 K 线 | Binance Spot `BTCUSDT` / `ETHUSDT` | USDT、UTC，支持 `15m / 1h / 4h / 1d`；默认取 1000 根 `1h`，每 5 秒通过同源服务增量刷新，最后一根可明确标记为形成中 |
+| BTC/ETH 交互 K 线 | Binance Spot `BTCUSDT` / `ETHUSDT` | USDT、UTC，支持 `15m / 1h / 4h / 1d`；默认取 1000 根 `1h`，每 5 秒通过同源服务增量刷新，最后一根可明确标记为形成中；形成中数值标记为服务器观测时间，不冒充上游数据截至时间 |
 | BTC/ETH 日线事实、SMA、DCA 历史 | Binance Spot `BTCUSDT` / `ETHUSDT` | USDT、UTC、`1d`，只接受已闭合 K 线；与形成中图表数据隔离 |
 | Funding、OI | Binance USDⓈ-M | `BTCUSDT` / `ETHUSDT` 单场所数据，绝不标为全市场 |
 | 24h Liquidations | CoinMarketCap | CMC 跟踪的衍生品交易所滚动总额；需要服务端 CMC key |
@@ -115,6 +117,7 @@ src/
 tests/unit/               领域、组件、Metadata、安全与阶段完整性测试
 docs/                     产品规范、数据口径与 V0 完成报告
 public/                   品牌分享图等静态资源
+.github/workflows/        Pull Request 与 main 分支质量检查
 ```
 
 公开页面默认使用 Server Components；只有计算器、交互 K 线、分享、Analytics
@@ -149,6 +152,10 @@ pnpm build
 ```bash
 pnpm check
 ```
+
+GitHub Actions 会在 Pull Request 和 `main` 分支 push 时使用仓库声明的 Node.js、
+pnpm 版本，依次执行同样的 lint、typecheck、tests 与 production build，避免仅依赖
+本机验收结果。
 
 最终验收还应在 `pnpm start` 的 `http://localhost:2222` 检查 320/390/1280px、
 键盘操作、路由状态、Metadata、security headers、控制台和外部数据降级。

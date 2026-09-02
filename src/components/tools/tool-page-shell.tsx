@@ -1,17 +1,30 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import type { ToolDefinition } from "@/lib/tools/catalog";
+import type { ToolAssetSlug } from "@/lib/tools/tool-navigation";
 import { BreadcrumbJsonLd } from "@/components/seo/json-ld";
 import { SITE_URL } from "@/config/site";
 import { ShareToolLink } from "./share-tool-link";
+import {
+  ToolAssetContextPanel,
+  ToolNextStepsPanel,
+} from "./tool-navigation-panels";
+import {
+  ToolAssetContextFromQuery,
+  ToolNextStepsFromQuery,
+} from "./tool-query-navigation";
 
 export function ToolPageShell({
   tool,
+  asset,
   children,
 }: {
   tool: ToolDefinition;
+  asset?: ToolAssetSlug | null;
   children: ReactNode;
 }) {
+  const assetResolvedOnServer = asset !== undefined;
+
   return (
     <div className="tool-page page-container">
       <BreadcrumbJsonLd
@@ -38,6 +51,14 @@ export function ToolPageShell({
           <ShareToolLink href={tool.href} />
         </div>
       </header>
+
+      {assetResolvedOnServer ? (
+        asset ? <ToolAssetContextPanel asset={asset} /> : null
+      ) : (
+        <Suspense fallback={null}>
+          <ToolAssetContextFromQuery />
+        </Suspense>
+      )}
 
       <div className="calculator-workspace">
         <section className="calculator-surface" aria-label={`${tool.shortTitle}计算器`}>
@@ -67,6 +88,16 @@ export function ToolPageShell({
           </section>
         </aside>
       </div>
+
+      {assetResolvedOnServer ? (
+        <ToolNextStepsPanel asset={asset ?? null} toolSlug={tool.slug} />
+      ) : (
+        <Suspense
+          fallback={<ToolNextStepsPanel asset={null} toolSlug={tool.slug} />}
+        >
+          <ToolNextStepsFromQuery toolSlug={tool.slug} />
+        </Suspense>
+      )}
 
       <p className="tool-disclaimer">
         计算结果仅用于教育与计划整理，不构成交易建议。市场波动、执行条件和交易所规则都可能令实际结果不同。

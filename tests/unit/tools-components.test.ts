@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -5,10 +7,12 @@ import { DcaCalculator } from "../../src/components/tools/dca-calculator";
 import { LeverageCalculator } from "../../src/components/tools/leverage-calculator";
 import { PositionSizeCalculator } from "../../src/components/tools/position-size-calculator";
 import { RiskRewardCalculator } from "../../src/components/tools/risk-reward-calculator";
+import { ToolPageShell } from "../../src/components/tools/tool-page-shell";
 import type {
   DcaMarketDataset,
   DcaMarketHistory,
 } from "../../src/lib/tools/dca-market-data";
+import { getToolDefinition } from "../../src/lib/tools/catalog";
 
 describe("Phase 5 calculator components", () => {
   it("renders an empty, labelled position-size form without a suggested risk value", () => {
@@ -39,6 +43,33 @@ describe("Phase 5 calculator components", () => {
     expect(markup).toContain("不包含成交概率");
   });
 
+  it("keeps the risk/reward ratio presentation neutral", () => {
+    const source = readFileSync(
+      join(process.cwd(), "src/components/tools/risk-reward-calculator.tsx"),
+      "utf8",
+    );
+
+    expect(source).toContain('tone: "neutral"');
+    expect(source).not.toMatch(/rewardToRiskRatio\s*>?=?.*positive/);
+  });
+
+  it("shows a safe asset context and blank next-step tools", () => {
+    const markup = renderToStaticMarkup(
+      ToolPageShell({
+        asset: "btc",
+        tool: getToolDefinition("position-size"),
+        children: createElement("div", null, "calculator"),
+      }),
+    );
+
+    expect(markup).toContain("来自 BTC 资产工作台");
+    expect(markup).toContain("价格、余额、交易计划和计算结果均未带入");
+    expect(markup).toContain('href="/btc"');
+    expect(markup).toContain('href="/tools/risk-reward?asset=btc"');
+    expect(markup).toContain('href="/tools/leverage?asset=btc"');
+    expect(markup).toContain("只打开空白工具");
+  });
+
   it("renders Binance source, UTC scope and an empty DCA result before submit", () => {
     const markup = renderToStaticMarkup(
       createElement(DcaCalculator, { datasets: availableHistory() }),
@@ -50,6 +81,19 @@ describe("Phase 5 calculator components", () => {
     expect(markup).toContain("可用已闭合日线：2026-08-29 至 2026-08-30");
     expect(markup).toContain("等待计算");
     expect(markup).not.toContain("历史定投结果");
+  });
+
+  it("uses a safe asset context only to choose the initial DCA dataset", () => {
+    const markup = renderToStaticMarkup(
+      createElement(DcaCalculator, {
+        datasets: availableHistory(),
+        initialAsset: "eth",
+      }),
+    );
+
+    expect(markup).toContain("Binance ETHUSDT 现货日线");
+    expect(markup).toMatch(/<option value="eth" selected="">ETH \/ USDT<\/option>/);
+    expect(markup).not.toMatch(/value="(?:\d|\.)+"/);
   });
 
   it("disables DCA calculation instead of inventing prices when data fails", () => {

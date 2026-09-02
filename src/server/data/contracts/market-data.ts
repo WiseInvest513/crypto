@@ -49,6 +49,16 @@ export type CacheMetadata = {
   staleIfErrorSeconds: number;
 };
 
+/**
+ * Describes what `updatedAt` means for an available datum.
+ *
+ * `source` is the timestamp published by the upstream source. `observed` is
+ * the time our server observed a live value when the upstream payload does not
+ * publish an update timestamp (for example, a still-forming Binance candle).
+ * The field is optional so existing providers continue to mean `source`.
+ */
+export type UpdatedAtKind = "source" | "observed";
+
 export type DataErrorCode =
   | "timeout"
   | "rate_limited"
@@ -94,6 +104,7 @@ type DatumBase = {
   source: DataSource | null;
   scope: DataScope | null;
   updatedAt: string | null;
+  updatedAtKind?: UpdatedAtKind;
   retrievedAt: string | null;
   loading: boolean;
   stale: boolean;

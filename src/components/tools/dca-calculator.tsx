@@ -57,6 +57,10 @@ const EMPTY_FORM: DcaForm = {
   dayOfMonth: "",
 };
 
+function createEmptyForm(initialAsset: DcaMarketAsset): DcaForm {
+  return { ...EMPTY_FORM, asset: initialAsset };
+}
+
 const UTC_WEEKDAYS = [
   "星期日",
   "星期一",
@@ -67,9 +71,15 @@ const UTC_WEEKDAYS = [
   "星期六",
 ] as const;
 
-export function DcaCalculator({ datasets }: { datasets: DcaMarketHistory }) {
+export function DcaCalculator({
+  datasets,
+  initialAsset = "btc",
+}: {
+  datasets: DcaMarketHistory;
+  initialAsset?: DcaMarketAsset;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [form, setForm] = useState<DcaForm>(EMPTY_FORM);
+  const [form, setForm] = useState<DcaForm>(() => createEmptyForm(initialAsset));
   const [errors, setErrors] = useState<CalculatorFieldErrors>({});
   const [result, setResult] = useState<DcaResult | null>(null);
   const trackComplete = useToolAnalytics("dca", "/tools/dca");
@@ -111,7 +121,7 @@ export function DcaCalculator({ datasets }: { datasets: DcaMarketHistory }) {
   }
 
   function reset() {
-    setForm(EMPTY_FORM);
+    setForm(createEmptyForm(initialAsset));
     setErrors({});
     setResult(null);
   }

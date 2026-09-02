@@ -19,13 +19,13 @@ export function ShareToolLink({ href }: { href: `/tools/${string}` }) {
     status === "copied"
       ? "已复制工具链接"
       : status === "error"
-        ? "请复制地址栏链接"
-        : "复制工具链接";
+        ? "复制功能暂不可用，请稍后重试"
+        : "复制空白工具链接";
 
   return (
     <div className="tool-share-action">
       <button className="tool-share-button" type="button" onClick={copyLink}>
-        复制工具链接
+        复制空白链接
       </button>
       <span className="sr-only" role="status" aria-live="polite">
         {status === "idle" ? "" : label}

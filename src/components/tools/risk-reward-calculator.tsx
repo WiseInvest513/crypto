@@ -213,7 +213,7 @@ export function RiskRewardCalculator() {
                   label: "风险 / 回报",
                   value: formatToolRatio(result.rewardToRiskRatio),
                   detail: "每承担 1 单位价格风险对应的情景回报",
-                  tone: result.rewardToRiskRatio >= 1 ? "positive" : "negative",
+                  tone: "neutral",
                 },
               ]}
             />

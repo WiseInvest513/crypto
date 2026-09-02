@@ -19,6 +19,7 @@ function presentation(
     scopeLabel: null,
     updatedAt: "2026-09-01T09:00:00.000Z",
     updatedAtLabel: "2026-09-01 09:00 UTC",
+    updatedAtKind: "source",
     retrievedAt: null,
     retrievedAtLabel: null,
     cacheLabel: null,
@@ -38,6 +39,17 @@ describe("DatumMeta", () => {
     expect(html).toContain("数据截至 2026-09-01 09:00 UTC");
     expect(html).toContain("已更新");
     expect(html).not.toContain("<details");
+  });
+
+  it("labels observed live values as server observations", () => {
+    const html = renderToStaticMarkup(
+      <DatumMeta
+        presentation={presentation({ updatedAtKind: "observed" })}
+      />,
+    );
+
+    expect(html).toContain("服务器观测于 2026-09-01 09:00 UTC");
+    expect(html).not.toContain("数据截至 2026-09-01 09:00 UTC");
   });
 
   it("moves full lineage and fallback explanation into a native details element", () => {

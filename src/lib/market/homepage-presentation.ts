@@ -3,6 +3,7 @@ import type {
   DataSource,
   MarketCapability,
   MarketDatumView,
+  UpdatedAtKind,
 } from "@/server/data/contracts/market-data";
 import {
   formatUtcDateTime,
@@ -32,6 +33,7 @@ export type DatumPresentation = {
   scopeLabel: string | null;
   updatedAt: string | null;
   updatedAtLabel: string | null;
+  updatedAtKind: UpdatedAtKind | null;
   retrievedAt: string | null;
   retrievedAtLabel: string | null;
   cacheLabel: string | null;
@@ -103,6 +105,7 @@ export function presentMarketDatum<T>(
     scopeLabel: formatScopeLabel(datum.capability, datum.scope),
     updatedAt: normalizeIsoTimestamp(datum.updatedAt),
     updatedAtLabel: safeTimeLabel(datum.updatedAt),
+    updatedAtKind: datum.updatedAtKind ?? "source",
     retrievedAt: normalizeIsoTimestamp(datum.retrievedAt),
     retrievedAtLabel: safeTimeLabel(datum.retrievedAt),
     cacheLabel: cacheLabel(datum.cache.status),
@@ -230,6 +233,7 @@ function emptyPresentation(
     scopeLabel: null,
     updatedAt: null,
     updatedAtLabel: null,
+    updatedAtKind: null,
     retrievedAt: null,
     retrievedAtLabel: null,
     cacheLabel: null,

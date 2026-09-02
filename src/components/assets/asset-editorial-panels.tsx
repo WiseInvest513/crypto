@@ -17,22 +17,68 @@ export function AssetEditorialPanels({
 }) {
   const keyLevels = resolveAssetEditorialEntry(entries.keyLevels, now);
   const wiseScenario = resolveAssetEditorialEntry(entries.wiseScenario, now);
+  const activeCount = [keyLevels, wiseScenario].filter(
+    (entry) => entry.state === "active",
+  ).length;
+  const hasExpired = [keyLevels, wiseScenario].some(
+    (entry) => entry.state === "expired",
+  );
+
+  if (activeCount === 0 && !hasExpired) {
+    return null;
+  }
 
   return (
-    <section className="asset-editorial-section" aria-labelledby="asset-editorial-title">
+    <section
+      id="editorial"
+      className="asset-editorial-section asset-page-anchor"
+      aria-labelledby="asset-editorial-title"
+    >
       <div className="section-bar">
         <div>
           <p className="panel-kicker">人工研究层</p>
           <h2 id="asset-editorial-title">关键位与 Wise Scenario</h2>
         </div>
-        <span className="section-context">仅展示已审核且仍在有效期内的人工内容</span>
+        <span className="section-context">
+          {activeCount > 0
+            ? `${activeCount} 项人工内容处于有效期内`
+            : "过期内容不作为当前判断展示"}
+        </span>
       </div>
-      <div className="asset-editorial-grid">
-        <KeyLevelsPanel entry={keyLevels} />
-        <WiseScenarioPanel entry={wiseScenario} />
-      </div>
+      {activeCount > 0 && (
+        <div
+          className={`asset-editorial-grid${activeCount === 1 ? " asset-editorial-grid--single" : ""}`}
+        >
+          {keyLevels.state === "active" && (
+            <KeyLevelsPanel entry={keyLevels} />
+          )}
+          {wiseScenario.state === "active" && (
+            <WiseScenarioPanel entry={wiseScenario} />
+          )}
+        </div>
+      )}
+      {hasExpired && (
+        <div className="asset-editorial-expired" role="status">
+          {keyLevels.state === "expired" && (
+            <EditorialExpiredNotice kind="人工关键位" entry={keyLevels} />
+          )}
+          {wiseScenario.state === "expired" && (
+            <EditorialExpiredNotice kind="Wise Scenario" entry={wiseScenario} />
+          )}
+        </div>
+      )}
     </section>
   );
+}
+
+export function hasVisibleAssetEditorial(
+  entries: AssetEditorialEntries,
+  now: number,
+): boolean {
+  return [
+    resolveAssetEditorialEntry(entries.keyLevels, now).state,
+    resolveAssetEditorialEntry(entries.wiseScenario, now).state,
+  ].some((state) => state === "active" || state === "expired");
 }
 
 function KeyLevelsPanel({
@@ -44,17 +90,7 @@ function KeyLevelsPanel({
   }>;
 }) {
   if (entry.state !== "active" || entry.content === null) {
-    return (
-      <article className="asset-editorial-panel asset-key-levels">
-        <PanelHeader kicker="Support / Resistance" title="人工关键位" />
-        <EditorialEmptyState
-          state={entry.state}
-          kind="人工关键位"
-          description="不会把自动计算的候选位置包装成 Wise 的正式支撑位或阻力位。"
-        />
-        <EditorialMeta entry={entry} />
-      </article>
-    );
+    return null;
   }
 
   const support = entry.content.levels
@@ -92,17 +128,7 @@ function WiseScenarioPanel({
   entry: ResolvedAssetEditorialEntry<WiseScenarioContent>;
 }) {
   if (entry.state !== "active" || entry.content === null) {
-    return (
-      <article className="asset-editorial-panel asset-wise-scenario">
-        <PanelHeader kicker="Wise Scenario" title="人工情景" />
-        <EditorialEmptyState
-          state={entry.state}
-          kind="Wise Scenario"
-          description="当前没有处于有效期内的人工情景，系统不会根据价格自动补写投资判断。"
-        />
-        <EditorialMeta entry={entry} />
-      </article>
-    );
+    return null;
   }
 
   const content = entry.content;
@@ -137,28 +163,21 @@ function PanelHeader({ kicker, title }: { kicker: string; title: string }) {
   );
 }
 
-function EditorialEmptyState({
-  state,
+function EditorialExpiredNotice<T>({
   kind,
-  description,
+  entry,
 }: {
-  state: "active" | "scheduled" | "expired" | "unpublished";
   kind: string;
-  description: string;
+  entry: ResolvedAssetEditorialEntry<T>;
 }) {
-  const separator = /^[A-Za-z]/.test(kind) ? " " : "";
-  const labels = {
-    active: `${kind}${separator}暂不可用`,
-    scheduled: `${kind}${separator}尚未生效`,
-    expired: `${kind}${separator}已过期`,
-    unpublished: `${kind}${separator}尚未发布`,
-  } as const;
-
   return (
-    <div className="asset-editorial-empty">
-      <strong>{labels[state]}</strong>
-      <p>{description}</p>
-    </div>
+    <article>
+      <div>
+        <strong>{kind}已过期</strong>
+        <p>该内容不会继续作为当前判断展示，等待下一次人工审核。</p>
+      </div>
+      <EditorialMeta entry={entry} />
+    </article>
   );
 }
 

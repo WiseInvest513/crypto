@@ -7,6 +7,7 @@ import type {
   ErrorMarketDatum,
   MarketCapability,
   MarketDatum,
+  UpdatedAtKind,
 } from "../contracts/market-data";
 import { toDataError } from "../errors/provider-error";
 import type { CachePolicy } from "./policies";
@@ -21,6 +22,8 @@ export type ValidatedMarketValue<T> = {
   source: DataSource;
   scope: DataScope;
   updatedAt: string;
+  /** Omitted values retain the legacy meaning: an upstream source timestamp. */
+  updatedAtKind?: UpdatedAtKind;
   provenance: "live" | "derived" | "synthetic";
 };
 
@@ -275,6 +278,7 @@ export class ResilientMarketCache {
       source: entry.payload.source,
       scope: entry.payload.scope,
       updatedAt: entry.payload.updatedAt,
+      updatedAtKind: entry.payload.updatedAtKind,
       retrievedAt: entry.retrievedAt,
       loading: false,
       stale,

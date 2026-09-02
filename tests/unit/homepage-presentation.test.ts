@@ -81,8 +81,22 @@ describe("homepage market presentation", () => {
       source: { label: "Verified Source" },
       scopeLabel: "BTC/USD 多市场聚合现货",
       updatedAtLabel: "2026-08-29 12:00 UTC",
+      updatedAtKind: "source",
       retrievedAtLabel: "2026-08-29 12:00 UTC",
       cacheLabel: "最新获取",
+    });
+  });
+
+  it("preserves an observation timestamp without presenting it as a source as-of time", () => {
+    const result = presentMarketDatum(
+      available({ updatedAtKind: "observed" }),
+      formatNumber,
+    );
+
+    expect(result).toMatchObject({
+      updatedAt: UPDATED_AT,
+      updatedAtLabel: "2026-08-29 12:00 UTC",
+      updatedAtKind: "observed",
     });
   });
 

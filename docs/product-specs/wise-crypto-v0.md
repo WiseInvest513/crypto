@@ -111,6 +111,7 @@ pnpm build
 
 - `source`
 - `updatedAt` 或供应商的 `asOf`
+- `updatedAtKind`（可选；`source` 表示上游时间，`observed` 表示服务器观测时间）
 - `retrievedAt`
 - `loading`
 - `error`
@@ -461,7 +462,7 @@ interface FundFlowProvider {
 - 交互图表默认读取最近 1000 根 `1h` K 线并显示 500 根，也可选择 200 根或全部、
   浏览更早数据及切换周期。浏览器通过同源 `/api/market/candles` 每 5 秒增量检查
   最新三根，页面隐藏时暂停、恢复时完整同步；客户端不直连 Binance。
-- 图表包含大尺寸 K 线、当前周期展示用 MA20/MA50、成交量、最新价线、十字定位、
+- 图表包含大尺寸 K 线、可选的短线 EMA10/20/50 与趋势 EMA20/50/200、成交量、最新价线、十字定位、
   当前 OHLCV、键盘逐根查看、可见文字摘要、SVG title/description 和最近二十根
   K 线的语义化数据表。图表周期均线只用于图表展示，形成中 K 线绝不进入下方
   已闭合日线技术事实、Trend 或 DCA 计算。

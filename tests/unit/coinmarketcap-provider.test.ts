@@ -87,7 +87,7 @@ describe("CoinMarketCap provider", () => {
       updatedAt: UPDATED_AT,
       loading: false,
       stale: false,
-      cache: { status: "miss", revalidateSeconds: 600 },
+      cache: { status: "miss", revalidateSeconds: 300 },
       error: null,
     });
     if (first.status === "fresh") {
@@ -122,7 +122,7 @@ describe("CoinMarketCap provider", () => {
     expect(combined.capability).toBe("spot.core-prices");
     expect(get).toHaveBeenCalledTimes(1);
 
-    current += 601_000;
+    current += 301_000;
     payload = coreQuotePayload(
       111_000,
       0,

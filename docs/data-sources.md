@@ -8,7 +8,7 @@ production value.
 | Capability | Production source | Scope and unit | Availability |
 |---|---|---|---|
 | BTC / ETH price | CoinMarketCap V3 Quotes Latest + Alternative.me Crypto API | Actual provider's covered spot markets, USD | With a server CMC key: CMC primary, Alternative.me fallback. Without a key: Alternative.me primary, official CMC keyless fallback. The displayed source always follows the returned datum |
-| BTC / ETH interactive chart candles | Binance Spot Kline/Candlestick Data | Venue-scoped `BTCUSDT` / `ETHUSDT`, `15m / 1h / 4h / 1d`, USDT, UTC | Public endpoint; up to 1,000 candles are accepted, and only the latest may be explicitly marked forming |
+| BTC / ETH interactive chart candles | Binance Spot Kline/Candlestick Data | Venue-scoped `BTCUSDT` / `ETHUSDT`, `15m / 1h / 4h / 1d`, USDT, UTC | Public endpoint; up to 1,000 candles are accepted, and only the latest may be explicitly marked forming. A forming snapshot uses a server-observation timestamp, not a fabricated source update timestamp |
 | BTC / ETH daily candles | Binance Spot Kline/Candlestick Data | Venue-scoped `BTCUSDT` / `ETHUSDT`, `1d`, USDT, UTC | Public endpoint; only fully closed candles are accepted and forming candles are excluded |
 | Total market cap / BTC dominance | CoinMarketCap Global Metrics Latest + Alternative.me Crypto API | Actual provider's covered market, USD / percent | Uses the same configured primary/fallback order as spot quotes; it is never labeled as wider than the active provider's coverage |
 | Fear & Greed | CoinMarketCap Crypto Fear and Greed Latest + Alternative.me Bitcoin Fear & Greed | Provider-specific index, 0–100 | Latest-value failure fallback only. The actual index name/source is displayed next to the value; the two proprietary series are not joined into one history, and a stale primary value is not replaced by a different provider's index |
@@ -74,6 +74,12 @@ production value.
 - Only validated successful values enter the in-memory cache.
 - Cache results expose `hit`, `miss`, or `bypass`, plus revalidation and
   stale-if-error windows.
+- Available data retains `updatedAt` for compatibility and adds an optional
+  `updatedAtKind`. Missing/`source` means the upstream source published that
+  timestamp. `observed` means the source did not publish an update timestamp
+  for the live value and the server recorded when it observed the response.
+  The UI labels the latter as `服务器观测于`, never `数据截至`. `retrievedAt`
+  remains the separate time when the validated response entered the cache.
 - A retryable upstream failure can serve a still-valid last-known-good value as
   `stale`; the attached error remains visible and never overwrites that value.
 - Failed refreshes use a short, process-local retry backoff capped at 30
@@ -90,9 +96,11 @@ production value.
   JSON remains a non-retryable payload error.
 - Source age is evaluated separately from cache age, so an old upstream
   timestamp is still marked `stale` after a successful request.
-- V0's conservative cadence is 10 minutes for CMC quotes, 5 minutes for
-  Alternative.me quotes, 30/10 minutes for CMC/Alternative.me global metrics,
-  10 minutes for liquidation calls, and 60 minutes for either Fear & Greed
+- Every cache policy revalidates no later than its maximum accepted source age,
+  so a cache cadence cannot by itself hold a datum beyond its freshness SLA.
+- V0's conservative cadence is 5 minutes for CMC and Alternative.me quotes,
+  15/10 minutes for CMC/Alternative.me global metrics,
+  5 minutes for liquidation calls, and 60 minutes for either Fear & Greed
   source. Binance venue metrics revalidate every 2 minutes; interactive chart
   candles revalidate every 5 seconds, allow a validated last-known-good value
   for five minutes after a refresh error, and are marked stale when the latest
