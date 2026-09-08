@@ -8,6 +8,7 @@ import {
 } from "@/lib/market/live-chart";
 import {
   formatChange,
+  formatMarketHeaderUpdate,
   formatPrice,
   fibonacciOverlays,
   keyLevelsContainingPrice,
@@ -32,6 +33,21 @@ import {
 
 const START = Date.parse("2026-08-01T00:00:00.000Z");
 const AS_OF = "2026-08-03T12:05:00.000Z";
+
+describe("formatMarketHeaderUpdate", () => {
+  it("converts UTC instants to Beijing time across a date boundary", () => {
+    expect(formatMarketHeaderUpdate("2026-09-08T16:43:12.000Z")).toBe("09-09 00:43:12 北京时间");
+  });
+
+  it("converts UTC instants across a year boundary", () => {
+    expect(formatMarketHeaderUpdate("2026-12-31T16:01:02.000Z")).toBe("01-01 00:01:02 北京时间");
+  });
+
+  it("does not invent a time when the value is unavailable", () => {
+    expect(formatMarketHeaderUpdate(null)).toBe("等待更新");
+    expect(formatMarketHeaderUpdate("not-a-date")).toBe("等待更新");
+  });
+});
 
 function candles(count = 61, asset: Asset = "btc", interval: ChartCandleInterval = "1h"): ChartCandle[] {
   const duration = chartIntervalMilliseconds[interval];

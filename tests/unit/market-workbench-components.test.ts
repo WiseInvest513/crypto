@@ -316,6 +316,7 @@ describe("public market workbench rendering", () => {
     }));
 
     expect(html).toContain("124.50");
+    expect(html).toContain("价格更新 08-11 08:05:00 北京时间");
     expect(html.indexOf('class="mw-price"')).toBeLessThan(html.indexOf('class="mw-canvas"'));
     expect(html.indexOf('class="mw-canvas"')).toBeLessThan(html.indexOf('class="mw-research"'));
     expect(html).toContain('role="img"');

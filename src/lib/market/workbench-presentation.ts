@@ -26,11 +26,30 @@ export const researchEmaKeys = analysisModes.short.emaKeys;
 export const workbenchIntervals = ["15m", "1h", "4h", "1d"] as const;
 export const periodLabels: Record<ChartCandleInterval, string> = { "15m": "15 分", "1h": "1 小时", "4h": "4 小时", "1d": "日线" };
 const prices = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const beijingMarketHeaderTime = new Intl.DateTimeFormat("en-US", {
+  timeZone: "Asia/Shanghai",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+});
 export const formatPrice = (value: number | null | undefined) => value != null && Number.isFinite(value) ? prices.format(value) : "—";
 export const formatChange = (value: number | null | undefined) => value != null && Number.isFinite(value) ? `${value > 0 ? "+" : ""}${value.toFixed(2)}%` : "—";
 export const changeTone = (value: number | null | undefined) => value == null || value === 0 ? "neutral" : value > 0 ? "up" : "down";
 export function formatUpdate(value: string | null | undefined) {
   return value && Number.isFinite(Date.parse(value)) ? `${value.slice(5, 10)} ${value.slice(11, 19)} UTC` : "等待更新";
+}
+export function formatMarketHeaderUpdate(value: string | null | undefined) {
+  if (!value || !Number.isFinite(Date.parse(value))) return "等待更新";
+  const parts = Object.fromEntries(
+    beijingMarketHeaderTime
+      .formatToParts(new Date(value))
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+  return `${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second} 北京时间`;
 }
 
 /** Live price is compared with the EMA at the SAME chart point. Closed movement is separate. */

@@ -9,7 +9,7 @@ import {
 import type { KeyLevelAnalysis } from "@/lib/market/key-levels";
 import { buildLiveChartPoints, liveEmaDefinitions, liveEmaKeys, type Asset, type ChartCandle, type ChartCandleInterval, type LiveEmaKey, type MarketDatum } from "@/lib/market/live-chart";
 import type { HistoricalContextHorizon } from "@/lib/market/historical-context";
-import { analysisModeKeys, analysisModes, emaColors, formatPrice, formatUpdate, keyLevelOverlays, keyLevelsContainingPrice, nearestKeyLevels, periodLabels, workbenchIntervals, type AnalysisMode } from "@/lib/market/workbench-presentation";
+import { analysisModeKeys, analysisModes, emaColors, formatMarketHeaderUpdate, formatPrice, keyLevelOverlays, keyLevelsContainingPrice, nearestKeyLevels, periodLabels, workbenchIntervals, type AnalysisMode } from "@/lib/market/workbench-presentation";
 import { useMarketCandles, usePublicResearch } from "./use-market-workbench";
 import { MarketChartCanvas, type HistoricalEventMarker } from "./market-chart-canvas";
 import { availableResearch, MarketResearchPanel } from "./market-research-panel";
@@ -220,7 +220,7 @@ export function MarketWorkbench({ asset, initialDatum, strategySlot }: { asset: 
       <div className="mw-price"><strong>{formatPrice(latestCurrent?.close)}</strong><span>USDT</span></div>
       <div className="mw-market-summary">
         <MarketPricePerformance snapshot={performance.snapshot} issue={performance.issue} now={market.now} />
-        <div className="mw-updated"><time dateTime={market.datum.updatedAt ?? undefined}>{market.expired ? "历史记录" : "价格更新"} {formatUpdate(market.datum.updatedAt)}</time>{market.delayed && <span role="status">{market.expired ? "实时价格不可用" : "数据延迟"}</span>}</div>
+        <div className="mw-updated"><time dateTime={market.datum.updatedAt ?? undefined}>{market.expired ? "历史记录" : "价格更新"} {formatMarketHeaderUpdate(market.datum.updatedAt)}</time>{market.delayed && <span role="status">{market.expired ? "实时价格不可用" : "数据延迟"}</span>}</div>
       </div>
     </header>
 
