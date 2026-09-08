@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
+import sitemap from "../../src/app/sitemap";
+import { PUBLIC_ROUTES } from "../../src/config/site";
 import {
+  futuresFullPathLessonIds,
+  futuresIntroCourse,
+  futuresQuickPathLessonIds,
+} from "../../src/lib/learning/futures-course";
+import {
+  futuresIntroTool,
   getToolDefinition,
   toolCatalog,
   toolCategories,
@@ -37,6 +45,37 @@ const EXPECTED_PRESENTATION = {
 } as const;
 
 describe("tool catalog", () => {
+  it("keeps the learning tool distinct from the four calculators", () => {
+    expect(toolCatalog).toHaveLength(4);
+    expect(futuresIntroTool).toMatchObject({
+      slug: "futures-intro",
+      href: "/tools/futures-intro",
+      chapterCount: 5,
+      lessonCount: 26,
+      quickLessonCount: 8,
+    });
+    expect(futuresIntroTool.chapters).toHaveLength(5);
+    expect(futuresIntroTool.chapterCount).toBe(
+      futuresIntroCourse.chapters.length,
+    );
+    expect(futuresIntroTool.lessonCount).toBe(
+      futuresFullPathLessonIds.length,
+    );
+    expect(futuresIntroTool.quickLessonCount).toBe(
+      futuresQuickPathLessonIds.length,
+    );
+    expect(futuresIntroTool.chapters).toEqual(
+      futuresIntroCourse.chapters.map((chapter) => chapter.title),
+    );
+    expect(toolCatalog.map((tool) => String(tool.slug))).not.toContain(
+      "futures-intro",
+    );
+    expect(PUBLIC_ROUTES).toContain(futuresIntroTool.href);
+    expect(sitemap().map((entry) => new URL(entry.url).pathname)).toContain(
+      futuresIntroTool.href,
+    );
+  });
+
   it("defines the three supported decision categories", () => {
     expect(toolCategories).toEqual([
       "trade-planning",

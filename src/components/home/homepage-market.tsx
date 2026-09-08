@@ -16,19 +16,17 @@ import {
   formatEthBtcRatio,
   formatIndexValue,
   formatPercent,
+  formatUtcDateTime,
   formatUsdPrice,
   translateSentimentClassification,
 } from "@/lib/market/formatters";
 import {
-  formatEtfFlowReading,
-  formatFundingReading,
-  formatLiquidationsReading,
-  formatOpenInterestReading,
-} from "@/lib/market/reading-formatters";
+  interpretMarketIndicators,
+  type ObjectiveMarketInterpretation,
+} from "@/lib/market/market-indicator-interpretation";
 import {
   presentMarketDatum,
   summarizeMarketData,
-  type DatumPresentation,
   type FormattedDatumValue,
 } from "@/lib/market/homepage-presentation";
 import {
@@ -279,116 +277,186 @@ export async function KeyMarketIndicators({
   snapshot: IndicatorSnapshotPromise;
 }) {
   const data = await snapshot;
-  const indicators: readonly IndicatorDescriptor[] = [
-    {
-      label: "BTC 资金费率",
-      presentation: presentMarketDatum(data.btcFunding, formatFundingReading),
-    },
-    {
-      label: "ETH 资金费率",
-      presentation: presentMarketDatum(data.ethFunding, formatFundingReading),
-    },
-    {
-      label: "BTC 未平仓合约名义价值",
-      presentation: presentMarketDatum(
-        data.btcOpenInterest,
-        formatOpenInterestReading,
-      ),
-    },
-    {
-      label: "ETH 未平仓合约名义价值",
-      presentation: presentMarketDatum(
-        data.ethOpenInterest,
-        formatOpenInterestReading,
-      ),
-    },
-    {
-      label: "24 小时强平金额",
-      presentation: presentMarketDatum(
-        data.liquidations24h,
-        formatLiquidationsReading,
-      ),
-    },
-    {
-      label: "BTC ETF 净流量",
-      presentation: presentMarketDatum(data.btcEtfFlow, formatEtfFlowReading),
-    },
-    {
-      label: "ETH ETF 净流量",
-      presentation: presentMarketDatum(data.ethEtfFlow, formatEtfFlowReading),
-    },
-  ];
-  const visibleIndicators = indicators.filter(({ presentation }) =>
-    presentation.state === "fresh" || presentation.state === "stale",
-  );
-  const coverageNotes = indicators.filter(({ presentation }) =>
-    presentation.state !== "fresh" && presentation.state !== "stale",
-  );
+  const interpretations = interpretMarketIndicators(data);
+  const visibleInterpretations = [
+    interpretations.leverage,
+    interpretations.liquidations,
+    interpretations.etfFlow,
+  ].filter((interpretation) => interpretation.evidence.length > 0);
 
   return (
-    <details className="home-deep-data">
-      <summary>
+    <section
+      className={`home-market-context${visibleInterpretations.length === 0 ? " home-market-context--unavailable" : ""}`}
+      aria-labelledby="market-context-title"
+    >
+      <header className="home-market-context__header">
         <div>
-          <h2 id="indicators-title">关键市场数据</h2>
-          <p>资金费率、未平仓合约、强平与 ETF 资金流</p>
+          <span>从数字到含义</span>
+          <h2 id="market-context-title">杠杆与资金，正在发生什么</h2>
+          <p>先读客观结论，再看支撑它的事实和下一步观察条件。</p>
         </div>
-        <span>
-          {visibleIndicators.length}/{indicators.length}
-          <span className="home-deep-data__availability-label"> 项可用</span>
-          <ChevronIcon />
-        </span>
-      </summary>
-      <div
-        className="home-deep-data__body"
-        aria-labelledby="indicators-title"
-        role="region"
-      >
-        {visibleIndicators.length > 0 ? (
-          <div className="indicator-grid">
-            {visibleIndicators.map((indicator) => (
-              <IndicatorItem key={indicator.label} {...indicator} />
+        <span>机械解读 · 不预测涨跌</span>
+      </header>
+      {visibleInterpretations.length > 0 ? (
+        <>
+          <div className="home-market-context__grid">
+            {visibleInterpretations.map((interpretation, index) => (
+              <MarketInterpretationCard
+                interpretation={interpretation}
+                index={index + 1}
+                key={interpretation.id}
+              />
             ))}
           </div>
-        ) : (
-          <p className="indicator-empty">
-            扩展市场数据当前 0/{indicators.length} 项可用；数据恢复后会自动显示。
-          </p>
-        )}
-        {coverageNotes.length > 0 && (
-          <details className="coverage-details">
-            <summary>
-              <span>暂不可用的数据</span>
-              <span>{coverageNotes.length} 项说明</span>
-            </summary>
-            <div className="coverage-list">
-              {coverageNotes.map((indicator) => (
-                <IndicatorCoverageRow key={indicator.label} {...indicator} />
-              ))}
-            </div>
-          </details>
-        )}
-      </div>
-    </details>
+          {visibleInterpretations.length < 3 && (
+            <p className="home-market-context__partial-note" role="status">
+              部分主题暂时缺少可核验数据；已有结论保持显示，缺失项不会用零补齐。
+            </p>
+          )}
+        </>
+      ) : (
+        <div className="home-market-context__empty" role="status">
+          <span aria-hidden="true">···</span>
+          <div>
+            <strong>暂无法形成市场解释</strong>
+            <p>资金与杠杆数据恢复后会自动更新；缺失值不会按零处理。</p>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 
 export function KeyMarketIndicatorsLoading() {
   return (
     <section
-      className="home-deep-data home-deep-data--loading"
-      aria-labelledby="indicators-loading-title"
+      className="home-market-context home-market-context--loading"
+      aria-labelledby="market-context-loading-title"
       aria-busy="true"
       role="status"
     >
-      <div className="home-deep-data__loading-summary">
+      <header className="home-market-context__header">
         <div>
-          <h2 id="indicators-loading-title">关键市场数据</h2>
-          <p>资金费率、未平仓合约、强平与 ETF 资金流</p>
+          <span>从数字到含义</span>
+          <h2 id="market-context-loading-title">杠杆与资金，正在发生什么</h2>
+          <p>正在整理客观结论、支撑事实与观察条件。</p>
         </div>
-        <span>加载中</span>
+        <span>正在解读</span>
+      </header>
+      <div className="home-market-context__grid" aria-hidden="true">
+        {Array.from({ length: 3 }, (_, index) => (
+          <div className="home-market-context-card home-market-context-card--loading" key={index}>
+            <span className="skeleton-line skeleton-line--label" />
+            <span className="skeleton-line skeleton-line--value" />
+            <span className="skeleton-line skeleton-line--meta" />
+            <span className="skeleton-line skeleton-line--meta" />
+          </div>
+        ))}
       </div>
       <span className="sr-only">衍生品与资金流数据正在加载。</span>
     </section>
+  );
+}
+
+function MarketInterpretationCard({
+  interpretation,
+  index,
+}: {
+  interpretation: ObjectiveMarketInterpretation;
+  index: number;
+}) {
+  const titleId = `market-context-${interpretation.id}`;
+  const status = interpretation.stale
+    ? "数据延迟"
+    : interpretation.availability === "partial"
+      ? "部分数据"
+      : "已更新";
+
+  return (
+    <article
+      className={`home-market-context-card home-market-context-card--${interpretation.id}${interpretation.stale ? " home-market-context-card--stale" : ""}`}
+      aria-labelledby={titleId}
+    >
+      <header className="home-market-context-card__header">
+        <span className="home-market-context-card__icon" aria-hidden="true">
+          <MarketContextIcon id={interpretation.id} />
+        </span>
+        <div>
+          <span>{String(index).padStart(2, "0")}</span>
+          <p>{interpretation.title}</p>
+        </div>
+        <span className={`home-market-context-card__status home-market-context-card__status--${interpretation.stale ? "stale" : interpretation.availability}`}>
+          {status}
+        </span>
+      </header>
+
+      <div className="home-market-context-card__meaning">
+        <span>现在发生了什么</span>
+        <h3 id={titleId}>{interpretation.headline}</h3>
+        <p>
+          <strong>这代表什么</strong>
+          {interpretation.summary}
+        </p>
+      </div>
+
+      <div className="home-market-context-card__evidence">
+        <span>支撑这一结论的数据</span>
+        <dl>
+          {interpretation.evidence.map((evidence) => (
+            <div key={evidence.capability}>
+              <dt>{evidence.label}</dt>
+              <dd>{evidence.value}</dd>
+              <small>{evidence.context}</small>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      <div className="home-market-context-card__watch">
+        <span>接下来观察</span>
+        <p>{interpretation.watchCondition}</p>
+      </div>
+
+      <footer>
+        {interpretation.updatedAt ? (
+          <time dateTime={interpretation.updatedAt}>
+            更新于 {formatUtcDateTime(interpretation.updatedAt)}
+          </time>
+        ) : (
+          <span>更新时间暂不可用</span>
+        )}
+        <span>只解释已发生的数据</span>
+      </footer>
+    </article>
+  );
+}
+
+function MarketContextIcon({
+  id,
+}: {
+  id: ObjectiveMarketInterpretation["id"];
+}) {
+  if (id === "leverage") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M5 18V11m7 7V6m7 12V9" />
+        <path d="m3 8 4-4 4 4m2 8 4 4 4-4" />
+      </svg>
+    );
+  }
+
+  if (id === "liquidations") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="m13.5 2-8 12h6L10.5 22l8-12h-6z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M4 7h14m-3-3 3 3-3 3M20 17H6m3-3-3 3 3 3" />
+    </svg>
   );
 }
 
@@ -495,52 +563,6 @@ function MetricItem<T>({
   );
 }
 
-type IndicatorDescriptor = {
-  label: string;
-  presentation: DatumPresentation;
-};
-
-function IndicatorItem({
-  label,
-  presentation,
-}: IndicatorDescriptor) {
-  return (
-    <article className={`indicator-item indicator-item--${presentation.state}`}>
-      <div className="datum-heading">
-        <h3>{label}</h3>
-        <DatumStatus presentation={presentation} compact />
-      </div>
-      <strong className="indicator-value">{presentation.value.primary}</strong>
-      {presentation.value.secondary && (
-        <p className="indicator-detail">{presentation.value.secondary}</p>
-      )}
-      {presentation.note && <p className="datum-note">{presentation.note}</p>}
-      <DatumUpdatedAt presentation={presentation} />
-    </article>
-  );
-}
-
-function IndicatorCoverageRow({
-  label,
-  presentation,
-}: IndicatorDescriptor) {
-  return (
-    <article
-      className={`coverage-row coverage-row--${presentation.state}`}
-      aria-label={`${label}：${presentation.statusLabel}`}
-    >
-      <div>
-        <h3>{label}</h3>
-        {presentation.note && <p>{presentation.note}</p>}
-      </div>
-      <div className="coverage-row__status">
-        <DatumStatus presentation={presentation} compact />
-        <DatumUpdatedAt presentation={presentation} />
-      </div>
-    </article>
-  );
-}
-
 function ArrowRightIcon() {
   return (
     <svg
@@ -552,26 +574,6 @@ function ArrowRightIcon() {
     >
       <path
         d="M4 10h11m-4-4 4 4-4 4"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.7"
-      />
-    </svg>
-  );
-}
-
-function ChevronIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 20 20"
-      width="20"
-      height="20"
-      fill="none"
-    >
-      <path
-        d="m6 8 4 4 4-4"
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"

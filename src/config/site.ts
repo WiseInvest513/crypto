@@ -49,6 +49,7 @@ export const PUBLIC_ROUTES = [
   "/tools/leverage",
   "/tools/dca",
   "/tools/risk-reward",
+  "/tools/futures-intro",
 ] as const;
 
 export function isPublicIndexingEnabled(

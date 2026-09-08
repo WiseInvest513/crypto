@@ -13,9 +13,13 @@ import {
   type IdentityAdapter,
 } from "../../src/server/access/resolve-user-access";
 
-const PUBLIC_FEATURES = ["market.public", "tools.public"] as const;
+const PUBLIC_FEATURES = [
+  "market.public",
+  "tools.public",
+  "analysis.publicResearch",
+] as const;
 const VIP_FEATURES = [
-  "analysis.multiTimeframe",
+  "analysis.privateMultiTimeframe",
   "analysis.aiDrawdown",
   "analysis.cycleMarkers",
   "editorial.tradeStrategy",

@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import type { ToolDefinition } from "@/lib/tools/catalog";
 import type { ToolAssetSlug } from "@/lib/tools/tool-navigation";
 import { BreadcrumbJsonLd } from "@/components/seo/json-ld";
 import { SITE_URL } from "@/config/site";
+import { BackToToolsLink } from "./back-to-tools-link";
 import { ShareToolLink } from "./share-tool-link";
 import {
   ToolAssetContextPanel,
@@ -34,11 +34,7 @@ export function ToolPageShell({
           { name: tool.shortTitle, path: tool.href },
         ]}
       />
-      <nav className="tool-breadcrumb" aria-label="面包屑导航">
-        <Link href="/tools">加密工具</Link>
-        <span aria-hidden="true">›</span>
-        <span aria-current="page">{tool.shortTitle}</span>
-      </nav>
+      <BackToToolsLink currentLabel={tool.shortTitle} />
 
       <header className="tool-heading">
         <div className="tool-heading__copy">

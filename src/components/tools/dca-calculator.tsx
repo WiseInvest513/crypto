@@ -357,6 +357,12 @@ export function DcaCalculator({
         title={result ? "历史定投结果" : "等待计算"}
         description="每次执行使用计划日当天或之后第一根有效的 Binance 已闭合日线收盘价。"
         ready={Boolean(result)}
+        resultKey={result}
+        announcement={
+          result
+            ? `历史定投结果已更新。期末价值 ${formatToolMoney(result.endingValue, "USDT")}。`
+            : ""
+        }
       >
         {result ? (
           <>

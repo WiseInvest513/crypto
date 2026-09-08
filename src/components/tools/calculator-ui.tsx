@@ -161,40 +161,48 @@ export function CalculatorResult({
   description,
   children,
   ready = false,
+  resultKey,
+  announcement = "",
 }: {
   title: string;
   description: string;
   children: ReactNode;
   ready?: boolean;
+  resultKey?: unknown;
+  announcement?: string;
 }) {
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!ready) return;
 
-    sectionRef.current?.scrollIntoView({
+    const section = sectionRef.current;
+    if (!section) return;
+
+    section.focus({ preventScroll: true });
+    section.scrollIntoView({
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
         ? "auto"
         : "smooth",
-      block: "nearest",
+      block: window.matchMedia("(max-width: 58rem)").matches
+        ? "start"
+        : "nearest",
     });
-  }, [ready]);
+  }, [ready, resultKey]);
 
   return (
     <section
       className="calculator-result"
       aria-labelledby="calculator-result-title"
       ref={sectionRef}
+      tabIndex={-1}
     >
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {ready ? announcement : ""}
+      </p>
       <header>
         <p className="panel-kicker">估算结果</p>
-        <h2
-          id="calculator-result-title"
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          {title}
-        </h2>
+        <h2 id="calculator-result-title">{title}</h2>
         <p>{description}</p>
       </header>
       {children}

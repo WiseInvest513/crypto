@@ -1,4 +1,7 @@
-import type { ToolValidationIssue } from "@/lib/tools";
+import type {
+  ToolCalculationResult,
+  ToolValidationIssue,
+} from "@/lib/tools";
 
 export type CalculatorFieldErrors = Readonly<Record<string, string>>;
 
@@ -12,6 +15,17 @@ export function mapCalculatorErrors(
   return Object.fromEntries(
     issues.map((issue) => [issue.field, issue.message]),
   );
+}
+
+export function revalidateCalculatorErrors(
+  currentErrors: CalculatorFieldErrors,
+  calculation: ToolCalculationResult<unknown>,
+): CalculatorFieldErrors {
+  if (Object.keys(currentErrors).length === 0) {
+    return currentErrors;
+  }
+
+  return calculation.ok ? {} : mapCalculatorErrors(calculation.errors);
 }
 
 export function calculatorInputA11y(

@@ -10,20 +10,17 @@ function read(path: string): string {
 
 describe("Phase 4 BTC and ETH integrity", () => {
   it.each(["btc", "eth"])(
-    "streams normalized server data slices independently for /%s",
+    "streams public normalized market data without private identity dependencies for /%s",
     (asset) => {
       const page = read(`src/app/${asset}/page.tsx`);
 
-      expect(page).toContain(`loadAssetPriceDatum("${asset}")`);
-      expect(page).toContain(`loadAssetChartSnapshot("${asset}")`);
       expect(page).toContain(`loadAssetLiveChartDatum("${asset}")`);
-      expect(page).toContain(`loadAssetContextSnapshot("${asset}")`);
-      expect(page).toContain(`loadAssetEditorialForAccess("${asset}", access)`);
-      expect(page).toContain("resolveUserAccess");
-      expect(page).toContain("access={access}");
+      expect(page).not.toContain("loadAssetEditorialForAccess");
+      expect(page).not.toContain("resolveUserAccess");
+      expect(page).not.toContain("access={access}");
       expect(page).not.toContain("loadAssetEditorial(");
       expect(page).toContain('export const dynamic = "force-dynamic"');
-      expect(page).toContain("AssetDetailStreamPage");
+      expect(page).toContain("MarketWorkbenchPage");
       expect(page).not.toMatch(/fetch\s*\(|MockMarketProvider|testing\//);
     },
   );

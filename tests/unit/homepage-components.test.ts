@@ -10,6 +10,7 @@ import {
   AssetOverview,
   HomepageQuoteUpdatedAt,
   KeyMarketIndicators,
+  KeyMarketIndicatorsLoading,
   MarketPulse,
 } from "@/components/home/homepage-market";
 import {
@@ -162,6 +163,8 @@ function liveSnapshot(): MarketSnapshot {
         notional: 1_250_000_000,
         quoteCurrency: "USDT",
         samplingPeriod: "5m",
+        change24hPercent: 6.2,
+        comparisonWindowHours: 24,
       },
       { kind: "venue", label: "BTC derivatives venue" },
     ),
@@ -173,6 +176,8 @@ function liveSnapshot(): MarketSnapshot {
         notional: 780_000_000,
         quoteCurrency: "USDT",
         samplingPeriod: "5m",
+        change24hPercent: -2.4,
+        comparisonWindowHours: 24,
       },
       { kind: "venue", label: "ETH derivatives venue" },
     ),
@@ -302,29 +307,39 @@ describe("homepage server-rendered market components", () => {
     expect(`${updateHtml}${factHtml}`).not.toContain("已核验市场来源");
   });
 
-  it("renders derivatives units accurately and leaves unavailable data empty", async () => {
+  it("turns derivatives and fund-flow data into three readable market explanations", async () => {
     const html = renderToStaticMarkup(
       await KeyMarketIndicators({
         snapshot: Promise.resolve(liveSnapshot()),
       }),
     );
 
-    expect(html).toContain("关键市场数据");
+    expect(html).toContain("杠杆与资金，正在发生什么");
+    expect(html).toContain("从数字到含义");
+    expect(html).toContain("机械解读 · 不预测涨跌");
+    expect(html).toContain("永续合约持仓状态");
+    expect(html).toContain("BTC 与 ETH OI 的 24 小时变化方向不同");
     expect(html).toContain("BTC 资金费率");
     expect(html).toContain("0.0100%");
     expect(html).toContain("12.50 亿 USDT");
     expect(html).not.toContain("$12.50 亿 USDT");
-    expect(html).toContain("24 小时合计");
+    expect(html).toContain("24 小时强平结构");
+    expect(html).toContain("24 小时多单强平金额高于空单");
+    expect(html).toContain("$3.80 亿");
+    expect(html).toContain("美国现货 ETF 日资金流");
+    expect(html).toContain("BTC ETF 最近交易日净流入");
     expect(html).toContain("+$1.25 亿");
-    expect(html).toContain("ETH ETF 净流量");
-    expect(html).toContain("暂不可用");
-    expect(html).toContain("尚未配置具备展示许可的数据源。");
-    expect(html).toContain("暂不可用的数据");
-    expect(html).toContain("6/7");
-    expect(html).toContain("项可用");
-    expect(html).toContain("coverage-row--unavailable");
-    expect(html).not.toContain("indicator-item--unavailable");
+    expect(html).toContain("部分数据");
+    expect(html).toContain("这代表什么");
+    expect(html).toContain("接下来观察");
+    expect(html).toContain("更新于 2026-08-29 12:00 UTC");
+    expect(html).toContain("较 24 小时前增加 +6.20%");
+    expect(html).toContain("2026-08-29 完整交易日");
+    expect(html).not.toContain("0/7");
+    expect(html).not.toContain("ETH ETF 日净流量");
     expect(html).not.toContain("已核验市场来源");
+    expect(html).not.toContain("BTC derivatives venue");
+    expect(html).not.toContain("Global derivatives liquidations");
     expect(html).not.toContain("数据来源、范围与时间");
     expect(html).not.toContain("查看数据口径");
   });
@@ -380,7 +395,7 @@ describe("homepage server-rendered market components", () => {
       await KeyMarketIndicators({ snapshot: Promise.resolve(snapshot) }),
     );
 
-    expect(html).toContain("公开页面不会展示开发测试数据。");
+    expect(html).toContain("部分数据");
     expect(html).not.toContain("987.6540%");
     expect(html).not.toContain("Mock / Development only");
     expect(html).not.toContain("Synthetic venue");
@@ -415,11 +430,20 @@ describe("homepage server-rendered market components", () => {
       await KeyMarketIndicators({ snapshot: Promise.resolve(snapshot) }),
     );
 
-    expect(html).toContain("扩展市场数据当前 0/7 项可用");
-    expect(html).toContain("0/7 项可用");
-    expect(html).toContain("<details");
-    expect(html).not.toContain("open=\"\"");
-    expect(html).not.toContain("class=\"indicator-item");
+    expect(html).toContain("暂无法形成市场解释");
+    expect(html).toContain("缺失值不会按零处理");
+    expect(html).not.toContain("0/7");
+    expect(html).not.toContain("<details");
+    expect(html).not.toContain("class=\"home-market-context-card ");
+  });
+
+  it("reserves the three-card explanation layout while market context is loading", () => {
+    const html = renderToStaticMarkup(KeyMarketIndicatorsLoading());
+
+    expect(html).toContain('aria-busy="true"');
+    expect(html).toContain("正在整理客观结论");
+    expect(html.match(/home-market-context-card--loading/g)).toHaveLength(3);
+    expect(html).toContain("衍生品与资金流数据正在加载");
   });
 });
 

@@ -20,12 +20,18 @@ describe("Phase 3 homepage integrity", () => {
     expect(page).not.toMatch(/fetch\s*\(/);
   });
 
-  it("points users to the asset strategy desks without reviving the product directory", () => {
+  it("points users to real workbenches and the main-site perk page without promising unpublished strategy", () => {
     const page = read("src/app/page.tsx");
     const siteConfig = read("src/config/site.ts");
 
-    expect(page).toContain('href="/btc#vip-research"');
-    expect(page).toContain('href="/eth#vip-research"');
+    expect(page).toContain('href="/btc"');
+    expect(page).toContain('href="/eth"');
+    expect(page).toContain("查看 BTC 行情工作台");
+    expect(page).toContain("查看 ETH 行情工作台");
+    expect(page).toContain("人工策略尚未在此发布");
+    expect(page).not.toContain("#vip-research");
+    expect(page).not.toContain("查看 BTC 策略台");
+    expect(page).not.toContain("查看 ETH 策略台");
     expect(page).toContain("WISE_INVEST_CRYPTO_PERKS_URL");
     expect(siteConfig).toContain(
       '"https://www.wise-invest.org/perk/crypto"',
@@ -35,18 +41,32 @@ describe("Phase 3 homepage integrity", () => {
     expect(page).not.toContain('href="/products"');
   });
 
+  it("does not repeat the 24-hour and 7-day quote summary below the asset cards", () => {
+    const page = read("src/app/page.tsx");
+
+    expect(page).toContain("价格之外，再看日线结构");
+    expect(page).toContain("24 小时与 7 天变化已在上方");
+    expect(page).not.toContain("MarketNowQuoteFact");
+    expect(page.match(/<MarketNowDailyFact/g)).toHaveLength(2);
+  });
+
   it("renders every Phase 3 market capability from the normalized snapshot", () => {
     const market = read("src/components/home/homepage-market.tsx");
+    const interpretation = read(
+      "src/lib/market/market-indicator-interpretation.ts",
+    );
     const datumPresentation = read(
       "src/components/market/datum-presentation.tsx",
     );
-    const requiredFields = [
+    const directFields = [
       "btcPrice",
       "ethPrice",
       "marketCap",
       "fearAndGreed",
       "btcDominance",
       "ethBtc",
+    ];
+    const interpretedFields = [
       "btcFunding",
       "ethFunding",
       "btcOpenInterest",
@@ -56,8 +76,12 @@ describe("Phase 3 homepage integrity", () => {
       "ethEtfFlow",
     ];
 
-    for (const field of requiredFields) {
+    for (const field of directFields) {
       expect(market).toContain(`data.${field}`);
+    }
+    expect(market).toContain("interpretMarketIndicators(data)");
+    for (const field of interpretedFields) {
+      expect(interpretation).toContain(`input.${field}`);
     }
     expect(datumPresentation).toContain("数据截至");
     expect(datumPresentation).toContain("获取于");
@@ -79,6 +103,12 @@ describe("Phase 3 homepage integrity", () => {
     );
     expect(page.indexOf('className="home-market-now market-now"')).toBeLessThan(
       page.indexOf('className="home-vip-cta"'),
+    );
+    expect(page.indexOf("<MarketPulse")).toBeLessThan(
+      page.indexOf("<KeyMarketIndicators"),
+    );
+    expect(page.indexOf("<KeyMarketIndicators")).toBeLessThan(
+      page.indexOf('className="home-tools"'),
     );
     expect(market).toContain("DatumUpdatedAt");
     expect(facts).toContain("DatumUpdatedAt");

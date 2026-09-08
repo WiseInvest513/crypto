@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { PublicChromeBoundary } from "@/components/layout/public-chrome-boundary";
 import { JsonLd } from "@/components/seo/json-ld";
 import {
   isPublicIndexingEnabled,
@@ -9,8 +10,9 @@ import {
   SITE_URL,
 } from "@/config/site";
 import { SITE_SOCIAL_IMAGE } from "@/lib/seo/page-metadata";
+import { THEME_INITIALIZATION_SCRIPT } from "@/lib/theme/theme-preference";
 import "./globals.css";
-import "./asset-workbench.css";
+import "./market-workbench.css";
 
 const siteUrl = new URL(SITE_URL);
 const isProduction = isPublicIndexingEnabled();
@@ -61,7 +63,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   } as const;
 
   return (
-    <html lang="zh-CN" data-scroll-behavior="smooth">
+    <html
+      lang="zh-CN"
+      data-theme="light"
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          id="wise-crypto-theme-initializer"
+          dangerouslySetInnerHTML={{ __html: THEME_INITIALIZATION_SCRIPT }}
+        />
+      </head>
       <body>
         <JsonLd data={websiteJsonLd} />
         <PageViewTracker />
@@ -69,11 +82,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           跳转到主要内容
         </a>
         <div className="site-shell">
-          <SiteHeader />
+          <PublicChromeBoundary>
+            <SiteHeader />
+          </PublicChromeBoundary>
           <main id="main-content" className="site-main" tabIndex={-1}>
             {children}
           </main>
-          <SiteFooter />
+          <PublicChromeBoundary>
+            <SiteFooter />
+          </PublicChromeBoundary>
         </div>
       </body>
     </html>

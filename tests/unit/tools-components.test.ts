@@ -4,6 +4,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { DcaCalculator } from "../../src/components/tools/dca-calculator";
+import { BackToToolsLink } from "../../src/components/tools/back-to-tools-link";
 import { LeverageCalculator } from "../../src/components/tools/leverage-calculator";
 import { PositionSizeCalculator } from "../../src/components/tools/position-size-calculator";
 import { RiskRewardCalculator } from "../../src/components/tools/risk-reward-calculator";
@@ -16,13 +17,19 @@ import { getToolDefinition } from "../../src/lib/tools/catalog";
 import ToolsPage from "../../src/app/tools/page";
 
 describe("Phase 5 calculator components", () => {
-  it("presents all four tools as equal, icon-led task cards", () => {
+  it("presents one learning entry before four equal calculator cards", () => {
     const markup = renderToStaticMarkup(createElement(ToolsPage));
 
-    expect(markup).toContain("交易前，先把风险算清楚");
+    expect(markup).toContain("交易前，先把风险弄明白");
+    expect(markup).toContain('class="tools-learning"');
+    expect(markup).toContain('href="/tools/futures-intro"');
+    expect(markup).toContain("合约入门");
+    expect(markup).toContain("5</strong> 章");
+    expect(markup).toContain("26</strong> 关");
+    expect(markup).toContain("快速路径 <strong>8</strong> 关");
     expect(markup).toContain("从当前问题开始");
     expect(markup).toContain('aria-label="计算工具"');
-    expect(markup).toContain("输入仅在当前设备计算");
+    expect(markup).toContain("只在当前设备学习与计算");
     expect(markup.match(/class="tools-card"/g)).toHaveLength(4);
     expect(markup.match(/class="tools-card__icon"/g)).toHaveLength(4);
     for (const slug of ["position-size", "leverage", "dca", "risk-reward"]) {
@@ -102,6 +109,31 @@ describe("Phase 5 calculator components", () => {
     expect(markup).toContain('href="/tools/risk-reward?asset=btc"');
     expect(markup).toContain('href="/tools/leverage?asset=btc"');
     expect(markup).toContain("只打开空白页面");
+  });
+
+  it("provides a clear tools return target and compact current-page context", () => {
+    const markup = renderToStaticMarkup(
+      createElement(BackToToolsLink, { currentLabel: "仓位计算" }),
+    );
+    const source = readFileSync(
+      join(process.cwd(), "src/components/tools/back-to-tools-link.tsx"),
+      "utf8",
+    );
+    const styles = readFileSync(
+      join(process.cwd(), "src/app/tools/tools.css"),
+      "utf8",
+    );
+
+    expect(markup).toContain('class="tool-return-link"');
+    expect(markup).toContain('href="/tools"');
+    expect(markup).toContain("返回工具");
+    expect(markup).toContain('aria-label="当前位置"');
+    expect(markup).toContain('aria-current="page"');
+    expect(markup).toContain("仓位计算");
+    expect(source).not.toMatch(/useRouter|router\.back/);
+    expect(styles).toMatch(
+      /\.tools-experience \.tool-return-link\s*\{[^}]*min-height:\s*2\.75rem;/s,
+    );
   });
 
   it("renders Binance source, UTC scope and an empty DCA result before submit", () => {

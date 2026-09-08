@@ -24,6 +24,7 @@ import {
   focusFirstCalculatorError,
   mapCalculatorErrors,
   parseCalculatorNumber,
+  revalidateCalculatorErrors,
   type CalculatorFieldErrors,
 } from "./calculator-form-utils";
 import { useToolAnalytics } from "./use-tool-analytics";
@@ -44,6 +45,22 @@ const EMPTY_FORM: RiskRewardForm = {
   currency: "USDT",
 };
 
+const RISK_REWARD_RELATION_FIELDS = new Set<keyof RiskRewardForm>([
+  "direction",
+  "entryPrice",
+  "stopPrice",
+  "targetPrice",
+]);
+
+function calculateRiskRewardForm(form: RiskRewardForm) {
+  return calculateRiskReward({
+    direction: form.direction,
+    entryPrice: parseCalculatorNumber(form.entryPrice),
+    stopPrice: parseCalculatorNumber(form.stopPrice),
+    targetPrice: parseCalculatorNumber(form.targetPrice),
+  });
+}
+
 export function RiskRewardCalculator() {
   const formRef = useRef<HTMLFormElement>(null);
   const [form, setForm] = useState<RiskRewardForm>(EMPTY_FORM);
@@ -58,8 +75,16 @@ export function RiskRewardCalculator() {
     field: Field,
     value: RiskRewardForm[Field],
   ) {
-    setForm((current) => ({ ...current, [field]: value }));
+    const nextForm = { ...form, [field]: value };
+    setForm(nextForm);
     setErrors((current) => {
+      if (RISK_REWARD_RELATION_FIELDS.has(field)) {
+        return revalidateCalculatorErrors(
+          current,
+          calculateRiskRewardForm(nextForm),
+        );
+      }
+
       const { [field]: _removed, calculation: _calculation, ...rest } = current;
       void _removed;
       void _calculation;
@@ -76,12 +101,7 @@ export function RiskRewardCalculator() {
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const calculation = calculateRiskReward({
-      direction: form.direction,
-      entryPrice: parseCalculatorNumber(form.entryPrice),
-      stopPrice: parseCalculatorNumber(form.stopPrice),
-      targetPrice: parseCalculatorNumber(form.targetPrice),
-    });
+    const calculation = calculateRiskRewardForm(form);
 
     if (!calculation.ok) {
       setResult(null);
@@ -195,6 +215,12 @@ export function RiskRewardCalculator() {
         title={result ? "价格距离比较" : "等待计算"}
         description="比值只比较你输入的价格距离，不包含成交概率、仓位、手续费、滑点或跳空。"
         ready={Boolean(result)}
+        resultKey={result}
+        announcement={
+          result
+            ? `风险回报估算已更新。风险回报 ${formatToolRatio(result.rewardToRiskRatio)}。`
+            : ""
+        }
       >
         {result ? (
           <>

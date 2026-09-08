@@ -66,8 +66,58 @@ describe("Binance USDⓈ-M provider", () => {
         notional: 12_450_000_000.25,
         quoteCurrency: "USDT",
         samplingPeriod: "5m",
+        change24hPercent: null,
+        comparisonWindowHours: null,
       },
       scope: { label: expect.stringContaining("BTCUSDT") },
+    });
+    expect(get).toHaveBeenCalledWith(
+      expect.stringContaining("period=5m&limit=289"),
+    );
+  });
+
+  it("derives a same-venue 24-hour OI change only from a verified window", async () => {
+    const samples = Array.from({ length: 289 }, (_, index) => ({
+      symbol: "BTCUSDT",
+      sumOpenInterestValue: String(1_000_000 + index * 1_000),
+      timestamp: UPDATED - (288 - index) * 5 * 60_000,
+    }));
+    const provider = createProvider(vi.fn(async () => samples));
+
+    const result = await provider.getOpenInterest("btc");
+
+    expect(result).toMatchObject({
+      status: "fresh",
+      value: {
+        notional: 1_288_000,
+        comparisonWindowHours: 24,
+      },
+    });
+    if (result.status !== "fresh" && result.status !== "stale") {
+      throw new Error("Expected an available OI result");
+    }
+    expect(result.value.change24hPercent).toBeCloseTo(28.8, 8);
+  });
+
+  it("rejects unordered OI samples instead of inventing a 24-hour comparison", async () => {
+    const provider = createProvider(
+      vi.fn(async () => [
+        {
+          symbol: "ETHUSDT",
+          sumOpenInterestValue: "1000000",
+          timestamp: UPDATED,
+        },
+        {
+          symbol: "ETHUSDT",
+          sumOpenInterestValue: "1100000",
+          timestamp: UPDATED - 5 * 60_000,
+        },
+      ]),
+    );
+
+    await expect(provider.getOpenInterest("eth")).resolves.toMatchObject({
+      status: "error",
+      error: { code: "invalid_payload", retryable: false },
     });
   });
 

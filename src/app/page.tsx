@@ -4,7 +4,6 @@ import { HomepageEditorialPanels } from "@/components/home/homepage-editorial";
 import {
   MarketNowDailyFact,
   MarketNowFactLoading,
-  MarketNowQuoteFact,
 } from "@/components/home/homepage-facts";
 import {
   AssetOverview,
@@ -22,6 +21,7 @@ import {
   type HomepageEditorialPayload,
 } from "@/server/editorial/homepage-editorial-service";
 import { resolveUserAccess } from "@/server/access/resolve-user-access";
+import { wiseIdentityAdapter } from "@/server/auth/wise-identity-adapter";
 import {
   loadMarketIndicatorSnapshot,
   loadMarketPulseSnapshot,
@@ -52,7 +52,7 @@ const actionShortcuts = homepageToolOrder.map((slug, position) => {
 });
 
 export default function Home() {
-  const access = resolveUserAccess();
+  const access = resolveUserAccess(wiseIdentityAdapter);
   const quoteSnapshot = loadMarketQuoteSnapshot();
   const pulseSnapshot = loadMarketPulseSnapshot();
   const noticeSnapshot = Promise.all([quoteSnapshot, pulseSnapshot]).then(
@@ -94,15 +94,12 @@ export default function Home() {
       <section className="home-market-now market-now" aria-labelledby="market-now-title">
         <header className="home-section-heading">
           <div>
-            <h2 id="market-now-title">市场现在</h2>
-            <p>先看方向，再看 BTC 与 ETH 的已闭合日线结构。</p>
+            <h2 id="market-now-title">价格之外，再看日线结构</h2>
+            <p>24 小时与 7 天变化已在上方；这里补充已闭合日线的均线和区间位置。</p>
           </div>
-          <span>3 条客观事实</span>
+          <span>BTC · ETH</span>
         </header>
         <div className="market-now__grid">
-          <Suspense fallback={<MarketNowFactLoading label="短期变化" />}>
-            <MarketNowQuoteFact snapshot={quoteSnapshot} />
-          </Suspense>
           <Suspense fallback={<MarketNowFactLoading label="BTC 日线事实" />}>
             <MarketNowDailyFact asset="btc" snapshot={btcChartSnapshot} />
           </Suspense>
@@ -120,25 +117,28 @@ export default function Home() {
           W
         </div>
         <div className="home-vip-cta__copy">
-          <p>Wise VIP 行情参考</p>
-          <h2 id="home-vip-title">从市场事实，到人工策略</h2>
+          <p>继续分析</p>
+          <h2 id="home-vip-title">从价格，进入 K 线与关键位</h2>
           <p>
-            BTC / ETH 工作台承接人工关键位、方向、时间窗口、确认与失效条件。普通用户可继续查看市场事实，策略正文仅向服务端验证后的 VIP 开放。
+            BTC / ETH 工作台已提供持续更新的 K 线、EMA、客观支撑压力与多周期对照。人工策略尚未在此发布；未来 VIP 内容只会在服务端验证身份后开放。
           </p>
         </div>
-        <nav className="home-vip-cta__actions" aria-label="VIP 行情参考入口">
-          <Link href="/btc#vip-research">
-            查看 BTC 策略台 <ArrowRightIcon />
+        <nav
+          className="home-vip-cta__actions"
+          aria-label="行情工作台与主站权益入口"
+        >
+          <Link href="/btc">
+            查看 BTC 行情工作台 <ArrowRightIcon />
           </Link>
-          <Link href="/eth#vip-research">
-            查看 ETH 策略台 <ArrowRightIcon />
+          <Link href="/eth">
+            查看 ETH 行情工作台 <ArrowRightIcon />
           </Link>
           <a
             href={WISE_INVEST_CRYPTO_PERKS_URL}
             target="_blank"
             rel="noopener noreferrer"
           >
-            了解 VIP 权益 <span aria-hidden="true">↗</span>
+            了解主站 VIP 权益 <span aria-hidden="true">↗</span>
             <span className="sr-only">（在新标签页打开）</span>
           </a>
         </nav>
@@ -150,6 +150,10 @@ export default function Home() {
 
       <Suspense fallback={<MarketPulseLoading />}>
         <MarketPulse snapshot={pulseSnapshot} />
+      </Suspense>
+
+      <Suspense fallback={<KeyMarketIndicatorsLoading />}>
+        <KeyMarketIndicators snapshot={indicatorSnapshot} />
       </Suspense>
 
       <section className="home-tools" aria-labelledby="quick-access-title">
@@ -175,10 +179,6 @@ export default function Home() {
           ))}
         </div>
       </section>
-
-      <Suspense fallback={<KeyMarketIndicatorsLoading />}>
-        <KeyMarketIndicators snapshot={indicatorSnapshot} />
-      </Suspense>
     </div>
   );
 }

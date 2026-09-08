@@ -11,6 +11,8 @@ export const marketCapabilities = [
   "spot.btc-price",
   "spot.eth-price",
   "spot.core-prices",
+  "spot.btc-performance",
+  "spot.eth-performance",
   "spot.market-cap",
   "spot.btc-dominance",
   "spot.eth-btc",
@@ -20,6 +22,14 @@ export const marketCapabilities = [
   "historical.eth-chart-candles",
   "analysis.btc-multi-timeframe",
   "analysis.eth-multi-timeframe",
+  "analysis.btc-key-levels",
+  "analysis.eth-key-levels",
+  "analysis.btc-historical-context",
+  "analysis.eth-historical-context",
+  "analysis.btc-long-term-history",
+  "analysis.eth-long-term-history",
+  "analysis.btc-market-cycle",
+  "analysis.eth-market-cycle",
   "sentiment.fear-and-greed",
   "derivatives.btc-funding",
   "derivatives.eth-funding",
@@ -267,6 +277,42 @@ export function multiTimeframeCapability(
   return `analysis.${asset}-multi-timeframe`;
 }
 
+export function keyLevelCapability(
+  asset: Asset,
+): Extract<MarketCapability, "analysis.btc-key-levels" | "analysis.eth-key-levels"> {
+  return `analysis.${asset}-key-levels`;
+}
+
+export function historicalContextCapability(
+  asset: Asset,
+): Extract<
+  MarketCapability,
+  | "analysis.btc-historical-context"
+  | "analysis.eth-historical-context"
+> {
+  return `analysis.${asset}-historical-context`;
+}
+
+export function longTermHistoryCapability(
+  asset: Asset,
+): Extract<
+  MarketCapability,
+  | "analysis.btc-long-term-history"
+  | "analysis.eth-long-term-history"
+> {
+  return `analysis.${asset}-long-term-history`;
+}
+
+export function marketCycleCapability(
+  asset: Asset,
+): Extract<
+  MarketCapability,
+  | "analysis.btc-market-cycle"
+  | "analysis.eth-market-cycle"
+> {
+  return `analysis.${asset}-market-cycle`;
+}
+
 export type SentimentReading = {
   value: number;
   classification: string;
@@ -285,6 +331,13 @@ export type OpenInterestReading = {
   notional: number;
   quoteCurrency: "USDT";
   samplingPeriod: "5m";
+  /**
+   * Same-venue notional OI change over an approximately 24-hour comparison
+   * window. Null means the provider could not verify a complete comparison
+   * window and the UI must not infer a trend from the current snapshot.
+   */
+  change24hPercent?: number | null;
+  comparisonWindowHours?: number | null;
 };
 
 export type LiquidationsReading = {

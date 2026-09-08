@@ -1,10 +1,5 @@
 import Link from "next/link";
-
-const footerLinks = [
-  { href: "/btc", label: "比特币" },
-  { href: "/eth", label: "以太坊" },
-  { href: "/tools", label: "工具" },
-] as const;
+import { navigation } from "./navigation";
 
 export function SiteFooter() {
   return (
@@ -15,12 +10,12 @@ export function SiteFooter() {
             Wise Crypto
           </Link>
           <p className="site-footer__mission">
-            清晰的市场背景，透明的数据来源，更踏实的判断依据。
+            看清价格位置，理解关键变化，做好交易前的风险评估。
           </p>
         </div>
 
         <nav className="footer-nav" aria-label="页脚导航">
-          {footerLinks.map((link) => (
+          {navigation.map((link) => (
             <Link href={link.href} key={link.href}>
               {link.label}
             </Link>

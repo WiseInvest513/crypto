@@ -78,7 +78,7 @@ export async function loadAssetMultiTimeframeForAccess(
     return { status: "locked", asset };
   }
 
-  if (!canAccessFeature(resolvedAccess, "analysis.multiTimeframe")) {
+  if (!canAccessFeature(resolvedAccess, "analysis.privateMultiTimeframe")) {
     return { status: "locked", asset };
   }
 

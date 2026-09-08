@@ -8,6 +8,7 @@ import {
   formatCompactNumber,
   formatCompactUsd,
   formatFundingRate,
+  formatPercent,
   formatTradingDate,
 } from "./formatters";
 import type { FormattedDatumValue } from "./homepage-presentation";
@@ -28,9 +29,13 @@ export function formatFundingReading(
 export function formatOpenInterestReading(
   value: OpenInterestReading,
 ): FormattedDatumValue {
+  const comparison =
+    value.change24hPercent === undefined || value.change24hPercent === null
+      ? "24 小时变化暂不可用"
+      : `24 小时 ${formatPercent(value.change24hPercent, true)}`;
   return {
     primary: `${formatCompactNumber(value.notional)} ${value.quoteCurrency}`,
-    secondary: `${value.symbol} · ${formatSamplingPeriod(value.samplingPeriod)} · 单一交易场所名义价值`,
+    secondary: `${comparison} · ${value.symbol} 单一交易场所`,
   };
 }
 
@@ -54,10 +59,6 @@ export function formatEtfFlowReading(
     primary: formatCompactUsd(value.netFlowUsd, true),
     secondary: `${formatTradingDate(value.tradingDate)} · 日净流量`,
   };
-}
-
-function formatSamplingPeriod(value: string): string {
-  return value === "5m" ? "5 分钟样本" : `${value} 样本`;
 }
 
 function formatWindow(value: string): string {

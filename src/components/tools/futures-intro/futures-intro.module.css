@@ -1,0 +1,4250 @@
+.experience {
+  --course-ink: #1d1d1f;
+  --course-muted: #6e6e73;
+  --course-faint: #6e6e73;
+  --course-line: #dedee3;
+  --course-surface: #ffffff;
+  --course-soft: #f5f5f7;
+  --course-blue: #2463eb;
+  --course-blue-soft: #eef4ff;
+  --course-red: #b42332;
+  --course-red-soft: #fff0f1;
+  --course-purple: #7655d9;
+  --course-purple-soft: #f3f0ff;
+  --course-amber: #a66205;
+  --course-amber-soft: #fff6e7;
+  color: var(--course-ink);
+}
+
+.page {
+  display: grid;
+  gap: clamp(1rem, 2.4vw, 1.75rem);
+  padding-block: 1rem 5rem;
+}
+
+.courseHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+  align-items: center;
+  gap: clamp(2rem, 6vw, 6rem);
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  border: 1px solid var(--course-line);
+  border-radius: 1.6rem;
+  background: var(--course-surface);
+  box-shadow: 0 16px 50px rgb(0 0 0 / 6%);
+}
+
+.eyebrow,
+.sectionEyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--course-blue);
+  font-size: 0.75rem;
+  font-weight: 780;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.heroCopy h1,
+.heroCopy > p,
+.lessonHeader h1,
+.lessonHeader > p {
+  margin: 0;
+}
+
+.heroCopy h1 {
+  max-width: 40rem;
+  font-size: clamp(2.65rem, 6vw, 5.1rem);
+  font-weight: 780;
+  letter-spacing: -0.062em;
+  line-height: 0.98;
+}
+
+.heroCopy > p:not(.eyebrow) {
+  max-width: 44rem;
+  margin-top: 1.15rem;
+  color: var(--course-muted);
+  font-size: clamp(1rem, 1.6vw, 1.16rem);
+  line-height: 1.7;
+}
+
+.courseFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1.35rem;
+}
+
+.courseFacts span {
+  display: inline-flex;
+  min-height: 2.2rem;
+  align-items: center;
+  padding-inline: 0.8rem;
+  border: 1px solid var(--course-line);
+  border-radius: 999px;
+  background: var(--course-soft);
+  color: var(--course-muted);
+  font-size: 0.78rem;
+  font-weight: 680;
+}
+
+.progressCard {
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--course-line);
+  border-radius: 1.15rem;
+  background: var(--course-soft);
+}
+
+.progressHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.progressHeading span {
+  color: var(--course-muted);
+  font-size: 0.82rem;
+  font-weight: 680;
+}
+
+.progressHeading strong {
+  font-size: 1.55rem;
+  letter-spacing: -0.04em;
+}
+
+.progressTrack {
+  position: relative;
+  height: 0.42rem;
+  margin-top: 0.85rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #d7d7dc;
+}
+
+.progressTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--course-blue);
+  transition: width 240ms ease;
+}
+
+.progressCard p {
+  min-height: 2.65rem;
+  margin: 0.8rem 0 0;
+  color: var(--course-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.primaryButton,
+.submitButton,
+.stickyNext button {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  border: 0;
+  border-radius: 0.8rem;
+  background: var(--course-ink);
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 760;
+}
+
+.primaryButton {
+  width: 100%;
+  margin-top: 0.9rem;
+  padding-inline: 1rem;
+}
+
+.primaryButton:disabled,
+.submitButton:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.pathSection {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.72fr) minmax(0, 1.28fr);
+  align-items: center;
+  gap: clamp(1.25rem, 4vw, 3.5rem);
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--course-line);
+  border-radius: 1.25rem;
+  background: var(--course-surface);
+}
+
+.pathSection h2,
+.curriculumHeader h2,
+.observationPanel h2,
+.safetyNote h2,
+.resetDialog h2 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.3vw, 1.75rem);
+  font-weight: 760;
+  letter-spacing: -0.04em;
+  line-height: 1.16;
+}
+
+.pathChoices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.pathChoices button {
+  display: grid;
+  min-height: 7.25rem;
+  align-content: center;
+  gap: 0.28rem;
+  padding: 1rem;
+  border: 1px solid var(--course-line);
+  border-radius: 1rem;
+  background: var(--course-soft);
+  color: var(--course-ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    transform 150ms ease;
+}
+
+.pathChoices button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: #b5b5bc;
+}
+
+.pathChoices button[aria-pressed="true"] {
+  border-color: var(--course-blue);
+  background: var(--course-blue-soft);
+  box-shadow: inset 0 0 0 1px var(--course-blue);
+}
+
+.pathChoices button > span {
+  color: var(--course-blue);
+  font-size: 0.75rem;
+  font-weight: 760;
+}
+
+.pathChoices button strong {
+  font-size: 1rem;
+}
+
+.pathChoices button small {
+  color: var(--course-muted);
+  font-size: 0.78rem;
+}
+
+.pathNote {
+  grid-column: 2;
+  margin: -0.4rem 0 0;
+  color: var(--course-faint);
+  font-size: 0.75rem;
+}
+
+.curriculum {
+  overflow: hidden;
+  border: 1px solid var(--course-line);
+  border-radius: 1.35rem;
+  background: var(--course-surface);
+  box-shadow: 0 12px 34px rgb(0 0 0 / 4%);
+}
+
+.curriculumHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border-bottom: 1px solid var(--course-line);
+}
+
+.curriculumHeader > p {
+  max-width: 27rem;
+  margin: 0;
+  color: var(--course-muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  text-align: right;
+}
+
+.chapterList,
+.lessonList,
+.observationList,
+.planSteps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chapter + .chapter {
+  border-top: 1px solid var(--course-line);
+}
+
+.chapter[data-expanded="true"] {
+  background: #fbfbfd;
+}
+
+.chapterButton {
+  display: grid;
+  width: 100%;
+  min-height: 6.5rem;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem clamp(1rem, 3vw, 2rem);
+  border: 0;
+  background: transparent;
+  color: var(--course-ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.chapterButton:hover {
+  background: var(--course-soft);
+}
+
+.chapterButton > svg {
+  color: var(--course-faint);
+  transition: transform 160ms ease;
+}
+
+.chapterButton > svg[data-expanded="true"] {
+  transform: rotate(180deg);
+}
+
+.chapterNumber {
+  display: grid;
+  width: 3rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 0.85rem;
+  background: var(--course-ink);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.chapterCopy {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.chapterCopy strong {
+  font-size: 1.1rem;
+  font-weight: 760;
+  letter-spacing: -0.025em;
+}
+
+.chapterCopy small {
+  color: var(--course-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.chapterProgress {
+  min-width: 3.5rem;
+  color: var(--course-muted);
+  font-size: 0.82rem;
+  font-weight: 720;
+  text-align: right;
+}
+
+.chapterContent {
+  padding-bottom: 1rem;
+}
+
+.chapterIntroduction {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 1px;
+  margin: 0 1rem 0.75rem 5rem;
+  overflow: hidden;
+  border: 1px solid var(--course-line);
+  border-radius: 0.9rem;
+  background: var(--course-line);
+}
+
+.chapterIntroduction > div {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  padding: 0.9rem 1rem;
+  background: var(--course-soft);
+}
+
+.chapterIntroduction span {
+  color: var(--course-blue);
+  font-size: 0.68rem;
+  font-weight: 780;
+}
+
+.chapterIntroduction p {
+  margin: 0;
+  color: var(--course-muted);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.chapterIntroduction ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chapterIntroduction li {
+  position: relative;
+  padding-left: 0.75rem;
+  color: var(--course-ink);
+  font-size: 0.7rem;
+  font-weight: 620;
+  line-height: 1.45;
+}
+
+.chapterIntroduction li::before {
+  position: absolute;
+  top: 0.48rem;
+  left: 0;
+  width: 0.28rem;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: var(--course-blue);
+  content: "";
+}
+
+.chapterOutcome {
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--course-line);
+  color: var(--course-ink) !important;
+  font-weight: 650;
+}
+
+.lessonList {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0 1rem 0 5rem;
+}
+
+.lessonList li > button {
+  display: grid;
+  width: 100%;
+  min-height: 4.85rem;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--course-line);
+  border-radius: 0.9rem;
+  background: var(--course-surface);
+  color: var(--course-ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.lessonList li > button:hover:not(:disabled) {
+  border-color: #adadb4;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 5%);
+}
+
+.lessonList li > button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.lessonList li > button[data-access="current"],
+.lessonList li > button[data-access="available"] {
+  border-color: #a9c0f8;
+  background: var(--course-blue-soft);
+}
+
+.lessonList li > button[data-access="completed"] .lessonOrder {
+  background: var(--course-blue);
+  color: #ffffff;
+}
+
+.lessonOrder {
+  display: grid;
+  width: 2.15rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--course-soft);
+  color: var(--course-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.lessonCopy {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.lessonCopy strong {
+  font-size: 0.88rem;
+  font-weight: 720;
+}
+
+.lessonCopy small {
+  overflow: hidden;
+  color: var(--course-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quickLabel {
+  padding: 0.32rem 0.55rem;
+  border-radius: 999px;
+  background: var(--course-amber-soft);
+  color: var(--course-amber);
+  font-size: 0.68rem;
+  font-weight: 740;
+  white-space: nowrap;
+}
+
+.lessonState {
+  min-width: 3.5rem;
+  color: var(--course-blue);
+  font-size: 0.72rem;
+  font-weight: 760;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.safetyNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: clamp(1.15rem, 3vw, 1.75rem);
+  border: 1px solid #ebd3aa;
+  border-radius: 1.15rem;
+  background: var(--course-amber-soft);
+}
+
+.safetyIcon {
+  display: grid;
+  width: 2.25rem;
+  flex: 0 0 auto;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--course-amber);
+  color: #ffffff;
+  font-weight: 850;
+}
+
+.safetyNote h2 {
+  font-size: 1.05rem;
+}
+
+.safetyNote p {
+  margin: 0.45rem 0 0;
+  color: #6d4a13;
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.courseActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.courseActions button,
+.retryButton,
+.backButton {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--course-line);
+  border-radius: 0.75rem;
+  background: var(--course-surface);
+  color: var(--course-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.courseActions button {
+  padding-inline: 0.9rem;
+}
+
+.courseActions button {
+  color: var(--course-muted);
+}
+
+.visibleStatus {
+  margin: -0.5rem 0 0;
+  color: var(--course-muted);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.resetDialog {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 38%);
+}
+
+.resetDialog > div {
+  width: min(100%, 28rem);
+  padding: 1.5rem;
+  border-radius: 1.2rem;
+  background: #ffffff;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 20%);
+}
+
+.resetDialog p:not(.sectionEyebrow) {
+  margin: 0.65rem 0 0;
+  color: var(--course-muted);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-top: 1.25rem;
+}
+
+.dialogActions button {
+  min-height: 2.75rem;
+  padding-inline: 1rem;
+  border: 1px solid var(--course-line);
+  border-radius: 0.72rem;
+  background: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 720;
+}
+
+.dialogActions button:last-child {
+  border-color: var(--course-red);
+  background: var(--course-red);
+  color: #ffffff;
+}
+
+/* Lesson */
+
+.lessonPage {
+  --lesson-accent: var(--course-blue);
+  --lesson-accent-soft: var(--course-blue-soft);
+  position: relative;
+  gap: 1.25rem;
+  padding-top: 0.75rem;
+  padding-bottom: 8rem;
+}
+
+.lessonPage[data-chapter="chapter-2-leverage-risk"] {
+  --lesson-accent: var(--course-red);
+  --lesson-accent-soft: var(--course-red-soft);
+}
+
+.lessonPage[data-chapter="chapter-3-candlesticks"] {
+  --lesson-accent: var(--course-purple);
+  --lesson-accent-soft: var(--course-purple-soft);
+}
+
+.lessonPage[data-chapter="chapter-4-indicators-levels"] {
+  --lesson-accent: #a64b00;
+  --lesson-accent-soft: #fff4e8;
+}
+
+.lessonPage[data-chapter="chapter-5-planning-replay"] {
+  --lesson-accent: var(--course-ink);
+  --lesson-accent-soft: var(--course-soft);
+}
+
+.lessonTopbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  min-height: 3.25rem;
+  padding-inline: clamp(0rem, 2vw, 1rem);
+}
+
+.lessonNavigation {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.backButton {
+  gap: 0.5rem;
+  min-height: 3.25rem;
+  padding-inline: 0.95rem;
+  border-color: #e4e4e8;
+  border-radius: 0.95rem;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 8%);
+}
+
+.lessonTopProgress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.25rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid #e4e4e8;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 8%);
+}
+
+.lessonTopProgress > span {
+  color: var(--course-ink);
+  font-size: 0.82rem;
+  font-weight: 620;
+  white-space: nowrap;
+}
+
+.lessonTopProgress > span strong {
+  font-size: 1rem;
+  font-weight: 780;
+}
+
+.lessonTopProgress .progressTrack {
+  width: clamp(4rem, 9vw, 7rem);
+  height: 0.3rem;
+  margin: 0;
+}
+
+.lessonTopProgress .progressTrack > span {
+  background: var(--lesson-accent);
+}
+
+.lessonArticle {
+  display: grid;
+  gap: clamp(1.25rem, 2.4vw, 2rem);
+}
+
+.lessonHeader {
+  width: min(100%, 70rem);
+  margin-inline: auto;
+  padding: clamp(1.25rem, 3vw, 2.5rem) clamp(0rem, 3vw, 2rem) 0.75rem;
+  text-align: left;
+}
+
+.lessonChapter {
+  color: var(--lesson-accent);
+  font-size: 0.75rem;
+  font-weight: 780;
+  letter-spacing: 0.045em;
+}
+
+.lessonMetaLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.lessonMetaLine > span {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  padding-inline: 0.7rem;
+  border: 1px solid var(--course-line);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--course-muted);
+  font-size: 0.78rem;
+  font-weight: 680;
+  white-space: nowrap;
+}
+
+.lessonHeader h1 {
+  max-width: 60rem;
+  margin-top: 0.6rem;
+  font-size: clamp(2.8rem, 5.6vw, 4.8rem);
+  font-weight: 800;
+  letter-spacing: -0.065em;
+  line-height: 0.98;
+}
+
+.lessonFocus {
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+  max-width: 64rem;
+  margin-top: 1.15rem !important;
+  font-size: clamp(1.05rem, 2vw, 1.4rem);
+  line-height: 1.45;
+}
+
+.lessonFocus span {
+  flex: 0 0 auto;
+  color: var(--course-ink);
+  font-weight: 730;
+}
+
+.lessonFocus strong {
+  color: var(--lesson-accent);
+  font-weight: 760;
+}
+
+.lessonSummary {
+  max-width: 54rem;
+  margin-top: 0.7rem !important;
+  color: var(--course-muted);
+  font-size: clamp(0.9rem, 1.4vw, 1.02rem);
+  line-height: 1.65;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  border: 0;
+  white-space: nowrap;
+}
+
+.lessonKnowledge {
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.conceptPair {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem);
+  width: min(100%, 58rem);
+  margin-inline: auto;
+}
+
+.conceptCard {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 1rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid #b9cffc;
+  border-radius: 1.45rem;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgb(36 99 235 / 8%);
+}
+
+.conceptCard[data-tone="orange"] {
+  border-color: #f2c892;
+  box-shadow: 0 18px 44px rgb(232 117 11 / 8%);
+}
+
+.conceptCard[data-tone="accent"] {
+  border-color: color-mix(in srgb, var(--lesson-accent) 35%, #ffffff);
+  box-shadow: 0 18px 44px color-mix(in srgb, var(--lesson-accent) 9%, transparent);
+}
+
+.conceptCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.conceptCardHeader > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.conceptCard h3 {
+  margin: 0;
+  color: var(--course-blue);
+  font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+  font-weight: 780;
+  letter-spacing: -0.035em;
+}
+
+.conceptCard[data-tone="orange"] h3 {
+  color: #a64b00;
+}
+
+.conceptCard[data-tone="accent"] h3 {
+  color: var(--lesson-accent);
+}
+
+.conceptCardHeader > div > span {
+  color: var(--course-muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.conceptIcon {
+  display: grid;
+  width: 3.5rem;
+  flex: 0 0 auto;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--course-blue);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgb(36 99 235 / 22%);
+}
+
+.conceptCard[data-tone="orange"] .conceptIcon {
+  background: #ef7b08;
+  box-shadow: 0 10px 24px rgb(239 123 8 / 22%);
+}
+
+.conceptCard > p {
+  margin: 0;
+  color: var(--course-ink);
+  font-size: clamp(0.92rem, 1.5vw, 1.02rem);
+  line-height: 1.7;
+}
+
+.conceptTraits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: auto 0 0;
+  padding: 0.35rem 0 0;
+  list-style: none;
+}
+
+.conceptTraits li {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #c9d8fa;
+  border-radius: 999px;
+  color: #174cac;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.conceptCard[data-tone="orange"] .conceptTraits li {
+  border-color: #f4cf9f;
+  color: #a95005;
+}
+
+.conceptPair[data-generic="true"] .conceptCard {
+  min-height: 15rem;
+}
+
+.conceptNumber {
+  display: grid;
+  width: 2.6rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 0.8rem;
+  background: var(--course-blue-soft);
+  color: var(--course-blue);
+  font-size: 0.75rem;
+  font-weight: 820;
+}
+
+.conceptCard[data-tone="accent"] .conceptNumber {
+  background: var(--lesson-accent-soft);
+  color: var(--lesson-accent);
+}
+
+.versus {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 2.75rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 4px solid #ffffff;
+  border-radius: 999px;
+  background: var(--course-ink);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 820;
+  transform: translate(-50%, -50%);
+}
+
+.knowledgeMatrix {
+  width: min(100%, 70rem);
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid var(--course-line);
+  border-radius: 1.15rem;
+  background: #ffffff;
+}
+
+.knowledgeMatrixHeader,
+.knowledgeMatrixRow {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.7fr) repeat(2, minmax(0, 1fr));
+}
+
+.knowledgeMatrixHeader {
+  min-height: 3.3rem;
+  align-items: center;
+  background: var(--course-soft);
+}
+
+.knowledgeMatrixHeader > * {
+  padding-inline: clamp(0.9rem, 2vw, 1.35rem);
+}
+
+.knowledgeMatrixHeader span {
+  color: var(--course-muted);
+  font-size: 0.74rem;
+  font-weight: 680;
+}
+
+.knowledgeMatrixHeader strong {
+  color: var(--course-blue);
+  font-size: 0.82rem;
+  font-weight: 760;
+}
+
+.knowledgeMatrixHeader strong:last-child {
+  color: #a64b00;
+}
+
+.knowledgeMatrixRow + .knowledgeMatrixRow {
+  border-top: 1px solid var(--course-line);
+}
+
+.knowledgeMatrixRow > * {
+  min-width: 0;
+  margin: 0;
+  padding: 1rem clamp(0.9rem, 2vw, 1.35rem);
+}
+
+.knowledgeMatrixRow > * + * {
+  border-left: 1px solid var(--course-line);
+}
+
+.comparisonAspect {
+  display: grid;
+  align-content: center;
+  gap: 0.15rem;
+  background: #fafafa;
+}
+
+.comparisonAspect strong {
+  font-size: 0.82rem;
+  font-weight: 740;
+}
+
+.comparisonAspect span {
+  color: var(--course-muted);
+  font-size: 0.7rem;
+}
+
+.knowledgeMatrixRow > p {
+  color: var(--course-muted);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.knowledgeMatrixRow[data-risk="true"] > p:last-child {
+  color: var(--course-red);
+  font-weight: 650;
+}
+
+.knowledgePoints {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(100%, 70rem);
+  margin: 0 auto;
+  padding: 0;
+  border-block: 1px solid var(--course-line);
+  list-style: none;
+}
+
+.knowledgePoints li {
+  display: grid;
+  min-height: 5.75rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: center;
+  gap: 0.75rem;
+  padding: 0.9rem clamp(0.8rem, 2vw, 1.35rem);
+}
+
+.knowledgePoints li + li {
+  border-left: 1px solid var(--course-line);
+}
+
+.knowledgePoints span {
+  color: var(--lesson-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.knowledgePoints p,
+.knowledgeItem p {
+  margin: 0;
+  color: var(--course-muted);
+  font-size: 0.84rem;
+  line-height: 1.65;
+}
+
+.knowledgePoints p {
+  color: var(--course-ink);
+  font-weight: 620;
+  line-height: 1.55;
+}
+
+.knowledgeDesktopMore {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  width: min(100%, 70rem);
+  margin-inline: auto;
+  border-block: 1px solid var(--course-line);
+}
+
+.knowledgeItem {
+  display: grid;
+  min-height: 7rem;
+  align-content: start;
+  gap: 0.5rem;
+  padding: 1.1rem clamp(0.9rem, 2vw, 1.35rem);
+}
+
+.knowledgeItem + .knowledgeItem {
+  border-left: 1px solid var(--course-line);
+}
+
+.knowledgeItem > span {
+  color: var(--course-blue);
+  font-size: 0.72rem;
+  font-weight: 780;
+  letter-spacing: 0.025em;
+}
+
+.knowledgeItem[data-tone="purple"] > span {
+  color: var(--course-purple);
+}
+
+.knowledgeItem[data-tone="amber"] > span {
+  color: var(--course-amber);
+}
+
+.knowledgeMobileMore {
+  display: none;
+}
+
+.mechanismSection,
+.caseStudy,
+.boundarySection,
+.assessmentSection {
+  width: min(100%, 70rem);
+  margin-inline: auto;
+  padding: clamp(1.35rem, 3vw, 2.25rem);
+  border: 1px solid var(--course-line);
+  border-radius: 1.5rem;
+  background: #ffffff;
+  box-shadow: 0 20px 54px rgb(0 0 0 / 5%);
+}
+
+.mechanismSection {
+  background:
+    radial-gradient(circle at 92% 6%, rgb(36 99 235 / 9%), transparent 26rem),
+    #ffffff;
+}
+
+.deepDiveHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, 25rem);
+  align-items: end;
+  gap: clamp(1rem, 3vw, 3rem);
+  margin-bottom: 1.35rem;
+}
+
+.deepDiveHeader > div > span,
+.assessmentHeader > div > span {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--lesson-accent);
+  font-size: 0.76rem;
+  font-weight: 790;
+  letter-spacing: 0.055em;
+}
+
+.deepDiveHeader h2,
+.assessmentHeader h2 {
+  margin: 0;
+  font-size: clamp(1.65rem, 3vw, 2.3rem);
+  font-weight: 790;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
+}
+
+.deepDiveHeader > p,
+.assessmentHeader > div > p {
+  margin: 0;
+  color: var(--course-muted);
+  font-size: 0.94rem;
+  line-height: 1.7;
+}
+
+.learningGoals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.learningGoals article {
+  display: grid;
+  min-width: 0;
+  min-height: 5.75rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid #cbd8fa;
+  border-radius: 1rem;
+  background: rgb(238 244 255 / 72%);
+}
+
+.learningGoals article > span {
+  display: grid;
+  width: 2.2rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 0.7rem;
+  background: var(--course-blue);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 820;
+}
+
+.learningGoals article > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.learningGoals small {
+  color: var(--course-blue);
+  font-size: 0.72rem;
+  font-weight: 720;
+}
+
+.learningGoals strong {
+  font-size: 0.96rem;
+  font-weight: 720;
+  line-height: 1.5;
+}
+
+.keyTerms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.keyTerms article {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--course-line);
+  border-radius: 0.9rem;
+  background: #ffffff;
+}
+
+.keyTerms strong {
+  color: var(--lesson-accent);
+  font-size: 0.86rem;
+  font-weight: 760;
+}
+
+.keyTerms p {
+  margin: 0.35rem 0 0;
+  color: var(--course-muted);
+  font-size: 0.88rem;
+  line-height: 1.62;
+}
+
+.mechanismSteps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0;
+  margin: 1.4rem 0 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--course-line);
+  border-radius: 1.1rem;
+  background: #ffffff;
+  list-style: none;
+}
+
+.mechanismSteps li {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 9rem;
+  align-content: start;
+  gap: 0.75rem;
+  padding: 1.15rem;
+}
+
+.mechanismSteps li + li {
+  border-left: 1px solid var(--course-line);
+}
+
+.mechanismSteps li > span {
+  display: grid;
+  width: 2rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--course-ink);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.mechanismSteps h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 750;
+  letter-spacing: -0.018em;
+}
+
+.mechanismSteps p {
+  margin: 0.4rem 0 0;
+  color: var(--course-muted);
+  font-size: 0.88rem;
+  line-height: 1.66;
+}
+
+.caseStudy {
+  background:
+    radial-gradient(circle at 10% 0%, rgb(118 85 217 / 8%), transparent 24rem),
+    #ffffff;
+}
+
+.caseSetup {
+  margin: 0;
+  padding: 1.1rem 1.2rem;
+  border-left: 4px solid var(--course-purple);
+  border-radius: 0.75rem;
+  background: var(--course-purple-soft);
+  color: var(--course-ink);
+  font-size: clamp(1rem, 1.7vw, 1.12rem);
+  font-weight: 640;
+  line-height: 1.7;
+}
+
+.caseSteps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.caseSteps li {
+  display: grid;
+  min-height: 7.5rem;
+  align-content: start;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid var(--course-line);
+  border-radius: 1rem;
+  background: #ffffff;
+}
+
+.caseSteps span {
+  color: var(--course-purple);
+  font-size: 0.72rem;
+  font-weight: 820;
+}
+
+.caseSteps p,
+.caseOutcome p,
+.boundaryGrid li,
+.lessonRecap p {
+  margin: 0;
+  color: var(--course-muted);
+  font-size: 0.92rem;
+  line-height: 1.68;
+}
+
+.caseOutcome,
+.boundaryGrid,
+.lessonRecap {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.caseOutcome article,
+.boundaryGrid article,
+.lessonRecap article {
+  padding: 1rem 1.05rem;
+  border: 1px solid var(--course-line);
+  border-radius: 1rem;
+  background: var(--course-soft);
+}
+
+.caseOutcome article > span,
+.boundaryGrid article > span,
+.lessonRecap article > span {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--course-blue);
+  font-size: 0.76rem;
+  font-weight: 780;
+}
+
+.caseOutcome article[data-tone="amber"] > span,
+.boundaryGrid article[data-kind="cannot"] > span {
+  color: var(--course-amber);
+}
+
+.boundaryGrid article[data-kind="can"] {
+  border-color: #cbd8fa;
+  background: var(--course-blue-soft);
+}
+
+.boundaryGrid article[data-kind="cannot"] {
+  border-color: #ead5ad;
+  background: var(--course-amber-soft);
+}
+
+.boundaryGrid ul {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.lessonRecap article:first-child {
+  background: #ffffff;
+}
+
+.lessonRecap article:last-child > span {
+  color: var(--course-purple);
+}
+
+.boundarySection .riskNote {
+  margin-top: 0.75rem;
+}
+
+.lessonPractice {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(18rem, 0.7fr);
+  overflow: hidden;
+  border: 1px solid var(--course-line);
+  border-radius: 1.5rem;
+  background: var(--course-surface);
+  box-shadow: 0 20px 54px rgb(0 0 0 / 6%);
+}
+
+.lessonFigure {
+  min-width: 0;
+  margin: 0;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  background: #fafafd;
+}
+
+.figureCaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+  color: var(--course-faint);
+  font-size: 0.72rem;
+}
+
+.figureCaption span {
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  background: var(--course-ink);
+  color: #ffffff;
+  font-weight: 740;
+}
+
+.figureCaption strong {
+  font-weight: 680;
+}
+
+.visualCanvas {
+  display: grid;
+  min-height: 26rem;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #e0e0e6;
+  border-radius: 1rem;
+  background: #ffffff;
+}
+
+.observationPanel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border-left: 1px solid var(--course-line);
+}
+
+.observationPanel h2 {
+  font-size: 1.45rem;
+}
+
+.practiceInstruction {
+  margin: 0.75rem 0 0;
+  color: var(--course-muted);
+  font-size: 0.84rem;
+  line-height: 1.65;
+}
+
+.observationList {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+.observationPoints {
+  display: grid;
+  gap: 0.6rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.observationPoints li {
+  display: grid;
+  min-height: 3.5rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  border-bottom: 1px solid var(--course-line);
+}
+
+.observationPoints li > span {
+  display: grid;
+  width: 1.75rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--course-soft);
+  color: var(--course-blue);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.observationPoints strong {
+  font-size: 0.82rem;
+  font-weight: 680;
+}
+
+.observationList button {
+  display: grid;
+  width: 100%;
+  min-height: 3.5rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--course-line);
+  border-radius: 0.8rem;
+  background: #ffffff;
+  color: var(--course-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 680;
+  text-align: left;
+}
+
+.observationList button > span {
+  display: grid;
+  width: 1.75rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--course-soft);
+  color: var(--course-muted);
+  font-size: 0.68rem;
+}
+
+.observationList button[aria-pressed="true"] {
+  border-color: var(--course-blue);
+  background: var(--course-blue-soft);
+  color: #164cad;
+}
+
+.observationList button[aria-pressed="true"] > span {
+  background: var(--course-blue);
+  color: #ffffff;
+}
+
+.observationStatus {
+  min-height: 1.5rem;
+  margin: 0.8rem 0 0;
+  color: var(--course-blue);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* Code-native educational graphics */
+
+.directInteraction {
+  display: grid;
+  width: min(92%, 45rem);
+  gap: 1rem;
+  padding-block: 1rem;
+}
+
+.interactionTabs,
+.scenarioControl,
+.leverageChoices,
+.timelineChoices,
+.zoneChoices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.interactionTabs button,
+.scenarioControl button,
+.leverageChoices button,
+.timelineChoices button,
+.zoneChoices button {
+  min-height: 2.8rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--course-line);
+  border-radius: 0.75rem;
+  background: var(--course-soft);
+  color: var(--course-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 720;
+}
+
+.interactionTabs button[aria-pressed="true"],
+.scenarioControl button[aria-pressed="true"],
+.leverageChoices button[aria-pressed="true"],
+.timelineChoices button[aria-pressed="true"],
+.zoneChoices button[aria-pressed="true"] {
+  border-color: var(--course-blue);
+  background: var(--course-blue-soft);
+  color: #164cad;
+  box-shadow: inset 0 0 0 1px var(--course-blue);
+}
+
+.modeComparison {
+  display: flex;
+  min-height: 6rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--course-line);
+  border-radius: 1rem;
+  background: #ffffff;
+}
+
+.modeSymbol {
+  display: grid;
+  width: 3.5rem;
+  flex: 0 0 auto;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 1rem;
+  background: var(--course-ink);
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 820;
+}
+
+.modeComparison[data-mode="perpetual"] .modeSymbol {
+  background: var(--course-purple);
+}
+
+.modeComparison > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.modeComparison small,
+.choiceLabel span,
+.metricPair small,
+.boundaryResult small,
+.budgetResult small {
+  color: var(--course-muted);
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
+.modeComparison strong {
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  letter-spacing: -0.025em;
+}
+
+.factTiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.factTiles li {
+  display: grid;
+  min-height: 5rem;
+  align-content: center;
+  gap: 0.35rem;
+  padding: 0.75rem;
+  border: 1px solid var(--course-line);
+  border-radius: 0.8rem;
+  background: var(--course-soft);
+}
+
+.factTiles span {
+  color: var(--course-blue);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.factTiles strong {
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.interactionConclusion,
+.timelineResult,
+.zoneResult {
+  margin: 0;
+  color: var(--course-muted);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.directionLine {
+  position: relative;
+  height: 7rem;
+  overflow: hidden;
+  border: 1px solid var(--course-line);
+  border-radius: 0.9rem;
+  background: var(--course-soft);
+}
+
+.directionLine::before,
+.directionLine::after {
+  position: absolute;
+  content: "";
+}
+
+.directionLine::before {
+  inset: 50% 1rem auto;
+  border-top: 1px dashed #b7b7be;
+}
+
+.directionLine::after {
+  top: 50%;
+  left: 8%;
+  width: 84%;
+  border-top: 4px solid var(--course-blue);
+  border-radius: 999px;
+  transform: rotate(-12deg);
+  transition: transform 180ms ease;
+}
+
+.directionLine[data-direction="down"]::after {
+  border-color: var(--course-red);
+  transform: rotate(12deg);
+}
+
+.directionLine span,
+.directionLine i {
+  position: absolute;
+  z-index: 1;
+  width: 0.75rem;
+  aspect-ratio: 1;
+  border: 3px solid #ffffff;
+  border-radius: 999px;
+  background: var(--course-blue);
+  box-shadow: 0 0 0 2px var(--course-blue);
+}
+
+.directionLine span {
+  bottom: 28%;
+  left: 8%;
+}
+
+.directionLine i {
+  top: 26%;
+  right: 8%;
+}
+
+.directionLine[data-direction="down"] span,
+.directionLine[data-direction="down"] i {
+  background: var(--course-red);
+  box-shadow: 0 0 0 2px var(--course-red);
+}
+
+.directionLine[data-direction="down"] span {
+  top: 26%;
+  bottom: auto;
+}
+
+.directionLine[data-direction="down"] i {
+  top: auto;
+  bottom: 28%;
+}
+
+.pnlCards,
+.metricPair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.pnlCards > div,
+.metricPair > div {
+  display: grid;
+  min-height: 4.6rem;
+  align-content: center;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border: 1px solid #edb7bc;
+  border-radius: 0.85rem;
+  background: var(--course-red-soft);
+}
+
+.pnlCards > div[data-positive="true"] {
+  border-color: #a9c0f8;
+  background: var(--course-blue-soft);
+}
+
+.pnlCards span {
+  color: var(--course-muted);
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
+.pnlCards strong {
+  color: var(--course-red);
+  font-size: 1.3rem;
+}
+
+.pnlCards > div[data-positive="true"] strong {
+  color: var(--course-blue);
+}
+
+.choiceLabel,
+.rangeControl label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.choiceLabel strong,
+.rangeControl output {
+  color: var(--course-blue);
+  font-size: 1rem;
+  font-weight: 780;
+}
+
+.leverageChoices {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.leverageMeter,
+.boundarySimulation {
+  position: relative;
+  height: 0.72rem;
+  border-radius: 999px;
+  background: #dedee4;
+}
+
+.leverageMeter span,
+.boundaryFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--course-blue);
+  transition: width 180ms ease;
+}
+
+.metricPair > div {
+  border-color: var(--course-line);
+  background: var(--course-soft);
+}
+
+.metricPair strong {
+  font-size: 1rem;
+}
+
+.metricPair > div:last-child strong {
+  color: var(--course-red);
+}
+
+.ruleSwitches,
+.layerSwitches {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.ruleSwitches label,
+.layerSwitches label {
+  display: flex;
+  min-height: 3.2rem;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem;
+  border: 1px solid var(--course-line);
+  border-radius: 0.75rem;
+  background: var(--course-soft);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 680;
+}
+
+.ruleSwitches input,
+.layerSwitches input {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--course-blue);
+}
+
+.boundarySimulation {
+  height: 2.8rem;
+  overflow: visible;
+  border: 1px solid var(--course-line);
+  background: var(--course-red-soft);
+}
+
+.boundaryFill {
+  background: var(--course-blue-soft);
+}
+
+.boundarySimulation i {
+  position: absolute;
+  top: 50%;
+  width: 1rem;
+  aspect-ratio: 1;
+  border: 3px solid #ffffff;
+  border-radius: 999px;
+  background: var(--course-red);
+  box-shadow: 0 0 0 2px var(--course-red);
+  transform: translate(-50%, -50%);
+  transition: left 180ms ease;
+}
+
+.boundaryResult,
+.budgetResult {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem;
+  border: 1px solid var(--course-line);
+  border-radius: 0.85rem;
+  background: var(--course-soft);
+}
+
+.boundaryResult strong {
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.rangeControl {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.rangeControl label {
+  color: var(--course-muted);
+  font-size: 0.73rem;
+  font-weight: 680;
+}
+
+.rangeControl input {
+  width: 100%;
+  min-height: 2.75rem;
+  margin: 0;
+  accent-color: var(--course-blue);
+}
+
+.budgetResult {
+  border-color: #a9c0f8;
+  background: var(--course-blue-soft);
+  text-align: center;
+}
+
+.budgetResult strong {
+  color: var(--course-blue);
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  letter-spacing: -0.035em;
+}
+
+.budgetResult span {
+  color: var(--course-muted);
+  font-size: 0.68rem;
+}
+
+.timelineChoices {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.timelineChoices button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.timelineChoices button span {
+  display: grid;
+  width: 1.35rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: #ffffff;
+  font-size: 0.62rem;
+}
+
+.timelineResult,
+.zoneResult {
+  padding: 0.75rem 0.85rem;
+  border-left: 3px solid var(--course-blue);
+  border-radius: 0.65rem;
+  background: var(--course-blue-soft);
+  color: #2f3b55;
+}
+
+.timelineResult strong {
+  margin-right: 0.25rem;
+  color: var(--course-blue);
+}
+
+.layerSwitches label[data-layer="ema10"] input {
+  accent-color: var(--course-blue);
+}
+
+.layerSwitches label[data-layer="ema20"] input {
+  accent-color: var(--course-purple);
+}
+
+.layerSwitches label[data-layer="ema50"] input {
+  accent-color: var(--course-amber);
+}
+
+.emaInteractiveChart,
+.zoneInteractiveChart {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--course-line);
+  border-radius: 0.85rem;
+  background: #ffffff;
+}
+
+.emaMedium {
+  fill: none;
+  stroke: var(--course-purple);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.zoneChoices {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.zonePricePoint {
+  fill: var(--course-ink);
+  stroke: #ffffff;
+  stroke-width: 5;
+  transition: cy 180ms ease;
+}
+
+.zoneResult {
+  border-left-color: var(--course-purple);
+  background: var(--course-purple-soft);
+  color: #473979;
+  font-weight: 690;
+}
+
+.compareGraphic {
+  position: relative;
+  display: grid;
+  width: min(92%, 42rem);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.compareColumn {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 11rem;
+  place-content: center;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px solid var(--course-line);
+  border-radius: 1rem;
+  background: #ffffff;
+  text-align: center;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.compareColumn[data-active="true"] {
+  transform: translateY(-0.45rem);
+  border-color: var(--course-blue);
+  box-shadow: 0 16px 34px rgb(36 99 235 / 14%);
+}
+
+.compareIcon {
+  display: grid;
+  width: 3rem;
+  margin: 0 auto 0.45rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--course-soft);
+  color: var(--course-blue);
+  font-size: 1.35rem;
+  font-weight: 820;
+}
+
+.compareColumn:nth-child(3) .compareIcon {
+  color: var(--course-red);
+}
+
+.compareColumn strong {
+  font-size: 0.9rem;
+}
+
+.compareColumn small {
+  color: var(--course-muted);
+  font-size: 0.72rem;
+}
+
+.graphicBaseline {
+  position: absolute;
+  right: 2rem;
+  bottom: -1.5rem;
+  left: 2rem;
+  height: 1px;
+  background: var(--course-line);
+}
+
+.riskGraphic {
+  display: grid;
+  width: min(86%, 38rem);
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.8fr);
+  align-items: end;
+  gap: 2rem;
+}
+
+.riskScale {
+  display: flex;
+  height: 15rem;
+  align-items: end;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 1rem 1.5rem 0;
+  border-bottom: 1px solid var(--course-line);
+}
+
+.riskScale > div {
+  display: flex;
+  height: 100%;
+  flex: 1;
+  align-items: center;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.riskScale > div > span {
+  width: clamp(2.5rem, 8vw, 4.5rem);
+  height: var(--risk-height);
+  border-radius: 0.7rem 0.7rem 0 0;
+  background: #c8d6fa;
+  transition:
+    height 180ms ease,
+    background 180ms ease;
+}
+
+.riskScale > div[data-active="true"] > span {
+  background: var(--course-blue);
+}
+
+.riskScale > div:last-child[data-active="true"] > span {
+  background: var(--course-red);
+}
+
+.riskScale small {
+  min-height: 2.4rem;
+  color: var(--course-muted);
+  font-size: 0.64rem;
+  font-weight: 670;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.riskScale > div[data-active="true"] small {
+  color: var(--course-ink);
+  font-weight: 760;
+}
+
+.riskBoundary {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1.2rem;
+  border: 1px solid var(--course-line);
+  border-radius: 1rem;
+  background: var(--course-soft);
+}
+
+.riskBoundary[data-active="true"] {
+  border-color: #efadb3;
+  background: var(--course-red-soft);
+}
+
+.riskBoundary > span {
+  width: 2.5rem;
+  height: 0.3rem;
+  border-radius: 999px;
+  background: var(--course-red);
+}
+
+.riskBoundary strong {
+  font-size: 0.92rem;
+}
+
+.riskBoundary small {
+  color: var(--course-muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.boundaryGraphic {
+  display: grid;
+  width: min(86%, 38rem);
+  gap: 1.25rem;
+}
+
+.boundaryTrack {
+  position: relative;
+  display: grid;
+  height: 4rem;
+  grid-template-columns: 2fr 1fr;
+  overflow: visible;
+  border: 1px solid var(--course-line);
+  border-radius: 999px;
+  background: var(--course-soft);
+}
+
+.boundarySafe,
+.boundaryWarning {
+  display: block;
+  height: 100%;
+}
+
+.boundarySafe {
+  border-radius: 999px 0 0 999px;
+  background: var(--course-blue-soft);
+}
+
+.boundaryWarning {
+  border-radius: 0 999px 999px 0;
+  background: var(--course-red-soft);
+}
+
+.boundaryTrack i {
+  position: absolute;
+  top: 50%;
+  left: 66.666%;
+  width: 1.15rem;
+  aspect-ratio: 1;
+  border: 3px solid #ffffff;
+  border-radius: 999px;
+  background: var(--course-red);
+  box-shadow: 0 0 0 2px var(--course-red);
+  transform: translate(-50%, -50%);
+  transition: scale 160ms ease;
+}
+
+.boundaryTrack i[data-active="true"] {
+  scale: 1.35;
+}
+
+.boundaryLabels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.boundaryLabels li {
+  display: grid;
+  min-height: 4rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem;
+  border: 1px solid var(--course-line);
+  border-radius: 0.75rem;
+  color: var(--course-muted);
+}
+
+.boundaryLabels li[data-active="true"] {
+  border-color: var(--course-red);
+  background: var(--course-red-soft);
+  color: var(--course-ink);
+}
+
+.boundaryLabels span {
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.boundaryLabels strong {
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.boundaryGraphic > p {
+  margin: 0;
+  color: var(--course-muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.timeframeGraphic {
+  display: grid;
+  width: min(90%, 42rem);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.timeframeGraphic > div {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.8rem;
+  border: 1px solid var(--course-line);
+  border-radius: 0.85rem;
+  background: var(--course-soft);
+  color: var(--course-muted);
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.timeframeGraphic > div[data-active="true"] {
+  transform: translateY(-0.35rem);
+  border-color: var(--course-blue);
+  background: var(--course-blue-soft);
+  color: var(--course-ink);
+}
+
+.timeframeGraphic svg {
+  width: 100%;
+}
+
+.timeframeGraphic path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+}
+
+.timeframeGraphic strong {
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.chartGraphic {
+  width: min(96%, 48rem);
+  height: auto;
+}
+
+.chartGrid path {
+  fill: none;
+  stroke: #ebebef;
+  stroke-width: 1;
+}
+
+.candleUp,
+.candleDown {
+  stroke-width: 2;
+}
+
+.candleUp {
+  fill: #dce9ff;
+  stroke: var(--course-blue);
+}
+
+.candleDown {
+  fill: #ffe1e4;
+  stroke: var(--course-red);
+}
+
+.candles[data-active="0"] {
+  filter: drop-shadow(0 4px 7px rgb(36 99 235 / 18%));
+}
+
+.volumeBars {
+  fill: #c5c5cc;
+  opacity: 0.38;
+}
+
+.volumeBars[data-active="true"] {
+  fill: var(--course-purple);
+  opacity: 0.78;
+}
+
+.volumeBars[data-active="true"][data-selection="0"] rect:nth-child(n + 9),
+.volumeBars[data-active="true"][data-selection="1"] rect:nth-child(n + 5):nth-child(-n + 8),
+.volumeBars[data-active="true"][data-selection="2"] rect:nth-child(-n + 4) {
+  fill: var(--course-blue);
+  opacity: 1;
+}
+
+.closedMarker {
+  fill: none;
+  stroke: #9d9da5;
+  stroke-dasharray: 5 5;
+  stroke-width: 2;
+}
+
+.closedMarker[data-active="true"] {
+  stroke: var(--course-amber);
+  stroke-width: 3;
+}
+
+.candleAnatomyMarker circle,
+.candleAnatomyMarker rect {
+  fill: none;
+  stroke: var(--course-blue);
+  stroke-width: 4;
+  opacity: 0.12;
+}
+
+.candleAnatomyMarker[data-selection="0"] circle:first-child,
+.candleAnatomyMarker[data-selection="0"] circle:nth-child(2),
+.candleAnatomyMarker[data-selection="1"] circle,
+.candleAnatomyMarker[data-selection="2"] rect {
+  opacity: 1;
+}
+
+.formingRegion {
+  fill: var(--course-amber-soft);
+  stroke: var(--course-amber);
+  opacity: 0.18;
+}
+
+.formingRegion[data-active="true"] {
+  opacity: 0.8;
+}
+
+.confirmedRegion {
+  fill: none;
+  stroke: var(--course-blue);
+  stroke-linecap: round;
+  stroke-width: 5;
+  opacity: 0.18;
+}
+
+.confirmedRegion[data-active="true"] {
+  opacity: 1;
+}
+
+.pricePath,
+.emaFast,
+.emaSlow,
+.fibLines path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pricePath {
+  stroke: #1d1d1f;
+  stroke-width: 3;
+}
+
+.emaFast {
+  stroke: var(--course-blue);
+  stroke-width: 2;
+  opacity: 0.4;
+}
+
+.emaSlow {
+  stroke: var(--course-amber);
+  stroke-width: 2;
+  opacity: 0.4;
+}
+
+.emaFast[data-active="true"],
+.emaSlow[data-active="true"] {
+  stroke-width: 4;
+  opacity: 1;
+}
+
+.resistanceZone {
+  fill: var(--course-red-soft);
+  stroke: #efadb3;
+  opacity: 0.38;
+}
+
+.supportZone {
+  fill: var(--course-blue-soft);
+  stroke: #a9c0f8;
+  opacity: 0.38;
+}
+
+.resistanceZone[data-active="true"],
+.supportZone[data-active="true"] {
+  opacity: 0.95;
+  stroke-width: 2;
+}
+
+.fibLines path {
+  stroke: var(--course-purple);
+  stroke-dasharray: 7 7;
+  stroke-width: 1.5;
+  opacity: 0.24;
+}
+
+.fibLines[data-active="true"] path {
+  opacity: 0.88;
+  stroke-width: 2.5;
+}
+
+.bollingerBands path {
+  fill: none;
+  stroke: var(--course-purple);
+  stroke-linecap: round;
+  stroke-width: 2;
+  opacity: 0.3;
+}
+
+.bollingerBands path:nth-child(3) {
+  stroke: var(--course-amber);
+}
+
+.bollingerBands[data-selection="0"] path:nth-child(3),
+.bollingerBands[data-selection="1"] path:not(:nth-child(3)),
+.bollingerBands[data-selection="2"] path {
+  stroke-width: 4;
+  opacity: 1;
+}
+
+.fibAnchor circle,
+.fibAnchor path {
+  fill: #ffffff;
+  stroke: var(--course-purple);
+  stroke-width: 3;
+  opacity: 0.24;
+}
+
+.fibAnchor[data-selection="0"] circle:first-child,
+.fibAnchor[data-selection="1"] circle:nth-child(2),
+.fibAnchor[data-selection="2"] path {
+  opacity: 1;
+}
+
+.marketLayers path {
+  fill: none;
+  stroke: var(--course-line);
+  stroke-width: 1;
+}
+
+.marketLayers rect {
+  fill: var(--course-purple);
+  opacity: 0.28;
+}
+
+.marketLayers[data-selection="1"] rect {
+  opacity: 0.8;
+}
+
+.marketLayers[data-selection="2"] rect:nth-of-type(3n) {
+  fill: var(--course-red);
+  opacity: 1;
+}
+
+.planGraphic {
+  display: grid;
+  width: min(90%, 43rem);
+  gap: 1rem;
+}
+
+.planChart {
+  border: 1px solid var(--course-line);
+  border-radius: 1rem;
+  background: var(--course-soft);
+}
+
+.planChart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.planPrice,
+.planTrigger,
+.planConfirm,
+.planInvalidation,
+.riskEntry,
+.riskStop,
+.riskTarget {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.planPrice {
+  stroke: var(--course-ink);
+  stroke-width: 3;
+}
+
+.planTrigger,
+.planConfirm,
+.planInvalidation,
+.riskEntry,
+.riskStop,
+.riskTarget {
+  stroke-width: 2;
+  stroke-dasharray: 7 7;
+  opacity: 0.28;
+}
+
+.planTrigger {
+  stroke: var(--course-blue);
+}
+
+.planConfirm {
+  stroke: var(--course-purple);
+}
+
+.planInvalidation {
+  stroke: var(--course-red);
+}
+
+.riskEntry {
+  stroke: var(--course-blue);
+}
+
+.riskStop {
+  stroke: var(--course-red);
+}
+
+.riskTarget {
+  stroke: var(--course-purple);
+}
+
+.planTrigger[data-active="true"],
+.planConfirm[data-active="true"],
+.planInvalidation[data-active="true"],
+.riskEntry[data-active="true"],
+.riskStop[data-active="true"],
+.riskTarget[data-active="true"] {
+  stroke-width: 4;
+  opacity: 1;
+}
+
+.replayMask {
+  fill: #ffffff;
+  stroke: var(--course-line);
+  stroke-width: 1;
+  opacity: 0.15;
+}
+
+.replayMask[data-active="true"] {
+  opacity: 0.92;
+}
+
+.planSteps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.planSteps li {
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem;
+  border: 1px solid var(--course-line);
+  border-radius: 0.75rem;
+  color: var(--course-muted);
+}
+
+.planSteps li[data-active="true"] {
+  border-color: var(--course-blue);
+  background: var(--course-blue-soft);
+  color: var(--course-ink);
+}
+
+.planSteps span {
+  display: grid;
+  width: 1.7rem;
+  flex: 0 0 auto;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.planSteps strong {
+  font-size: 0.78rem;
+}
+
+.assessmentSection {
+  background:
+    radial-gradient(circle at 100% 0%, rgb(36 99 235 / 8%), transparent 28rem),
+    #ffffff;
+}
+
+.assessmentHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.1rem;
+}
+
+.assessmentHeader > div > p {
+  max-width: 42rem;
+  margin-top: 0.65rem;
+}
+
+.assessmentHeader > strong {
+  display: grid;
+  min-width: 4.5rem;
+  min-height: 3rem;
+  place-items: center;
+  padding-inline: 0.85rem;
+  border-radius: 999px;
+  background: var(--course-ink);
+  color: #ffffff;
+  font-size: 0.84rem;
+}
+
+.assessmentList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.assessmentCard {
+  overflow: hidden;
+  border: 1px solid var(--course-line);
+  border-radius: 1.1rem;
+  background: #ffffff;
+  transition: border-color 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+
+.assessmentCard[data-status="current"] {
+  border-color: #a9c0f8;
+  box-shadow: 0 14px 34px rgb(36 99 235 / 9%);
+}
+
+.assessmentCard[data-status="locked"] {
+  background: #f8f8fa;
+  opacity: 0.7;
+}
+
+.assessmentCard[data-status="complete"] {
+  border-color: #cbd8fa;
+  background: #fbfdff;
+}
+
+.assessmentCardHeader {
+  display: grid;
+  min-height: 5.25rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.95rem 1rem;
+  background: #ffffff;
+}
+
+.assessmentCard[data-status="current"] .assessmentCardHeader {
+  background: var(--course-blue-soft);
+}
+
+.assessmentCardHeader > span {
+  display: grid;
+  width: 2.5rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 0.8rem;
+  background: var(--course-blue);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 820;
+  box-shadow: 0 8px 18px rgb(36 99 235 / 18%);
+}
+
+.assessmentCard[data-stage="scenario"] .assessmentCardHeader > span {
+  background: var(--course-purple);
+  box-shadow: 0 8px 18px rgb(118 85 217 / 18%);
+}
+
+.assessmentCard[data-stage="boundary"] .assessmentCardHeader > span {
+  background: #a64b00;
+  box-shadow: 0 8px 18px rgb(232 117 11 / 18%);
+}
+
+.assessmentCardHeader > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.assessmentCardHeader small {
+  color: var(--course-blue);
+  font-size: 0.74rem;
+  font-weight: 780;
+}
+
+.assessmentCard[data-stage="scenario"] .assessmentCardHeader small {
+  color: var(--course-purple);
+}
+
+.assessmentCard[data-stage="boundary"] .assessmentCardHeader small {
+  color: var(--course-amber);
+}
+
+.assessmentCardHeader h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 710;
+  letter-spacing: -0.018em;
+}
+
+.assessmentCardHeader > strong {
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: var(--course-soft);
+  color: var(--course-muted);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.assessmentCard[data-status="current"] .assessmentCardHeader > strong,
+.assessmentCard[data-status="complete"] .assessmentCardHeader > strong {
+  background: #ffffff;
+  color: var(--course-blue);
+}
+
+.assessmentCard form,
+.assessmentPassed,
+.assessmentLocked {
+  border-top: 1px solid var(--course-line);
+}
+
+.assessmentCard form {
+  display: grid;
+  gap: 0.85rem;
+  padding: clamp(1rem, 2.6vw, 1.5rem);
+}
+
+.assessmentCard fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.assessmentCard legend {
+  width: 100%;
+  color: var(--course-ink);
+  font-size: clamp(1.12rem, 2vw, 1.35rem);
+  font-weight: 740;
+  letter-spacing: -0.022em;
+  line-height: 1.45;
+}
+
+.assessmentPassed {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem;
+  background: var(--course-blue-soft);
+}
+
+.assessmentPassed > span {
+  display: grid;
+  width: 1.9rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--course-blue);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.assessmentPassed strong {
+  font-size: 0.9rem;
+}
+
+.assessmentPassed p,
+.assessmentLocked {
+  margin: 0.35rem 0 0;
+  color: var(--course-muted);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.assessmentLocked {
+  margin: 0;
+  padding: 1rem 1.1rem;
+}
+
+.quizSection {
+  display: grid;
+  width: min(100%, 58rem);
+  gap: 0.9rem;
+  margin-inline: auto;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  border: 1px solid var(--course-line);
+  border-radius: 1.35rem;
+  background: var(--course-surface);
+}
+
+.quizSection fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.quizSection legend {
+  width: 100%;
+  color: var(--course-ink);
+  font-size: clamp(1.15rem, 2.3vw, 1.5rem);
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  line-height: 1.35;
+}
+
+.quizSection legend span {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--course-blue);
+  font-size: 0.72rem;
+  font-weight: 760;
+  letter-spacing: 0.045em;
+}
+
+.quizOptions {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.quizOptions label {
+  display: grid;
+  min-height: 3.8rem;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--course-line);
+  border-radius: 0.85rem;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.quizOptions label:hover {
+  border-color: #b4b4bb;
+}
+
+.quizOptions label[data-selected="true"] {
+  border-color: var(--course-blue);
+  background: var(--course-blue-soft);
+  box-shadow: inset 0 0 0 1px var(--course-blue);
+}
+
+.quizOptions input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  accent-color: var(--course-blue);
+}
+
+.quizOptions label > span {
+  display: grid;
+  width: 1.85rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--course-soft);
+  color: var(--course-muted);
+  font-size: 0.72rem;
+  font-weight: 780;
+}
+
+.quizOptions label > strong {
+  font-size: 0.84rem;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.submitButton {
+  min-width: 9rem;
+  margin-top: 1rem;
+  padding-inline: 1rem;
+}
+
+.quizFeedback {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid #aac1f8;
+  border-radius: 0.9rem;
+  background: var(--course-blue-soft);
+}
+
+.quizFeedback[data-kind="incorrect"],
+.quizFeedback[data-kind="missing"] {
+  border-color: #ebd3aa;
+  background: var(--course-amber-soft);
+}
+
+.quizFeedback > span {
+  display: grid;
+  width: 1.8rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--course-blue);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.quizFeedback[data-kind="incorrect"] > span,
+.quizFeedback[data-kind="missing"] > span {
+  background: var(--course-amber);
+}
+
+.quizFeedback strong {
+  font-size: 0.9rem;
+}
+
+.quizFeedback p {
+  margin: 0.32rem 0 0;
+  color: var(--course-muted);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.retryButton {
+  width: max-content;
+  padding-inline: 0.9rem;
+}
+
+.riskNote {
+  padding: 1rem 1.05rem;
+  border-left: 3px solid var(--course-amber);
+  border-radius: 0.7rem;
+  background: var(--course-amber-soft);
+}
+
+.riskNote strong {
+  color: var(--course-amber);
+  font-size: 0.72rem;
+}
+
+.riskNote p {
+  margin: 0.35rem 0 0;
+  color: #6d4a13;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.stickyNext {
+  position: fixed;
+  z-index: 30;
+  right: max(1.25rem, calc((100vw - 78rem) / 2 + 1.25rem));
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.stickyNext button {
+  min-width: 8.75rem;
+  min-height: 3.25rem;
+  padding-inline: 1.15rem;
+  border-radius: 0.95rem;
+  background: var(--course-blue);
+  box-shadow: 0 16px 34px rgb(36 99 235 / 26%);
+  pointer-events: auto;
+}
+
+@media (max-width: 62rem) {
+  .courseHero,
+  .pathSection,
+  .lessonPractice {
+    grid-template-columns: 1fr;
+  }
+
+  .courseHero {
+    gap: 1.5rem;
+  }
+
+  .progressCard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 1rem;
+    align-items: center;
+  }
+
+  .progressHeading,
+  .progressTrack,
+  .progressCard p {
+    grid-column: 1;
+  }
+
+  .progressCard .primaryButton {
+    grid-column: 2;
+    grid-row: 1 / 4;
+    width: auto;
+    min-width: 10rem;
+    margin: 0;
+  }
+
+  .pathNote {
+    grid-column: 1;
+  }
+
+  .lessonPractice {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lessonFigure {
+    order: 1;
+  }
+
+  .observationPanel {
+    order: 2;
+    border-top: 1px solid var(--course-line);
+    border-left: 0;
+  }
+
+  .visualCanvas {
+    min-height: 22rem;
+  }
+
+  .deepDiveHeader {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 0.55rem;
+  }
+
+  .mechanismSteps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mechanismSteps li + li {
+    border-left: 0;
+  }
+
+  .mechanismSteps li:nth-child(even) {
+    border-left: 1px solid var(--course-line);
+  }
+
+  .mechanismSteps li:nth-child(n + 3) {
+    border-top: 1px solid var(--course-line);
+  }
+}
+
+@media (max-width: 44rem) {
+  .page {
+    width: min(calc(100% - 1.25rem), var(--container));
+    gap: 0.8rem;
+    padding-block: 0.6rem 4rem;
+  }
+
+  .courseHero,
+  .pathSection,
+  .curriculum,
+  .lessonHeader,
+  .lessonPractice,
+  .quizSection {
+    border-radius: 1rem;
+  }
+
+  .courseHero {
+    padding: 1.25rem;
+  }
+
+  .heroCopy h1 {
+    font-size: clamp(2.5rem, 15vw, 3.5rem);
+  }
+
+  .courseFacts {
+    gap: 0.4rem;
+  }
+
+  .courseFacts span {
+    min-height: 2rem;
+    padding-inline: 0.65rem;
+    font-size: 0.8125rem;
+  }
+
+  .progressCard {
+    display: block;
+  }
+
+  .progressCard .primaryButton {
+    width: 100%;
+    margin-top: 0.9rem;
+  }
+
+  .pathSection {
+    padding: 1.1rem;
+  }
+
+  .pathChoices {
+    grid-template-columns: 1fr;
+  }
+
+  .pathChoices button {
+    min-height: 5.8rem;
+  }
+
+  .pathChoices button > span,
+  .pathChoices button small,
+  .pathNote {
+    font-size: 0.875rem;
+  }
+
+  .pathNote {
+    line-height: 1.55;
+  }
+
+  .curriculumHeader {
+    display: block;
+    padding: 1.15rem;
+  }
+
+  .curriculumHeader > p {
+    margin-top: 0.75rem;
+    font-size: 1rem;
+    text-align: left;
+  }
+
+  .chapterButton {
+    min-height: 5.75rem;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.65rem;
+    padding: 0.8rem;
+  }
+
+  .chapterButton > svg {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .chapterProgress {
+    grid-column: 3;
+    grid-row: 1;
+    padding-right: 1.75rem;
+  }
+
+  .chapterNumber {
+    width: 2.5rem;
+    font-size: 0.8125rem;
+  }
+
+  .chapterCopy strong {
+    font-size: 1rem;
+  }
+
+  .chapterProgress {
+    font-size: 0.8125rem;
+  }
+
+  .chapterCopy small {
+    display: none;
+  }
+
+  .lessonList {
+    padding: 0 0.65rem 0.65rem;
+  }
+
+  .chapterContent {
+    padding-bottom: 0.65rem;
+  }
+
+  .chapterIntroduction {
+    grid-template-columns: 1fr;
+    margin: 0 0.65rem 0.65rem;
+  }
+
+  .chapterIntroduction > div {
+    gap: 0.4rem;
+    padding: 0.75rem;
+  }
+
+  .chapterIntroduction span {
+    font-size: 0.875rem;
+  }
+
+  .chapterIntroduction p,
+  .chapterIntroduction li {
+    font-size: 1rem;
+  }
+
+  .chapterIntroduction ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.75rem;
+  }
+
+  .chapterIntroduction li {
+    flex: 1 1 7.5rem;
+  }
+
+  .lessonList li > button {
+    min-height: 4.5rem;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.55rem;
+    padding: 0.65rem;
+  }
+
+  .lessonCopy small,
+  .quickLabel {
+    display: none;
+  }
+
+  .lessonCopy strong {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  .lessonOrder,
+  .lessonState {
+    font-size: 0.8125rem;
+  }
+
+  .lessonState {
+    min-width: auto;
+  }
+
+  .safetyNote {
+    padding: 1rem;
+  }
+
+  .courseActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .courseActions button {
+    width: 100%;
+  }
+
+  .lessonPage {
+    gap: 1rem;
+    padding-block: 0.75rem 6.5rem;
+  }
+
+  .lessonTopbar {
+    min-height: 3rem;
+    gap: 0.5rem;
+    padding-inline: 0.15rem;
+  }
+
+  .lessonNavigation {
+    gap: 0.4rem;
+  }
+
+  .lessonNavigation :global(.tool-return-context) {
+    gap: 0;
+  }
+
+  .lessonNavigation :global(.tool-return-link) {
+    padding-inline: 0.65rem;
+  }
+
+  .lessonNavigation :global(.tool-breadcrumb) {
+    display: none;
+  }
+
+  .backButton {
+    width: auto;
+    min-height: 3rem;
+    padding-inline: 0.65rem;
+    border-radius: 0.9rem;
+  }
+
+  .backButton span {
+    display: inline;
+  }
+
+  .lessonTopProgress {
+    min-height: 3rem;
+    gap: 0.55rem;
+    padding: 0.4rem 0.7rem;
+  }
+
+  .lessonTopProgress .progressTrack {
+    display: none;
+  }
+
+  .lessonHeader {
+    padding: 1.15rem 0.65rem 0.35rem;
+  }
+
+  .lessonChapter {
+    display: none;
+  }
+
+  .lessonMetaLine {
+    justify-content: flex-end;
+  }
+
+  .lessonHeader h1 {
+    margin-top: 0;
+    font-size: clamp(2.35rem, 11vw, 3rem);
+    line-height: 1.04;
+  }
+
+  .lessonFocus {
+    display: grid;
+    gap: 0.2rem;
+    margin-top: 1.05rem !important;
+    font-size: 1.08rem;
+  }
+
+  .lessonSummary {
+    max-width: 32rem;
+    font-size: 0.98rem;
+    line-height: 1.65;
+  }
+
+  .conceptPair {
+    gap: 0.7rem;
+  }
+
+  .conceptPair[data-generic="true"] {
+    grid-template-columns: 1fr;
+  }
+
+  .conceptPair[data-generic="true"] .conceptCard {
+    min-height: auto;
+  }
+
+  .conceptCard {
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 1.2rem;
+    box-shadow: 0 12px 30px rgb(0 0 0 / 5%);
+  }
+
+  .conceptCardHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .conceptIcon {
+    width: 3.25rem;
+  }
+
+  .conceptCard h3 {
+    font-size: 1.3rem;
+  }
+
+  .conceptCard > p {
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .conceptTraits {
+    display: none;
+  }
+
+  .versus {
+    width: 2rem;
+    border-width: 3px;
+    font-size: 0.56rem;
+  }
+
+  .knowledgeMatrix {
+    border-radius: 1rem;
+  }
+
+  .knowledgeMatrixHeader {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .knowledgeMatrixHeader > span {
+    display: none;
+  }
+
+  .knowledgeMatrixHeader > strong {
+    padding-inline: 0.8rem;
+  }
+
+  .knowledgeMatrixRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .comparisonAspect {
+    grid-column: 1 / -1;
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid var(--course-line);
+  }
+
+  .knowledgeMatrixRow > p {
+    padding: 0.8rem;
+    font-size: 0.95rem;
+  }
+
+  .knowledgeMatrixRow > p:nth-child(2) {
+    border-left: 0;
+  }
+
+  .knowledgePoints {
+    grid-template-columns: 1fr;
+    padding-inline: 0.65rem;
+  }
+
+  .knowledgePoints li {
+    min-height: 3.7rem;
+    padding: 0.65rem 0;
+  }
+
+  .knowledgePoints p,
+  .knowledgeItem p {
+    font-size: 1rem;
+  }
+
+  .knowledgePoints li + li {
+    border-top: 1px solid var(--course-line);
+    border-left: 0;
+  }
+
+  .knowledgeDesktopMore {
+    display: none;
+  }
+
+  .knowledgeMobileMore {
+    display: block;
+    width: min(100%, 70rem);
+    margin-inline: auto;
+    padding: 0.2rem 0.65rem 0;
+    border-bottom: 1px solid var(--course-line);
+  }
+
+  .knowledgeMobileMore summary {
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--course-blue);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 720;
+    list-style: none;
+  }
+
+  .knowledgeMobileMore summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .knowledgeMobileMore summary svg {
+    flex: 0 0 auto;
+    transition: transform 160ms ease;
+  }
+
+  .knowledgeMobileMore[open] summary svg {
+    transform: rotate(180deg);
+  }
+
+  .knowledgeMobileMore > div {
+    display: grid;
+    gap: 0.55rem;
+    padding-top: 0.5rem;
+  }
+
+  .knowledgeMobileMore .knowledgeItem {
+    min-height: auto;
+    padding: 0.85rem;
+    border: 1px solid var(--course-line);
+    border-left: 3px solid var(--course-blue);
+    border-radius: 0.75rem;
+    background: var(--course-soft);
+  }
+
+  .mechanismSection,
+  .caseStudy,
+  .boundarySection,
+  .assessmentSection {
+    padding: 1.15rem;
+    border-radius: 1.15rem;
+  }
+
+  .deepDiveHeader h2,
+  .assessmentHeader h2 {
+    font-size: 1.75rem;
+  }
+
+  .deepDiveHeader > p,
+  .assessmentHeader > div > p {
+    font-size: 1rem;
+  }
+
+  .learningGoals,
+  .caseSteps,
+  .caseOutcome,
+  .boundaryGrid,
+  .lessonRecap {
+    grid-template-columns: 1fr;
+  }
+
+  .learningGoals strong,
+  .keyTerms p,
+  .mechanismSteps p,
+  .caseSteps p,
+  .caseOutcome p,
+  .boundaryGrid li,
+  .lessonRecap p {
+    font-size: 1rem;
+  }
+
+  .keyTerms {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mechanismSteps {
+    grid-template-columns: 1fr;
+  }
+
+  .mechanismSteps li {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    min-height: auto;
+    gap: 0.8rem;
+    padding: 0.95rem;
+  }
+
+  .mechanismSteps li > span {
+    width: 1.9rem;
+  }
+
+  .mechanismSteps li > div {
+    min-width: 0;
+  }
+
+  .mechanismSteps li:nth-child(even) {
+    border-left: 0;
+  }
+
+  .mechanismSteps li + li {
+    border-top: 1px solid var(--course-line);
+  }
+
+  .assessmentHeader {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .assessmentHeader > strong {
+    min-width: 3.75rem;
+    min-height: 2.5rem;
+  }
+
+  .assessmentCardHeader {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .assessmentCardHeader > strong {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .assessmentCard legend {
+    font-size: 1.12rem;
+  }
+
+  .quizOptions label > strong,
+  .quizFeedback p,
+  .assessmentPassed p,
+  .assessmentLocked {
+    font-size: 1rem;
+  }
+
+  .knowledgeMobileMore .knowledgeItem[data-tone="purple"] {
+    border-left-color: var(--course-purple);
+  }
+
+  .knowledgeMobileMore .knowledgeItem[data-tone="amber"] {
+    border-left-color: var(--course-amber);
+  }
+
+  .lessonFigure {
+    padding: 0.75rem;
+  }
+
+  .visualCanvas {
+    min-height: 18rem;
+  }
+
+  .directInteraction {
+    width: calc(100% - 1rem);
+    gap: 0.75rem;
+    padding-block: 0.5rem;
+  }
+
+  .interactionTabs button,
+  .scenarioControl button,
+  .leverageChoices button,
+  .timelineChoices button,
+  .zoneChoices button {
+    min-height: 2.75rem;
+    padding-inline: 0.5rem;
+    font-size: 0.72rem;
+  }
+
+  .modeComparison {
+    min-height: 5rem;
+    padding: 0.75rem;
+  }
+
+  .modeSymbol {
+    width: 2.75rem;
+    border-radius: 0.75rem;
+  }
+
+  .factTiles {
+    gap: 0.35rem;
+  }
+
+  .factTiles li {
+    min-height: 4.75rem;
+    padding: 0.5rem;
+  }
+
+  .factTiles strong {
+    font-size: 0.67rem;
+  }
+
+  .pnlCards,
+  .metricPair {
+    gap: 0.4rem;
+  }
+
+  .pnlCards > div,
+  .metricPair > div {
+    padding: 0.6rem;
+  }
+
+  .metricPair strong {
+    font-size: 0.82rem;
+  }
+
+  .ruleSwitches,
+  .layerSwitches {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+
+  .ruleSwitches label,
+  .layerSwitches label {
+    min-height: 2.75rem;
+  }
+
+  .timelineChoices button {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .zoneChoices {
+    gap: 0.3rem;
+  }
+
+  .zoneChoices button {
+    font-size: 0.68rem;
+  }
+
+  .figureCaption {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .observationPanel {
+    padding: 1.1rem;
+  }
+
+  .observationPanel h2 {
+    font-size: 1.28rem;
+  }
+
+  .compareGraphic {
+    width: calc(100% - 1rem);
+    gap: 0.4rem;
+  }
+
+  .compareColumn {
+    min-height: 8.5rem;
+    padding: 0.5rem;
+  }
+
+  .compareIcon {
+    width: 2.3rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .compareColumn strong {
+    font-size: 0.72rem;
+  }
+
+  .compareColumn small {
+    display: none;
+  }
+
+  .riskGraphic {
+    width: calc(100% - 1rem);
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .riskScale {
+    height: 9rem;
+  }
+
+  .riskBoundary {
+    padding: 0.8rem;
+  }
+
+  .planSteps {
+    gap: 0.35rem;
+  }
+
+  .planSteps li {
+    min-height: 3rem;
+    gap: 0.35rem;
+    padding: 0.4rem;
+  }
+
+  .planSteps span {
+    width: 1.35rem;
+  }
+
+  .planSteps strong {
+    font-size: 0.7rem;
+  }
+
+  .quizSection {
+    padding: 1rem;
+  }
+
+  .quizOptions label {
+    min-height: 3.9rem;
+  }
+
+  .submitButton,
+  .retryButton {
+    width: 100%;
+    min-height: 3rem;
+  }
+
+  .stickyNext {
+    right: 0.75rem;
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .stickyNext button {
+    min-width: 7.75rem;
+    min-height: 3rem;
+  }
+}
+
+@media (max-width: 22rem) {
+  .page {
+    width: calc(100% - 0.75rem);
+  }
+
+  .courseHero,
+  .pathSection,
+  .lessonHeader,
+  .observationPanel,
+  .quizSection,
+  .mechanismSection,
+  .caseStudy,
+  .boundarySection,
+  .assessmentSection {
+    padding-inline: 0.85rem;
+  }
+
+  .courseFacts span:last-child {
+    display: none;
+  }
+
+  .chapterButton {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .chapterNumber {
+    display: none;
+  }
+
+  .lessonHeader h1 {
+    font-size: 2.15rem;
+  }
+
+  .lessonFocus {
+    font-size: 1rem;
+  }
+
+  .assessmentHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .assessmentHeader > strong {
+    justify-self: start;
+  }
+
+  .conceptPair:not([data-generic="true"]) {
+    grid-template-columns: 1fr;
+  }
+
+  .conceptPair:not([data-generic="true"]) .conceptCardHeader {
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .keyTerms {
+    grid-template-columns: 1fr;
+  }
+
+  .versus {
+    display: none;
+  }
+
+  .knowledgeMatrixHeader > strong,
+  .knowledgeMatrixRow > p {
+    padding-inline: 0.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience *,
+  .experience *::before,
+  .experience *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Apple-neutral dark presentation for the course and its code-native graphics. */
+:global(html[data-theme="dark"]) .experience {
+  --course-ink: #f5f5f7;
+  --course-muted: #a1a1a6;
+  --course-faint: #8e8e93;
+  --course-line: #3a3a3c;
+  --course-surface: #1c1c1e;
+  --course-soft: #2c2c2e;
+  --course-blue: #5e9cff;
+  --course-blue-soft: #172944;
+  --course-red: #ff6b72;
+  --course-red-soft: #351b20;
+  --course-purple: #b094ff;
+  --course-purple-soft: #2b2340;
+  --course-amber: #f0b35a;
+  --course-amber-soft: #352817;
+  color-scheme: dark;
+}
+
+:global(html[data-theme="dark"]) .experience .lessonPage[data-chapter="chapter-4-indicators-levels"] {
+  --lesson-accent: var(--course-amber);
+  --lesson-accent-soft: var(--course-amber-soft);
+}
+
+:global(html[data-theme="dark"]) .experience .courseHero,
+:global(html[data-theme="dark"]) .experience .pathSection,
+:global(html[data-theme="dark"]) .experience .curriculum,
+:global(html[data-theme="dark"]) .experience .resetDialog > div,
+:global(html[data-theme="dark"]) .experience .dialogActions button,
+:global(html[data-theme="dark"]) .experience .lessonTopProgress,
+:global(html[data-theme="dark"]) .experience .lessonMetaLine > span,
+:global(html[data-theme="dark"]) .experience .conceptCard,
+:global(html[data-theme="dark"]) .experience .knowledgeMatrix,
+:global(html[data-theme="dark"]) .experience .mechanismSection,
+:global(html[data-theme="dark"]) .experience .caseStudy,
+:global(html[data-theme="dark"]) .experience .boundarySection,
+:global(html[data-theme="dark"]) .experience .assessmentSection,
+:global(html[data-theme="dark"]) .experience .keyTerms article,
+:global(html[data-theme="dark"]) .experience .mechanismSteps,
+:global(html[data-theme="dark"]) .experience .caseSteps li,
+:global(html[data-theme="dark"]) .experience .lessonRecap article:first-child,
+:global(html[data-theme="dark"]) .experience .visualCanvas,
+:global(html[data-theme="dark"]) .experience .observationList button,
+:global(html[data-theme="dark"]) .experience .modeComparison,
+:global(html[data-theme="dark"]) .experience .timelineChoices button span,
+:global(html[data-theme="dark"]) .experience .emaInteractiveChart,
+:global(html[data-theme="dark"]) .experience .zoneInteractiveChart,
+:global(html[data-theme="dark"]) .experience .compareColumn,
+:global(html[data-theme="dark"]) .experience .planSteps span,
+:global(html[data-theme="dark"]) .experience .assessmentCard,
+:global(html[data-theme="dark"]) .experience .assessmentCardHeader,
+:global(html[data-theme="dark"]) .experience .assessmentCard[data-status="current"] .assessmentCardHeader > strong,
+:global(html[data-theme="dark"]) .experience .assessmentCard[data-status="complete"] .assessmentCardHeader > strong,
+:global(html[data-theme="dark"]) .experience .quizOptions label {
+  background: var(--course-surface);
+}
+
+:global(html[data-theme="dark"]) .experience .courseHero,
+:global(html[data-theme="dark"]) .experience .lessonPractice,
+:global(html[data-theme="dark"]) .experience .mechanismSection,
+:global(html[data-theme="dark"]) .experience .caseStudy,
+:global(html[data-theme="dark"]) .experience .boundarySection,
+:global(html[data-theme="dark"]) .experience .assessmentSection {
+  box-shadow: 0 20px 58px rgb(0 0 0 / 24%);
+}
+
+:global(html[data-theme="dark"]) .experience .mechanismSection {
+  background:
+    radial-gradient(circle at 92% 6%, rgb(94 156 255 / 12%), transparent 26rem),
+    var(--course-surface);
+}
+
+:global(html[data-theme="dark"]) .experience .caseStudy {
+  background:
+    radial-gradient(circle at 10% 0%, rgb(176 148 255 / 12%), transparent 24rem),
+    var(--course-surface);
+}
+
+:global(html[data-theme="dark"]) .experience .assessmentSection {
+  background:
+    radial-gradient(circle at 100% 0%, rgb(94 156 255 / 11%), transparent 28rem),
+    var(--course-surface);
+}
+
+:global(html[data-theme="dark"]) .experience .chapter[data-expanded="true"],
+:global(html[data-theme="dark"]) .experience .comparisonAspect,
+:global(html[data-theme="dark"]) .experience .lessonFigure {
+  background: #242426;
+}
+
+:global(html[data-theme="dark"]) .experience .assessmentCard[data-status="locked"] {
+  background: #242426;
+}
+
+:global(html[data-theme="dark"]) .experience .assessmentCard[data-status="complete"] {
+  border-color: #375b8a;
+  background: #1e2632;
+}
+
+:global(html[data-theme="dark"]) .experience .progressTrack,
+:global(html[data-theme="dark"]) .experience .leverageMeter,
+:global(html[data-theme="dark"]) .experience .boundarySimulation {
+  background: #48484a;
+}
+
+:global(html[data-theme="dark"]) .experience .backButton,
+:global(html[data-theme="dark"]) .experience .lessonTopProgress,
+:global(html[data-theme="dark"]) .experience .visualCanvas {
+  border-color: var(--course-line);
+}
+
+:global(html[data-theme="dark"]) .experience .conceptCard,
+:global(html[data-theme="dark"]) .experience .learningGoals article,
+:global(html[data-theme="dark"]) .experience .boundaryGrid article[data-kind="can"],
+:global(html[data-theme="dark"]) .experience .assessmentCard[data-status="current"],
+:global(html[data-theme="dark"]) .experience .assessmentCard[data-status="complete"],
+:global(html[data-theme="dark"]) .experience .quizFeedback {
+  border-color: #375b8a;
+}
+
+:global(html[data-theme="dark"]) .experience .conceptCard[data-tone="orange"],
+:global(html[data-theme="dark"]) .experience .boundaryGrid article[data-kind="cannot"],
+:global(html[data-theme="dark"]) .experience .safetyNote,
+:global(html[data-theme="dark"]) .experience .quizFeedback[data-kind="incorrect"],
+:global(html[data-theme="dark"]) .experience .quizFeedback[data-kind="missing"] {
+  border-color: #6b4f28;
+}
+
+:global(html[data-theme="dark"]) .experience .conceptCard[data-tone="accent"] {
+  border-color: color-mix(in srgb, var(--lesson-accent) 52%, var(--course-surface));
+}
+
+:global(html[data-theme="dark"]) .experience .primaryButton,
+:global(html[data-theme="dark"]) .experience .submitButton,
+:global(html[data-theme="dark"]) .experience .chapterNumber,
+:global(html[data-theme="dark"]) .experience .versus,
+:global(html[data-theme="dark"]) .experience .mechanismSteps li > span,
+:global(html[data-theme="dark"]) .experience .figureCaption span,
+:global(html[data-theme="dark"]) .experience .modeSymbol,
+:global(html[data-theme="dark"]) .experience .assessmentHeader > strong {
+  color: var(--course-surface);
+}
+
+:global(html[data-theme="dark"]) .experience .versus,
+:global(html[data-theme="dark"]) .experience .directionLine span,
+:global(html[data-theme="dark"]) .experience .directionLine i,
+:global(html[data-theme="dark"]) .experience .boundarySimulation i,
+:global(html[data-theme="dark"]) .experience .boundaryTrack i {
+  border-color: var(--course-surface);
+}
+
+:global(html[data-theme="dark"]) .experience .observationList button[aria-pressed="true"],
+:global(html[data-theme="dark"]) .experience .interactionTabs button[aria-pressed="true"],
+:global(html[data-theme="dark"]) .experience .scenarioControl button[aria-pressed="true"],
+:global(html[data-theme="dark"]) .experience .leverageChoices button[aria-pressed="true"],
+:global(html[data-theme="dark"]) .experience .timelineChoices button[aria-pressed="true"],
+:global(html[data-theme="dark"]) .experience .zoneChoices button[aria-pressed="true"] {
+  color: var(--course-blue);
+}
+
+:global(html[data-theme="dark"]) .experience .conceptCard[data-tone="orange"] h3,
+:global(html[data-theme="dark"]) .experience .conceptCard[data-tone="orange"] .conceptTraits li,
+:global(html[data-theme="dark"]) .experience .knowledgeMatrixHeader strong:last-child,
+:global(html[data-theme="dark"]) .experience .assessmentCard[data-stage="boundary"] .assessmentCardHeader small {
+  color: var(--course-amber);
+}
+
+:global(html[data-theme="dark"]) .experience .conceptTraits li {
+  border-color: #375b8a;
+  color: var(--course-blue);
+}
+
+:global(html[data-theme="dark"]) .experience .conceptCard[data-tone="orange"] .conceptTraits li {
+  border-color: #6b4f28;
+}
+
+:global(html[data-theme="dark"]) .experience .safetyNote p,
+:global(html[data-theme="dark"]) .experience .riskNote p {
+  color: #e3bd78;
+}
+
+:global(html[data-theme="dark"]) .experience .timelineResult,
+:global(html[data-theme="dark"]) .experience .zoneResult {
+  color: var(--course-ink);
+}
+
+:global(html[data-theme="dark"]) .experience .directionLine::before {
+  border-color: #636366;
+}
+
+:global(html[data-theme="dark"]) .experience .riskScale > div > span {
+  background: #3a4962;
+}
+
+:global(html[data-theme="dark"]) .experience .chartGrid path {
+  stroke: #3a3a3c;
+}
+
+:global(html[data-theme="dark"]) .experience .candleUp {
+  fill: #17375f;
+  stroke: var(--course-blue);
+}
+
+:global(html[data-theme="dark"]) .experience .candleDown {
+  fill: #4a1f25;
+  stroke: var(--course-red);
+}
+
+:global(html[data-theme="dark"]) .experience .volumeBars {
+  fill: #636366;
+}
+
+:global(html[data-theme="dark"]) .experience .closedMarker {
+  stroke: #8e8e93;
+}
+
+:global(html[data-theme="dark"]) .experience .pricePath {
+  stroke: var(--course-ink);
+}
+
+/* EMA10 gold, EMA20 purple, EMA50 blue; named market levels keep their own hues. */
+:global(html[data-theme="dark"]) .experience .layerSwitches label[data-layer="ema10"] input {
+  accent-color: var(--course-amber);
+}
+
+:global(html[data-theme="dark"]) .experience .layerSwitches label[data-layer="ema20"] input {
+  accent-color: var(--course-purple);
+}
+
+:global(html[data-theme="dark"]) .experience .layerSwitches label[data-layer="ema50"] input {
+  accent-color: var(--course-blue);
+}
+
+:global(html[data-theme="dark"]) .experience .emaFast {
+  stroke: var(--course-amber);
+}
+
+:global(html[data-theme="dark"]) .experience .emaMedium {
+  stroke: var(--course-purple);
+}
+
+:global(html[data-theme="dark"]) .experience .emaSlow {
+  stroke: var(--course-blue);
+}
+
+:global(html[data-theme="dark"]) .experience .resistanceZone {
+  fill: var(--course-red-soft);
+  stroke: var(--course-red);
+}
+
+:global(html[data-theme="dark"]) .experience .supportZone {
+  fill: var(--course-blue-soft);
+  stroke: var(--course-blue);
+}
+
+:global(html[data-theme="dark"]) .experience .fibLines path {
+  stroke: var(--course-amber);
+}
+
+:global(html[data-theme="dark"]) .experience .fibAnchor circle,
+:global(html[data-theme="dark"]) .experience .fibAnchor path {
+  fill: var(--course-surface);
+  stroke: var(--course-amber);
+}
+
+:global(html[data-theme="dark"]) .experience .zonePricePoint {
+  stroke: var(--course-surface);
+}
+
+:global(html[data-theme="dark"]) .experience .replayMask {
+  fill: var(--course-surface);
+}

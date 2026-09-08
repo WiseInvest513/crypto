@@ -24,6 +24,13 @@ describe("page analytics facade", () => {
     ]);
   });
 
+  it("accepts the single public course URL without allowing lesson state URLs", () => {
+    expect(isPublicPagePath("/tools/futures-intro")).toBe(true);
+    expect(isStaticPageViewPath("/tools/futures-intro")).toBe(true);
+    expect(isPublicPagePath("/tools/futures-intro?lesson=lesson-01")).toBe(false);
+    expect(isPublicPagePath("/tools/futures-intro/lesson-01")).toBe(false);
+  });
+
   it("rejects queries, unknown routes, malformed slugs, and oversized slugs", () => {
     for (const path of [
       "/btc?ref=secret",

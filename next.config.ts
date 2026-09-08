@@ -4,8 +4,20 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   poweredByHeader: false,
   allowedDevOrigins: ["127.0.0.1"],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "64kb",
+    },
+  },
   async headers() {
     return [
+      {
+        source: "/studio/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store, max-age=0" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      },
       {
         source: "/(.*)",
         headers: [

@@ -7,11 +7,10 @@ import {
 } from "../../src/components/layout/navigation";
 
 describe("primary navigation", () => {
-  it("contains the four core market and tool routes", () => {
+  it("contains three task-focused sections with a single market entry", () => {
     expect(navigation.map((item) => item.href)).toEqual([
       "/",
       "/btc",
-      "/eth",
       "/tools",
     ]);
   });
@@ -19,8 +18,7 @@ describe("primary navigation", () => {
   it("uses Simplified Chinese labels for the public navigation", () => {
     expect(navigation.map((item) => item.label)).toEqual([
       "市场总览",
-      "BTC",
-      "ETH",
+      "行情",
       "工具",
     ]);
   });
@@ -30,6 +28,15 @@ describe("primary navigation", () => {
     expect(isCurrentRoute("/btc", "/")).toBe(false);
     expect(isCurrentRoute("/tools/dca", "/tools")).toBe(true);
     expect(isCurrentRoute("/toolsmith", "/tools")).toBe(false);
+  });
+
+  it("keeps the market section active for both shareable asset routes", () => {
+    expect(isCurrentRoute("/btc", "/btc")).toBe(true);
+    expect(isCurrentRoute("/eth", "/btc")).toBe(true);
+    expect(isCurrentRoute("/eth/history", "/btc")).toBe(true);
+    expect(isCurrentRoute("/ethereum", "/btc")).toBe(false);
+    expect(isCurrentRoute("/btcash", "/btc")).toBe(false);
+    expect(isCurrentRoute("/tools", "/btc")).toBe(false);
   });
 
   it("does not expose the retired product directory in header or footer", () => {

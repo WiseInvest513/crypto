@@ -231,6 +231,12 @@ export function LeverageCalculator() {
         title={result ? "保证金与盈亏估算" : "等待计算"}
         description="这是线性价格变化模型，不包含交易所的维持保证金、资金费与费用规则。"
         ready={Boolean(result)}
+        resultKey={result}
+        announcement={
+          result
+            ? `杠杆估算已更新。初始保证金 ${formatToolMoney(result.margin, form.currency)}。`
+            : ""
+        }
       >
         {result ? (
           <ResultGrid

@@ -28,6 +28,7 @@ import {
   focusFirstCalculatorError,
   mapCalculatorErrors,
   parseCalculatorNumber,
+  revalidateCalculatorErrors,
   type CalculatorFieldErrors,
 } from "./calculator-form-utils";
 import { useToolAnalytics } from "./use-tool-analytics";
@@ -50,6 +51,22 @@ const EMPTY_FORM: PositionForm = {
   currency: "USDT",
 };
 
+const POSITION_RELATION_FIELDS = new Set<keyof PositionForm>([
+  "direction",
+  "entryPrice",
+  "stopPrice",
+]);
+
+function calculatePositionForm(form: PositionForm) {
+  return calculatePositionSize({
+    balance: parseCalculatorNumber(form.balance),
+    riskPercent: parseCalculatorNumber(form.riskPercent),
+    entryPrice: parseCalculatorNumber(form.entryPrice),
+    stopPrice: parseCalculatorNumber(form.stopPrice),
+    direction: form.direction,
+  });
+}
+
 export function PositionSizeCalculator() {
   const formRef = useRef<HTMLFormElement>(null);
   const [form, setForm] = useState<PositionForm>(EMPTY_FORM);
@@ -64,8 +81,16 @@ export function PositionSizeCalculator() {
     field: Field,
     value: PositionForm[Field],
   ) {
-    setForm((current) => ({ ...current, [field]: value }));
+    const nextForm = { ...form, [field]: value };
+    setForm(nextForm);
     setErrors((current) => {
+      if (POSITION_RELATION_FIELDS.has(field)) {
+        return revalidateCalculatorErrors(
+          current,
+          calculatePositionForm(nextForm),
+        );
+      }
+
       const { [field]: _removed, calculation: _calculation, ...rest } = current;
       void _removed;
       void _calculation;
@@ -82,13 +107,7 @@ export function PositionSizeCalculator() {
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const calculation = calculatePositionSize({
-      balance: parseCalculatorNumber(form.balance),
-      riskPercent: parseCalculatorNumber(form.riskPercent),
-      entryPrice: parseCalculatorNumber(form.entryPrice),
-      stopPrice: parseCalculatorNumber(form.stopPrice),
-      direction: form.direction,
-    });
+    const calculation = calculatePositionForm(form);
 
     if (!calculation.ok) {
       setResult(null);
@@ -230,6 +249,12 @@ export function PositionSizeCalculator() {
         title={result ? "仓位估算" : "等待计算"}
         description="结果按未取整的公式计算，页面仅限制显示精度；不含手续费、滑点与跳空。"
         ready={Boolean(result)}
+        resultKey={result}
+        announcement={
+          result
+            ? `仓位估算已更新。资产数量 ${formatToolQuantity(result.quantity)}。`
+            : ""
+        }
       >
         {result ? (
           <>

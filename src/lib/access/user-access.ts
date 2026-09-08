@@ -13,7 +13,8 @@ export type UserAccess = Readonly<{
 export type FeatureKey =
   | "market.public"
   | "tools.public"
-  | "analysis.multiTimeframe"
+  | "analysis.publicResearch"
+  | "analysis.privateMultiTimeframe"
   | "analysis.aiDrawdown"
   | "analysis.cycleMarkers"
   | "editorial.tradeStrategy";
@@ -21,11 +22,12 @@ export type FeatureKey =
 const REGULAR_FEATURES: readonly FeatureKey[] = Object.freeze([
   "market.public",
   "tools.public",
+  "analysis.publicResearch",
 ]);
 
 const VIP_FEATURES: readonly FeatureKey[] = Object.freeze([
   ...REGULAR_FEATURES,
-  "analysis.multiTimeframe",
+  "analysis.privateMultiTimeframe",
   "analysis.aiDrawdown",
   "analysis.cycleMarkers",
   "editorial.tradeStrategy",

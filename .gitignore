@@ -37,6 +37,9 @@ yarn-error.log*
 # pnpm local store
 /.pnpm-store/
 
+# Local-only encrypted strategy authoring data
+/.wise-crypto-private/
+
 # vercel
 .vercel
 

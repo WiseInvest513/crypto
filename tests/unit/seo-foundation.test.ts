@@ -5,11 +5,13 @@ import { metadata as rootMetadata } from "../../src/app/layout";
 import { metadata as btcMetadata } from "../../src/app/btc/page";
 import { metadata as ethMetadata } from "../../src/app/eth/page";
 import { metadata as toolsMetadata } from "../../src/app/tools/page";
+import { metadata as futuresIntroMetadata } from "../../src/app/tools/futures-intro/page";
 import { metadata as positionSizeMetadata } from "../../src/app/tools/position-size/page";
 import { metadata as leverageMetadata } from "../../src/app/tools/leverage/page";
 import { metadata as dcaMetadata } from "../../src/app/tools/dca/page";
 import { metadata as riskRewardMetadata } from "../../src/app/tools/risk-reward/page";
 import { metadata as notFoundMetadata } from "../../src/app/not-found";
+import { metadata as strategyStudioMetadata } from "../../src/app/studio/strategies/layout";
 import robots from "../../src/app/robots";
 import {
   isPublicIndexingEnabled,
@@ -21,6 +23,7 @@ const routeMetadata = [
   ["/btc", btcMetadata],
   ["/eth", ethMetadata],
   ["/tools", toolsMetadata],
+  ["/tools/futures-intro", futuresIntroMetadata],
   ["/tools/position-size", positionSizeMetadata],
   ["/tools/leverage", leverageMetadata],
   ["/tools/dca", dcaMetadata],
@@ -62,6 +65,7 @@ describe("SEO foundation", () => {
       images: [expect.objectContaining({ url: "/og.png", width: 1200, height: 630 })],
     });
     expect(toRecord(toolsMetadata.openGraph).images).toHaveLength(1);
+    expect(toRecord(futuresIntroMetadata.openGraph).images).toHaveLength(1);
 
     for (const metadata of [
       btcMetadata,
@@ -103,6 +107,19 @@ describe("SEO foundation", () => {
     });
   });
 
+  it("keeps the private strategy studio out of indexing and social previews", () => {
+    expect(strategyStudioMetadata).toMatchObject({
+      alternates: { canonical: null },
+      robots: {
+        index: false,
+        follow: false,
+        noarchive: true,
+      },
+      openGraph: null,
+      twitter: null,
+    });
+  });
+
   it("keeps canonical origins HTTPS-only and fixed in production", () => {
     expect(resolveSiteUrl(undefined, "development")).toBe(PRODUCTION_SITE_URL);
     expect(resolveSiteUrl("https://preview.example/", "preview")).toBe(
@@ -129,7 +146,7 @@ describe("SEO foundation", () => {
 
     vi.stubEnv("VERCEL_ENV", "production");
     expect(robots()).toMatchObject({
-      rules: { userAgent: "*", allow: "/" },
+      rules: { userAgent: "*", allow: "/", disallow: "/studio/" },
       host: PRODUCTION_SITE_URL,
       sitemap: `${PRODUCTION_SITE_URL}/sitemap.xml`,
     });

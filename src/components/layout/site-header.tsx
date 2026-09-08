@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { AccountMenu } from "./account-menu";
 import { SiteNav } from "./site-nav";
+import { ThemeToggle } from "./theme-toggle";
+import { getWiseAuthConfigurationStatus } from "@/server/auth/wise-auth-config";
 
 export function SiteHeader() {
   return (
@@ -17,8 +20,9 @@ export function SiteHeader() {
 
         <SiteNav />
 
-        <div className="header-context" aria-label="当前工作台">
-          市场工作台
+        <div className="site-header__actions">
+          <ThemeToggle />
+          <AccountMenu configurationStatus={getWiseAuthConfigurationStatus()} />
         </div>
       </div>
     </header>

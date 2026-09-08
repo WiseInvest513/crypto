@@ -9,6 +9,7 @@ import {
 import {
   calculatorInputA11y,
   focusFirstCalculatorError,
+  revalidateCalculatorErrors,
 } from "../../src/components/tools/calculator-form-utils";
 import {
   getShareFeedbackAnnouncement,
@@ -83,20 +84,57 @@ describe("calculator accessibility behavior", () => {
     expect(summary.focus).toHaveBeenCalledOnce();
   });
 
-  it("limits live announcements to the concise result title", () => {
+  it("keeps focus on the result region and announces only a concise summary", () => {
     const markup = renderToStaticMarkup(
-      <CalculatorResult title="仓位估算" description="结果说明">
+      <CalculatorResult
+        title="仓位估算"
+        description="结果说明"
+        ready
+        resultKey="result-1"
+        announcement="仓位估算已更新。资产数量 0.05。"
+      >
         <p>一段很长的结果内容</p>
       </CalculatorResult>,
     );
 
     expect(markup).toContain(
-      '<section class="calculator-result" aria-labelledby="calculator-result-title">',
+      '<section class="calculator-result" aria-labelledby="calculator-result-title" tabindex="-1">',
     );
     expect(markup).toContain(
-      '<h2 id="calculator-result-title" aria-live="polite" aria-atomic="true">仓位估算</h2>',
+      '<p class="sr-only" role="status" aria-live="polite" aria-atomic="true">仓位估算已更新。资产数量 0.05。</p>',
     );
+    expect(markup).toContain('<h2 id="calculator-result-title">仓位估算</h2>');
     expect(markup).not.toMatch(/<section[^>]+aria-live/);
+    expect(markup).not.toMatch(/<h2[^>]+aria-live/);
+  });
+
+  it("clears a stale relationship error when the edited form becomes valid", () => {
+    expect(
+      revalidateCalculatorErrors(
+        { stopPrice: "多单止损价必须低于入场价。" },
+        { ok: true, value: { quantity: 0.05 } },
+      ),
+    ).toEqual({});
+  });
+
+  it("replaces a relationship error with the current validation result", () => {
+    expect(
+      revalidateCalculatorErrors(
+        { targetPrice: "多单价格顺序错误。" },
+        {
+          ok: false,
+          errors: [
+            {
+              field: "targetPrice",
+              code: "invalid_price_order",
+              message: "空单价格顺序必须为：目标价 < 入场价 < 止损价。",
+            },
+          ],
+        },
+      ),
+    ).toEqual({
+      targetPrice: "空单价格顺序必须为：目标价 < 入场价 < 止损价。",
+    });
   });
 
   it("marks an optional primary result without changing other result items", () => {

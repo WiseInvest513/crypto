@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { toolCatalog, type ToolDefinition } from "@/lib/tools/catalog";
+import {
+  futuresIntroTool,
+  toolCatalog,
+  type ToolDefinition,
+} from "@/lib/tools/catalog";
 import { createPageMetadata } from "@/lib/seo/page-metadata";
 
 export const metadata: Metadata = createPageMetadata({
   title: "加密工具",
   description:
-    "用于仓位、杠杆、定投与风险回报检查的加密计算工具，提供透明公式、输入校验与清晰边界。",
+    "通过合约入门学习工具理解交易规则与风险，并使用仓位、杠杆、定投和风险回报计算器检查计划。",
   path: "/tools",
   useSiteImage: true,
 });
@@ -16,19 +20,62 @@ export default function ToolsPage() {
     <div className="tools-index page-container">
       <header className="tools-hero">
         <div>
-          <h1>交易前，先把风险算清楚</h1>
+          <h1>交易前，先把风险弄明白</h1>
           <p>
-            先选择你要解决的问题，再填写自己的计划。页面只做机械计算，不替你决定开多、开空或投入多少。
+            先学会看懂合约的关键机制，再用计算工具检查自己的计划。页面不替你决定开多、开空或投入多少。
           </p>
         </div>
         <p className="tools-hero__trust">
           <ShieldIcon />
           <span>
-            <strong>输入仅在当前设备计算</strong>
-            不保存，也不会进入匿名统计
+            <strong>只在当前设备学习与计算</strong>
+            学习进度保存在本地，计算输入不上传
           </span>
         </p>
       </header>
+
+      <section className="tools-learning" aria-labelledby="tools-learning-title">
+        <div className="tools-learning__intro">
+          <span className="tools-learning__icon" aria-hidden="true">
+            <CourseIcon />
+          </span>
+
+          <div className="tools-learning__copy">
+            <h2 id="tools-learning-title">{futuresIntroTool.title}</h2>
+            <p>{futuresIntroTool.description}</p>
+
+            <ul className="tools-learning__meta" aria-label="课程信息">
+              <li>
+                <strong>{futuresIntroTool.chapterCount}</strong> 章
+              </li>
+              <li>
+                <strong>{futuresIntroTool.lessonCount}</strong> 关
+              </li>
+              <li>
+                快速路径 <strong>{futuresIntroTool.quickLessonCount}</strong> 关
+              </li>
+              <li>本地保存进度</li>
+            </ul>
+
+            <Link
+              className="tools-learning__action"
+              href={futuresIntroTool.href}
+            >
+              开始学习
+              <ArrowIcon />
+            </Link>
+          </div>
+        </div>
+
+        <ol className="tools-learning__chapters" aria-label="合约入门五章">
+          {futuresIntroTool.chapters.map((chapter, index) => (
+            <li key={chapter}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{chapter}</strong>
+            </li>
+          ))}
+        </ol>
+      </section>
 
       <section className="tools-selector" aria-labelledby="tools-selector-title">
         <header className="tools-selector__heading">
@@ -36,7 +83,7 @@ export default function ToolsPage() {
             <h2 id="tools-selector-title">从当前问题开始</h2>
             <p>每个工具都有独立分享 URL，且不会携带你的输入和结果。</p>
           </div>
-          <span>4 个独立工具</span>
+          <span>4 个独立计算工具</span>
         </header>
 
         <ul className="tools-card-grid" aria-label="计算工具">
@@ -94,6 +141,32 @@ function ShieldIcon() {
     <svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none">
       <path d="M12 3 19 6v5.2c0 4.5-2.8 7.9-7 9.8-4.2-1.9-7-5.3-7-9.8V6l7-3Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="1.7" />
       <path d="m9 12 2 2 4-4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" />
+    </svg>
+  );
+}
+
+function CourseIcon() {
+  return (
+    <svg viewBox="0 0 32 32" width="36" height="36" fill="none">
+      <path
+        d="M4.5 7.5c3.6-1.45 7.25-.9 11.5 1.9v16.1c-4.25-2.8-7.9-3.35-11.5-1.9V7.5Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M27.5 7.5c-3.6-1.45-7.25-.9-11.5 1.9v16.1c4.25-2.8 7.9-3.35 11.5-1.9V7.5Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M21 7v7.5l2-1.25 2 1.25V6.9"
+        stroke="#d97706"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
     </svg>
   );
 }

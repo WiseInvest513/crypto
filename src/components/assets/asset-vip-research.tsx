@@ -49,7 +49,7 @@ export function AssetVipResearch({
   const canReadStrategy = canAccessFeature(access, "editorial.tradeStrategy");
   const canReadMultiTimeframe = canAccessFeature(
     access,
-    "analysis.multiTimeframe",
+    "analysis.privateMultiTimeframe",
   );
   const hasScheduledEditorial =
     canReadStrategy &&

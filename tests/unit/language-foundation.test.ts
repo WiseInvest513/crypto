@@ -10,9 +10,11 @@ function readSource(path: string) {
 
 describe("Simplified Chinese interface foundation", () => {
   it("declares zh-CN as the document language", () => {
-    expect(readSource("src/app/layout.tsx")).toContain(
-      '<html lang="zh-CN" data-scroll-behavior="smooth">',
-    );
+    const layout = readSource("src/app/layout.tsx");
+
+    expect(layout).toContain('lang="zh-CN"');
+    expect(layout).toContain('data-theme="light"');
+    expect(layout).toContain("suppressHydrationWarning");
     expect(readSource("src/app/global-error.tsx")).toContain(
       '<html lang="zh-CN">',
     );
@@ -22,6 +24,7 @@ describe("Simplified Chinese interface foundation", () => {
     const publicUi = [
       "src/components/layout/navigation.ts",
       "src/components/layout/site-header.tsx",
+      "src/components/layout/theme-toggle.tsx",
       "src/components/layout/site-footer.tsx",
       "src/components/ui/route-placeholder.tsx",
       "src/app/loading.tsx",
@@ -33,6 +36,8 @@ describe("Simplified Chinese interface foundation", () => {
       .join("\n");
 
     expect(publicUi).toContain("市场总览");
+    expect(publicUi).toContain("切换到深色模式");
+    expect(publicUi).toContain("切换到浅色模式");
     expect(publicUi).toContain("页面加载中");
     expect(publicUi).toContain("重试");
     expect(publicUi).not.toMatch(
@@ -53,8 +58,8 @@ describe("Simplified Chinese interface foundation", () => {
   });
 
   it.each([
-    ["src/app/btc/page.tsx", "比特币（BTC）", 'loadAssetPriceDatum("btc")'],
-    ["src/app/eth/page.tsx", "以太坊（ETH）", 'loadAssetPriceDatum("eth")'],
+    ["src/app/btc/page.tsx", "比特币（BTC）", 'loadAssetLiveChartDatum("btc")'],
+    ["src/app/eth/page.tsx", "以太坊（ETH）", 'loadAssetLiveChartDatum("eth")'],
   ])("keeps the completed asset route localized in %s", (path, title, serviceCall) => {
     const source = readSource(path);
     const workspace = readSource("src/components/assets/asset-detail-page.tsx");
@@ -62,8 +67,8 @@ describe("Simplified Chinese interface foundation", () => {
 
     expect(source).toContain(title);
     expect(source).toContain(serviceCall);
-    expect(source).toContain("loadAssetChartSnapshot");
-    expect(source).toContain("loadAssetContextSnapshot");
+    expect(source).toContain("MarketWorkbenchPage");
+    expect(source).toContain("成交密集区估算");
     expect(workspace).toContain("切换资产工作台");
     expect(chart).toContain("行情图表");
     expect(chart).toContain("时间周期");

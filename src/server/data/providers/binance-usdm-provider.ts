@@ -30,6 +30,9 @@ import { binanceUsdMSource } from "./sources";
 
 const BASE_URL = "https://fapi.binance.com";
 const SYMBOLS: Record<Asset, string> = { btc: "BTCUSDT", eth: "ETHUSDT" };
+const OPEN_INTEREST_SAMPLE_LIMIT = 289;
+const MINIMUM_COMPARISON_WINDOW_MS = 23 * 60 * 60 * 1_000;
+const MAXIMUM_COMPARISON_WINDOW_MS = 25 * 60 * 60 * 1_000;
 
 /**
  * Funding and OI are supporting context, not headline data. Keep their request
@@ -126,30 +129,60 @@ export class BinanceUsdMProvider implements DerivativesProvider {
       policy: cachePolicies.openInterest,
       load: async () => {
         const payload = await this.http.get(
-          `${BASE_URL}/futures/data/openInterestHist?symbol=${symbol}&period=5m&limit=1`,
+          `${BASE_URL}/futures/data/openInterestHist?symbol=${symbol}&period=5m&limit=${OPEN_INTEREST_SAMPLE_LIMIT}`,
         );
         rejectBinanceBusinessError(payload);
         const items = array(payload);
-        if (items.length !== 1) {
+        if (items.length === 0 || items.length > OPEN_INTEREST_SAMPLE_LIMIT) {
           throw new ProviderError("invalid_payload", false);
         }
-        const data = record(items[0]);
-        if (nonEmptyString(data.symbol) !== symbol) {
-          throw new ProviderError("invalid_payload", false);
+        const samples = items.map((item) => {
+          const data = record(item);
+          if (nonEmptyString(data.symbol) !== symbol) {
+            throw new ProviderError("invalid_payload", false);
+          }
+
+          return {
+            notional: nonNegativeNumber(data.sumOpenInterestValue),
+            timestamp: Date.parse(
+              unixMillisecondsToIso(data.timestamp, this.now()),
+            ),
+          };
+        });
+        for (let index = 1; index < samples.length; index += 1) {
+          if (samples[index].timestamp <= samples[index - 1].timestamp) {
+            throw new ProviderError("invalid_payload", false);
+          }
         }
+
+        const first = samples[0];
+        const latest = samples.at(-1)!;
+        const comparisonWindowMs = latest.timestamp - first.timestamp;
+        const hasVerifiedComparisonWindow =
+          samples.length > 1 &&
+          comparisonWindowMs >= MINIMUM_COMPARISON_WINDOW_MS &&
+          comparisonWindowMs <= MAXIMUM_COMPARISON_WINDOW_MS &&
+          first.notional > 0;
+        const change24hPercent = hasVerifiedComparisonWindow
+          ? ((latest.notional - first.notional) / first.notional) * 100
+          : null;
 
         return {
           capability,
           value: {
             asset,
             symbol,
-            notional: nonNegativeNumber(data.sumOpenInterestValue),
+            notional: latest.notional,
             quoteCurrency: "USDT",
             samplingPeriod: "5m",
+            change24hPercent,
+            comparisonWindowHours: hasVerifiedComparisonWindow
+              ? comparisonWindowMs / (60 * 60 * 1_000)
+              : null,
           },
           source: this.source,
           scope,
-          updatedAt: unixMillisecondsToIso(data.timestamp, this.now()),
+          updatedAt: new Date(latest.timestamp).toISOString(),
           provenance: "live" as const,
         };
       },

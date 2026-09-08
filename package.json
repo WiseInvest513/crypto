@@ -3,17 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 2222",
+    "dev": "next dev -H 127.0.0.1 -p 2222",
     "build": "next build --webpack",
-    "start": "next start -p 2222",
+    "start": "next start -H 127.0.0.1 -p 2222",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "history:download": "node scripts/offline/build-binance-baseline.mjs",
+    "history:build": "node --import tsx scripts/offline/compile-historical-baselines.ts",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "dependencies": {
     "next": "16.3.3",
+    "next-auth": "5.0.0-beta.32",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "server-only": "^0.0.1"
@@ -26,6 +29,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5",
     "vitest": "^4.1.11"
   },
