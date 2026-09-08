@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import sitemap from "../../src/app/sitemap";
-import { PUBLIC_ROUTES } from "../../src/config/site";
+import {
+  AUTHENTICATED_ROUTES,
+  PUBLIC_ROUTES,
+} from "../../src/config/site";
 import {
   futuresFullPathLessonIds,
   futuresIntroCourse,
@@ -70,8 +73,9 @@ describe("tool catalog", () => {
     expect(toolCatalog.map((tool) => String(tool.slug))).not.toContain(
       "futures-intro",
     );
-    expect(PUBLIC_ROUTES).toContain(futuresIntroTool.href);
-    expect(sitemap().map((entry) => new URL(entry.url).pathname)).toContain(
+    expect(AUTHENTICATED_ROUTES).toContain(futuresIntroTool.href);
+    expect(PUBLIC_ROUTES).not.toContain(futuresIntroTool.href);
+    expect(sitemap().map((entry) => new URL(entry.url).pathname)).not.toContain(
       futuresIntroTool.href,
     );
   });

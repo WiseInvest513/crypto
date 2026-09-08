@@ -10,13 +10,14 @@ import {
   type ToolPageSearchParams,
 } from "@/lib/tools/tool-navigation";
 import { getDcaMarketHistory } from "@/server/tools/dca-history-service";
-import { createPageMetadata } from "@/lib/seo/page-metadata";
+import { createProtectedPageMetadata } from "@/lib/seo/page-metadata";
+import { requireWisePageAccount } from "@/server/auth/wise-route-access";
 
 const tool = getToolDefinition("dca");
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = createPageMetadata({
+export const metadata: Metadata = createProtectedPageMetadata({
   title: "历史 DCA 定投计算器",
   description:
     "基于 BTC 或 ETH 的已闭合 UTC 日线，回看定期投入、累计数量、平均成本与期末表现。",
@@ -29,6 +30,7 @@ export default async function DcaToolPage({
 }: {
   searchParams: Promise<ToolPageSearchParams>;
 }) {
+  await requireWisePageAccount("/tools/dca");
   const asset = parseToolAsset((await searchParams).asset);
 
   return (

@@ -4,16 +4,21 @@ import {
   isChartCandleInterval,
   isLiveChartMode,
 } from "@/server/data/services/live-chart-service";
+import { requireWiseApiAccount } from "@/server/auth/wise-route-access";
 
 export const dynamic = "force-dynamic";
 
 const responseHeaders = {
   "Cache-Control": "private, no-store, max-age=0",
   "Content-Type": "application/json; charset=utf-8",
+  Vary: "Cookie",
   "X-Content-Type-Options": "nosniff",
 } as const;
 
 export async function GET(request: Request): Promise<Response> {
+  const authenticationFailure = await requireWiseApiAccount();
+  if (authenticationFailure) return authenticationFailure;
+
   const url = new URL(request.url);
   if (hasUnexpectedOrRepeatedParameters(url.searchParams)) {
     return invalidRequest();

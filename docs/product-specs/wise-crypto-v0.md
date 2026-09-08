@@ -1,7 +1,7 @@
 # Wise Crypto V0 产品规范与分阶段执行计划
 
-> 状态：Phase 7 Production Quality 已完成，Wise Crypto V0 已收口  
-> 最后更新：2026-09-08
+> 状态：Phase 7 Production Quality 已完成，Wise Crypto V0 已收口；上线前访问门禁批次已在本地完成
+> 最后更新：2026-09-09
 > 仓库：<https://github.com/WiseInvest513/crypto.git>  
 > 计划生产域名：<https://crypto.wise-invest.org>
 
@@ -14,8 +14,9 @@
 如本文件与用户后续的明确指令冲突，以用户最新指令为准，并同步更新本文件，避免实现与规范长期不一致。
 
 Phase 1–7 及第 12–15 节保留各次实施时的历史记录。行情工作台与公开研究以第 16–18、20–21 节
-的后续批准内容为当前规范；Wise ID 登录以第 27 节为当前规范。旧章节的可见来源说明、
-多周期 VIP 限制、旧版行情布局及“尚未接入真实登录”的历史描述不再覆盖这些决策。
+的后续批准内容为当前规范；Wise ID 协议与 Session 以第 27 节为基线，最新页面访问、账户资料、
+搜索索引与弹层交互边界以第 28 节为准。旧章节的可见来源说明、多周期 VIP 限制、旧版行情布局、
+“所有功能公开”及“尚未接入真实登录”的历史描述不再覆盖这些决策。
 当前变更不表示已部署，也不替代本轮独立质量验收。
 
 ## 2. 产品目标
@@ -29,13 +30,15 @@ Wise Crypto V0 是面向 Crypto / Web3 用户的独立市场信息与分析工�
 - 四个不误导用户的基础计算工具。
 - 工具区内的“合约入门”学习工具，以 5 章 26 关解释合约风险和图表观察方法。
 - 主站与子站职责分离：产品、邀请码和 Crypto 权益内容统一由 Wise Invest 主站承接。
-- V0 不接入真实 Wise ID；在 V0 收口后的已批准优化中，仅建立 `regular / vip`
-  两级权限合同与服务端接入边界。
+- V0 收口后的已批准优化已经建立 Wise ID OIDC、独立子站 Session 与 `regular / vip`
+  两级身份合同；首页保持公开，行情、工具、课程与账户页需要有效登录。
 
 ## 3. V0 明确不做
 
-- V0 阶段不实现 Wise ID、登录、注册、用户数据库、VIP 或权益判断；收口后的权限
-  基础批次也不提供真实登录、Session 或客户端 VIP 切换。
+以下是 V0 收口时的范围记录；后续获批的 Wise ID 登录与访问门禁以第 27–28 节为准。
+
+- V0 阶段原本不实现 Wise ID、登录、注册、用户数据库、VIP 或权益判断；后续登录批次仍不建立
+  子站用户数据库，不允许客户端切换或伪造普通 / VIP 身份。
 - 不实现交易、钱包连接、下单、托管或资产管理。
 - 不实现自动投资建议或自动生成 Wise 的市场判断。
 - 不为填满页面而伪造市场数据、费用、资格、优惠或地区信息。
@@ -169,10 +172,13 @@ type MarketDatum<T> =
 - 缺失数据展示 `—` 或明确的 unavailable 状态，不能展示为 `0`。
 - API Secret 只能存在于服务端模块和服务端环境变量中。
 
-## 7. 当前公开路由
+## 7. 当前路由与访问边界
 
 ```text
+# 公开且可索引
 /
+
+# 需要有效 Wise ID Session
 /btc
 /eth
 /tools
@@ -181,10 +187,15 @@ type MarketDatum<T> =
 /tools/dca
 /tools/risk-reward
 /tools/futures-intro
+/account
 ```
 
 全局导航包含：市场总览、行情、工具。BTC / ETH 在行情工作台内切换；`/btc`、
 `/eth` 继续作为独立可分享 URL，不新增冗余顶层入口。
+
+登录门禁只验证是否存在有效 Wise ID 身份，不等同于 VIP 权益门禁：`regular` 与 `vip` 用户均可
+进入上述行情、工具、课程和账户页面；只有后续明确标记为私有权益的内容才能再进行 VIP 判断。
+匿名访问受限页面时进入登录流程，身份服务配置异常时必须 fail closed，不能退回匿名公开访问。
 
 Phase 6 曾公开的 `/products` 与 `/products/[slug]` 已在 2026-09-02 退出子站
 核心体验。两个历史地址保留为固定服务端 `308` 永久重定向，统一前往
@@ -825,16 +836,18 @@ Analytics 失败不能阻断导航、行情交互或工具计算。历史 Referr
 
 ## 10. Wise ID 接入边界
 
-- 当前仍不渲染假的登录入口，也没有真实 Session。
-- 已建立 `regular / vip` 类型、统一功能权限表与 fail-closed 的服务端 Identity Adapter；
-  未接入身份时一律返回匿名普通权限。
-- 公共市场数据、Provider cache 和公开 Metadata 不得依赖用户身份。
-- Header 可以保留结构性 account slot，但 V0 默认不显示。
-- 未来身份读取继续集中在服务端 Identity Adapter。
+- 当前只使用真实 Wise ID OIDC 结果建立子站 Session；未登录、配置异常或身份字段异常时不得
+  伪造用户，也不得把匿名访问映射为普通会员。
+- `regular / vip` 类型、统一功能权限表与 fail-closed 的服务端 Identity Adapter 已建立；两种
+  已验证身份都能通过基础产品页面的登录门禁，VIP 权益另由服务端 Entitlement Service 判断。
+- 首页、公共市场 Provider cache 与首页 Metadata 不依赖用户身份；受限页面 Metadata 必须
+  `noindex`，受限页面响应与账户接口必须使用 `private/no-store` 或等价隔离。
+- Header 账户入口只读取同源最小账户状态；身份读取继续集中在服务端 Identity Adapter。
 - 权益判断集中在 Entitlement Service，不能散落在 Client Components。
 - 受限内容必须在服务端判断后才进入响应；真实身份接入时，个性化响应与公共缓存
   必须使用 `private/no-store` 或等价方式严格隔离。
-- 未来优先采用标准 OIDC/OAuth、PKCE、state、nonce 和严格 callback allowlist。
+- 身份协议采用标准 OIDC/OAuth、PKCE、state、nonce 和严格 callback allowlist；完整约束见
+  第 27 节，最新页面门禁与账户展示见第 28 节。
 
 ## 11. 当前执行状态
 
@@ -860,6 +873,7 @@ Analytics 失败不能阻断导航、行情交互或工具计算。历史 Referr
 | 新手解释与匿名行为事件（2026-09-06 批准） | 已实施渐进式术语说明与行情/工具交互事件；默认 noop，未接第三方供应商 |
 | 合约入门学习工具（2026-09-06 批准） | V2 内容与体验改版完成；5 章 26 关、78 道分层练习、8 关快速路径，作为 `/tools` 内学习型工具，不新增顶层导航或交易功能 |
 | Wise ID 主站 OIDC 登录接入（2026-09-08 批准） | 本地接入已建立；主站 `wise_crypto` 客户端尚未注册 / 启用，未部署、未修改 DNS |
+| 上线前访问门禁、账户资料与弹层收口（2026-09-09 批准） | 本地实施；仅首页公开，行情、工具、课程与账户页需要普通或 VIP 登录，接口同步鉴权；未推送、未部署 |
 
 ## 12. 2026-09-02 产品线退出决策
 
@@ -1453,6 +1467,9 @@ Analytics 失败不能阻断导航、行情交互或工具计算。历史 Referr
 
 ## 27. 2026-09-08 Wise ID 主站 OIDC 登录接入
 
+> 本节记录身份协议与 Session 基线。其“页面继续公开”的初始访问假设已被第 28 节明确取代；
+> callback、Secret、会员字段与 Session 安全约束继续有效。
+
 ### 身份协议与信任边界
 
 - Wise Crypto 作为 Wise Invest 主站 Wise ID 的独立 OIDC Client，采用 OAuth 2.0 / OIDC
@@ -1481,12 +1498,12 @@ Analytics 失败不能阻断导航、行情交互或工具计算。历史 Referr
   URL、Analytics 或公开页面响应。客户端只接收展示所必需的最小账户状态；服务端权限层只使用
   已验证 subject 与会员等级。
 
-### 公共页面与权限隔离
+### 身份隔离基线（访问范围由第 28 节更新）
 
-- 首页、BTC / ETH 行情、公开研究、市场 Provider cache、Metadata、工具和合约课程继续在
-  未登录或身份服务不可用时独立工作。公共页面不能因为 Wise ID 故障变成不可用或被迫动态化。
+- 本阶段最初约定首页、BTC / ETH 行情、公开研究、工具和合约课程均可匿名访问；该页面范围
+  已由第 28 节更新为“仅首页公开”。市场 Provider cache 仍不因登录状态复制或混入口令。
 - Header 的账户状态由独立客户端交互读取最小同源账户接口；它不能把 Session、Token 或 VIP
-  正文注入公共缓存。个性化账户接口和受限内容使用 `private, no-store` 或等价隔离。
+  正文注入公共缓存。个性化账户接口、受限页面和受限数据接口使用 `private, no-store` 或等价隔离。
 - 人工策略仍由现有服务端 access-first 边界控制。只有已验证且仍在有效期内的 `vip` 身份才可
   触发私有仓库读取；匿名、普通、会员字段异常或身份服务异常都不得知道策略是否存在。
 
@@ -1502,3 +1519,54 @@ Analytics 失败不能阻断导航、行情交互或工具计算。历史 Referr
 - 本批次只修改本地代码和文档，并要求完成 lint、typecheck、tests、production build 与真实
   OIDC smoke test 后再验收。本批次没有部署 Vercel、没有推送代码、没有配置或修改 DNS；
   `crypto.wise-invest.org` 上线及主站 Client 注册仍需单独执行。
+
+## 28. 2026-09-09 上线前访问门禁、账户资料与弹层收口
+
+### 页面访问与会员边界
+
+- `/` 是唯一保持匿名可访问、可进入 sitemap 且允许生产搜索索引的页面。首页的数据加载、
+  降级状态和渲染不得依赖 Wise ID Session，也不能因身份服务异常而失效。
+- `/btc`、`/eth`、`/tools`、四个计算器、`/tools/futures-intro` 与 `/account` 均需要有效
+  Wise ID Session。匿名访问跳转至登录流程并携带经过严格校验的站内 `returnTo`；身份配置异常
+  进入明确错误边界，不能把受限页面降级为公开页面。
+- 这是“是否登录”的基础门禁，不是 VIP 付费门禁。主站返回并成功验证为 `regular` 或 `vip`
+  的用户都可以进入行情、工具、课程与账户页；人工策略等真正私有权益仍需独立的服务端 VIP
+  判断，不能凭 URL、客户端状态或页面隐藏实现。
+
+### 服务端页面与接口双重检查
+
+- 每个受限页面在 Server Component 加载业务数据或渲染正文前调用统一页面鉴权。只在 Header
+  隐藏链接、依赖客户端跳转或显示登录提示都不构成安全边界。
+- 浏览器会直接调用的 `/api/market/candles`、`/api/market/performance`、
+  `/api/market/research` 与 `/api/account` 同样独立验证当前 Wise Session；页面已经通过鉴权
+  不能替代接口检查。匿名响应使用 `401`，认证服务不可用使用 `503`，两者均不得返回市场正文、
+  账户资料或可推断 VIP 内容是否存在的信息。
+- 受身份保护的接口响应统一使用 `private, no-store`、`Vary: Cookie` 与 `nosniff`；共享 Provider
+  数据仍可在服务端按既有合同缓存，但不得把个性化响应放入公共 CDN 或浏览器缓存。
+
+### 账户资料只读投影
+
+- `/account` 只读展示当前 Wise ID Session 中已经验证并最小化后的昵称、头像、邮箱、邮箱验证
+  状态、Wise ID 与会员等级。Access Token、ID Token、Client Secret 和完整 Provider payload
+  不进入页面、客户端状态、日志或 Analytics。
+- Wise Crypto 不为账户中心新建用户数据库，不复制主站密码，也不提供资料编辑入口。头像、昵称、
+  邮箱和会员方案由 Wise Invest 主站统一维护，子站只提供安全的主站账户管理跳转与本地会话退出。
+
+### 搜索索引与弹层交互
+
+- 所有登录后页面使用受保护 Metadata，明确 `noindex`、`nofollow` 与 `noarchive`；生产 robots
+  阻止抓取 `/account`、`/btc`、`/eth`、`/tools` 及 `/studio/`，sitemap 只包含首页。
+- 公共 Header 的右侧操作区提供固定的“回到主站”入口，目标只能是
+  `https://www.wise-invest.org/`；它与白天 / 黑夜切换、Wise ID 账户入口并列，手机端可收为
+  保留完整可访问名称的图标按钮，但不得隐藏或由查询参数改写目标地址。
+- Header 账户菜单与行情图层菜单采用同一轻量弹层行为：点击或将焦点移到外部时关闭，按
+  `Escape` 关闭并把焦点交还触发按钮，路由切换时不保留旧的打开状态。
+- 清除学习进度等有风险的确认弹层使用语义化模态对话框：打开后聚焦安全操作、Tab 焦点留在
+  对话框内、点击遮罩或按 `Escape` 取消，关闭后恢复此前焦点。弹层不能遮挡后仍让背景操作获得
+  键盘焦点，也不能把危险动作设为默认焦点。
+
+### 当前发布状态
+
+- 本批次只完成本地代码、文档和自动化检查，尚未推送到 GitHub，未部署 Vercel，未配置或修改
+  DNS，也未把 `crypto.wise-invest.org` 切换到本批代码。生产发布与主站精确 callback 验证仍需
+  获得单独授权后执行。

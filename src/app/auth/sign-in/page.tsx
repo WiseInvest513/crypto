@@ -36,8 +36,8 @@ export default async function WiseSignInPage({
           {enabled
             ? "你将前往 Wise Invest 主站确认身份。授权完成后会自动返回，并识别普通用户或 VIP 用户。"
             : misconfigured
-              ? "登录服务的环境配置不完整。公开行情、计算工具和合约课程不受影响，请稍后再试。"
-              : "公开行情、计算工具和合约课程仍可直接使用；完成主站客户端配置后，这里会自动开放。"}
+              ? "登录服务的环境配置不完整，行情与工具暂时无法进入。请稍后再试。"
+              : "登录功能尚未配置，因此行情、计算工具和合约课程暂时无法进入。"}
         </p>
         <div className="auth-result__actions">
           {enabled ? (
@@ -46,7 +46,7 @@ export default async function WiseSignInPage({
               <button type="submit">前往主站登录</button>
             </form>
           ) : null}
-          <Link href={returnTo}>暂不登录，返回页面</Link>
+          <Link href="/">暂不登录，返回市场总览</Link>
         </div>
         <p className="auth-result__privacy">
           Wise Crypto 不读取主站密码，也不使用跨子域共享 Cookie。

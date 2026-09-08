@@ -3,10 +3,14 @@ import { unavailableDatum } from "../../src/server/data/contracts/market-data";
 
 const mocks = vi.hoisted(() => ({
   loadAssetLiveChartDatum: vi.fn(),
+  requireWiseApiAccount: vi.fn(),
 }));
 
 vi.mock("@/server/data/services/market-data-service", () => ({
   loadAssetLiveChartDatum: mocks.loadAssetLiveChartDatum,
+}));
+vi.mock("@/server/auth/wise-route-access", () => ({
+  requireWiseApiAccount: mocks.requireWiseApiAccount,
 }));
 
 import { GET } from "../../src/app/api/market/candles/route";
@@ -14,6 +18,8 @@ import { GET } from "../../src/app/api/market/candles/route";
 describe("live chart same-origin route", () => {
   beforeEach(() => {
     mocks.loadAssetLiveChartDatum.mockReset();
+    mocks.requireWiseApiAccount.mockReset();
+    mocks.requireWiseApiAccount.mockResolvedValue(null);
     mocks.loadAssetLiveChartDatum.mockResolvedValue(
       unavailableDatum("historical.btc-chart-candles", "no_data"),
     );
@@ -30,6 +36,7 @@ describe("live chart same-origin route", () => {
     expect(response.headers.get("cache-control")).toBe(
       "private, no-store, max-age=0",
     );
+    expect(response.headers.get("vary")).toBe("Cookie");
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");
     expect(mocks.loadAssetLiveChartDatum).toHaveBeenCalledWith(
       "btc",
@@ -55,6 +62,34 @@ describe("live chart same-origin route", () => {
       "15m",
       "tail",
     );
+  });
+
+  it("rejects an anonymous request before invoking the market provider", async () => {
+    mocks.requireWiseApiAccount.mockResolvedValue(
+      Response.json(
+        { error: "authentication_required" },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control": "private, no-store, max-age=0",
+            Vary: "Cookie",
+          },
+        },
+      ),
+    );
+
+    const response = await GET(
+      new Request(
+        "http://localhost:2222/api/market/candles?asset=btc&interval=1h&mode=tail",
+      ),
+    );
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("cache-control")).toBe(
+      "private, no-store, max-age=0",
+    );
+    expect(response.headers.get("vary")).toBe("Cookie");
+    expect(mocks.loadAssetLiveChartDatum).not.toHaveBeenCalled();
   });
 
   it.each([

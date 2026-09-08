@@ -8,7 +8,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: allowIndexing ? "/" : undefined,
-      disallow: allowIndexing ? "/studio/" : "/",
+      disallow: allowIndexing
+        ? ["/account", "/btc", "/eth", "/studio/", "/tools"]
+        : "/",
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,

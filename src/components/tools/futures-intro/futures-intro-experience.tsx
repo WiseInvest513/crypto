@@ -813,6 +813,9 @@ function ResetDialog({
       aria-labelledby="reset-title"
       aria-describedby="reset-description"
       ref={dialogRef}
+      onPointerDown={(event) => {
+        if (event.target === event.currentTarget) onCancel();
+      }}
     >
       <div>
         <p className={styles.sectionEyebrow}>清除学习记录</p>

@@ -25,7 +25,7 @@ export default async function WiseSignOutPage({
         <p className="auth-result__eyebrow">Wise ID</p>
         <h1 id="wise-sign-out-title">退出 Wise Crypto？</h1>
         <p>
-          这只会结束 Crypto 子站会话，不会退出 Wise Invest 主站，也不会影响公开功能。
+          这只会结束 Crypto 子站会话，不会退出 Wise Invest 主站。退出后将返回市场总览，行情与工具需要再次登录。
         </p>
         <div className="auth-result__actions">
           {enabled ? (

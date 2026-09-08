@@ -1,5 +1,11 @@
 import type { NextConfig } from "next";
 
+const privatePageHeaders = [
+  { key: "Cache-Control", value: "private, no-store, max-age=0" },
+  { key: "Vary", value: "Cookie" },
+  { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+] as const;
+
 const nextConfig: NextConfig = {
   typedRoutes: true,
   poweredByHeader: false,
@@ -11,6 +17,9 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      ...["/btc/:path*", "/eth/:path*", "/tools/:path*", "/account/:path*"].map(
+        (source) => ({ source, headers: [...privatePageHeaders] }),
+      ),
       {
         source: "/studio/:path*",
         headers: [

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { DcaCalculator } from "../../src/components/tools/dca-calculator";
 import { BackToToolsLink } from "../../src/components/tools/back-to-tools-link";
 import { LeverageCalculator } from "../../src/components/tools/leverage-calculator";
@@ -16,9 +16,13 @@ import type {
 import { getToolDefinition } from "../../src/lib/tools/catalog";
 import ToolsPage from "../../src/app/tools/page";
 
+vi.mock("@/server/auth/wise-route-access", () => ({
+  requireWisePageAccount: vi.fn().mockResolvedValue({}),
+}));
+
 describe("Phase 5 calculator components", () => {
-  it("presents one learning entry before four equal calculator cards", () => {
-    const markup = renderToStaticMarkup(createElement(ToolsPage));
+  it("presents one learning entry before four equal calculator cards", async () => {
+    const markup = renderToStaticMarkup(await ToolsPage());
 
     expect(markup).toContain("交易前，先把风险弄明白");
     expect(markup).toContain('class="tools-learning"');

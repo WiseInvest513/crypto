@@ -52,6 +52,20 @@ export function createPageMetadata({
   };
 }
 
+export function createProtectedPageMetadata(
+  input: PageMetadataInput,
+): Metadata {
+  return {
+    ...createPageMetadata(input),
+    robots: {
+      index: false,
+      follow: false,
+      noarchive: true,
+      googleBot: { index: false, follow: false, noarchive: true },
+    },
+  };
+}
+
 export function createNotFoundMetadata(): Metadata {
   return {
     title: "页面未找到",

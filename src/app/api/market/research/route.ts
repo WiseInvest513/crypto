@@ -1,18 +1,23 @@
 import type { Asset } from "@/server/data/contracts/market-data";
 import { isChartCandleInterval } from "@/server/data/services/live-chart-service";
 import { loadAssetResearchSnapshot } from "@/server/data/services/public-research-service";
+import { requireWiseApiAccount } from "@/server/auth/wise-route-access";
 
 export const dynamic = "force-dynamic";
 
-// No personalized fields. Shared, bounded caching lives in the service so
-// expiry can follow each candle boundary rather than a CDN/browser clock.
+// Normalized provider data is shared in the service cache, while this
+// identity-gated response must never enter a public browser or CDN cache.
 const responseHeaders = {
-  "Cache-Control": "no-store, max-age=0",
+  "Cache-Control": "private, no-store, max-age=0",
   "Content-Type": "application/json; charset=utf-8",
+  Vary: "Cookie",
   "X-Content-Type-Options": "nosniff",
 } as const;
 
 export async function GET(request: Request): Promise<Response> {
+  const authenticationFailure = await requireWiseApiAccount();
+  if (authenticationFailure) return authenticationFailure;
+
   const params = new URL(request.url).searchParams;
   const allowed = new Set(["asset", "interval"]);
   for (const key of params.keys()) {

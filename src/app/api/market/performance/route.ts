@@ -1,14 +1,19 @@
 import { loadAssetPerformanceSnapshot } from "@/server/data/services/price-performance-service";
+import { requireWiseApiAccount } from "@/server/auth/wise-route-access";
 
 export const dynamic = "force-dynamic";
 
 const headers = {
-  "Cache-Control": "no-store, max-age=0",
+  "Cache-Control": "private, no-store, max-age=0",
   "Content-Type": "application/json; charset=utf-8",
+  Vary: "Cookie",
   "X-Content-Type-Options": "nosniff",
 } as const;
 
 export async function GET(request: Request): Promise<Response> {
+  const authenticationFailure = await requireWiseApiAccount();
+  if (authenticationFailure) return authenticationFailure;
+
   const params = new URL(request.url).searchParams;
   const asset = params.get("asset");
   if ((asset !== "btc" && asset !== "eth") || [...params.keys()].some((key) => key !== "asset" || params.getAll(key).length !== 1)) {

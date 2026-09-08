@@ -5,9 +5,12 @@ import {
   toolCatalog,
   type ToolDefinition,
 } from "@/lib/tools/catalog";
-import { createPageMetadata } from "@/lib/seo/page-metadata";
+import { createProtectedPageMetadata } from "@/lib/seo/page-metadata";
+import { requireWisePageAccount } from "@/server/auth/wise-route-access";
 
-export const metadata: Metadata = createPageMetadata({
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = createProtectedPageMetadata({
   title: "加密工具",
   description:
     "通过合约入门学习工具理解交易规则与风险，并使用仓位、杠杆、定投和风险回报计算器检查计划。",
@@ -15,7 +18,13 @@ export const metadata: Metadata = createPageMetadata({
   useSiteImage: true,
 });
 
-export default function ToolsPage() {
+export default async function ToolsPage() {
+  await requireWisePageAccount("/tools");
+
+  return <ToolsIndexContent />;
+}
+
+function ToolsIndexContent() {
   return (
     <div className="tools-index page-container">
       <header className="tools-hero">

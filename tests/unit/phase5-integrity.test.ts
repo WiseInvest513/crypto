@@ -2,7 +2,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import sitemap from "../../src/app/sitemap";
-import { PUBLIC_ROUTES } from "../../src/config/site";
+import {
+  AUTHENTICATED_ROUTES,
+  PUBLIC_ROUTES,
+} from "../../src/config/site";
 import { toolCatalog } from "../../src/lib/tools/catalog";
 
 const PROJECT_ROOT = process.cwd();
@@ -18,18 +21,24 @@ function readSource(path: string) {
 }
 
 describe("Phase 5 integrity", () => {
-  it("publishes exactly four independently addressable calculator routes", () => {
+  it("keeps exactly four independently addressable calculators behind the account gate", () => {
+    const indexedRoutes = sitemap().map((entry) => new URL(entry.url).pathname);
+
     expect(toolCatalog.map((tool) => tool.href)).toEqual(TOOL_ROUTES);
-    expect(PUBLIC_ROUTES).toEqual(expect.arrayContaining([...TOOL_ROUTES]));
-    expect(sitemap().map((entry) => new URL(entry.url).pathname)).toEqual(
+    expect(AUTHENTICATED_ROUTES).toEqual(
       expect.arrayContaining([...TOOL_ROUTES]),
     );
+    expect(PUBLIC_ROUTES).not.toEqual(
+      expect.arrayContaining([...TOOL_ROUTES]),
+    );
+    expect(indexedRoutes).not.toEqual(expect.arrayContaining([...TOOL_ROUTES]));
 
     for (const route of TOOL_ROUTES) {
       const page = readSource(`src/app${route}/page.tsx`);
-      expect(page).toContain("createPageMetadata({");
+      expect(page).toContain("createProtectedPageMetadata({");
       expect(page).toContain("path: tool.href");
       expect(page).toContain("socialTitle:");
+      expect(page).toContain(`requireWisePageAccount("${route}")`);
     }
   });
 

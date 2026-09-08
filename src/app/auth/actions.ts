@@ -21,8 +21,8 @@ export async function startWiseSignIn(formData: FormData): Promise<void> {
 }
 
 export async function endWiseSession(formData: FormData): Promise<void> {
-  const returnTo = normalizeAuthReturnTo(formData.get("returnTo"));
-  if (!isWiseAuthConfigured()) redirect(returnTo);
+  normalizeAuthReturnTo(formData.get("returnTo"));
+  if (!isWiseAuthConfigured()) redirect("/");
 
-  await signOut({ redirectTo: returnTo });
+  await signOut({ redirectTo: "/" });
 }

@@ -122,6 +122,7 @@ describe("Wise identity profile parsing", () => {
         sub: "Y123456789",
         wise_user_id: "Y123456789",
         email: "member@example.com",
+        email_verified: true,
         name: "Wise Member",
         picture: "https://www.wise-invest.org/avatar.png",
         membership_tier: "VIP_PLUS",
@@ -133,6 +134,8 @@ describe("Wise identity profile parsing", () => {
       image: "https://www.wise-invest.org/avatar.png",
       name: "Wise Member",
       membershipTier: "VIP_PLUS",
+      wiseEmailVerified: true,
+      wiseId: "Y123456789",
     });
   });
 
@@ -153,6 +156,7 @@ describe("post-authentication return paths", () => {
     ["/btc", "/btc"],
     ["/eth?interval=4h", "/eth?interval=4h"],
     ["/tools/futures-intro", "/tools/futures-intro"],
+    ["/account", "/account"],
   ])("keeps an internal public path %s", (value, expected) => {
     expect(normalizeAuthReturnTo(value)).toBe(expected);
   });

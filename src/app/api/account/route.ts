@@ -26,9 +26,13 @@ export async function GET(): Promise<Response> {
   return accountResponse({
     status: "authenticated",
     displayName: account.displayName,
+    email: account.email,
+    emailVerified: account.emailVerified,
+    imageUrl: account.imageUrl,
     label: account.label,
     membershipTier: account.membershipTier,
     tier: account.principal.tier,
+    wiseId: account.wiseId,
   });
 }
 

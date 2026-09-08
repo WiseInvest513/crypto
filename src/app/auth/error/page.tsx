@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { normalizeAuthReturnTo } from "@/lib/auth/auth-return-to";
 
@@ -26,11 +26,13 @@ export default async function WiseAuthErrorPage({
         </h1>
         <p>
           {cancelled
-            ? "你没有授权 Wise Crypto 读取基础身份与会员等级，现有公开功能仍可继续使用。"
-            : "请稍后重试。公开行情、工具和合约课程不受影响。"}
+            ? "你没有授权 Wise Crypto 读取基础身份与会员等级，因此暂时不能进入行情和工具。"
+            : "请稍后重试。身份确认恢复后，登录即可进入行情、工具和合约课程。"}
         </p>
         <div className="auth-result__actions">
-          <Link href={returnTo}>返回刚才页面</Link>
+          <Link href={`/auth/sign-in?returnTo=${encodeURIComponent(returnTo)}` as Route}>
+            重新登录
+          </Link>
           <Link href="/">返回市场总览</Link>
         </div>
       </section>

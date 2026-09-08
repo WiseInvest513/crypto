@@ -10,6 +10,7 @@ export type WiseOidcProfile = Readonly<{
   sub?: unknown;
   wise_user_id?: unknown;
   email?: unknown;
+  email_verified?: unknown;
   name?: unknown;
   picture?: unknown;
   membership_tier?: unknown;
@@ -19,6 +20,8 @@ export type WiseAuthUser = User &
   Readonly<{
     id: string;
     membershipTier: WiseMembershipTier;
+    wiseEmailVerified: boolean | null;
+    wiseId: string;
   }>;
 
 export function parseWiseOidcProfile(profile: unknown): WiseAuthUser {
@@ -45,7 +48,13 @@ export function parseWiseOidcProfile(profile: unknown): WiseAuthUser {
     image: readSafeUrl(candidate.picture),
     name: readSafeString(candidate.name, 120),
     membershipTier,
+    wiseEmailVerified: readOptionalBoolean(candidate.email_verified),
+    wiseId: wiseUserId ?? subject,
   };
+}
+
+function readOptionalBoolean(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
 }
 
 function readSafeString(value: unknown, maximumLength: number): string | null {

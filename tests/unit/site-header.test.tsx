@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { parseAccountState } from "@/components/layout/account-menu";
 import { SiteHeader } from "@/components/layout/site-header";
 
 vi.mock("next/navigation", () => ({
@@ -13,13 +14,12 @@ describe("site header login foundation", () => {
     const html = renderToStaticMarkup(<SiteHeader />);
 
     expect(html).toContain('<details class="site-header__account">');
-    expect(html).toContain(
-      '<summary class="site-header__account-trigger">登录</summary>',
-    );
+    expect(html).toContain('aria-label="打开登录菜单"');
+    expect(html).toContain("登录</strong>");
     expect(html).toContain('aria-live="polite"');
     expect(html).toContain("Wise ID 登录尚未开放");
     expect(html).toContain(
-      "当前公开的市场行情、计算工具和合约课程无需登录即可使用。",
+      "登录完成配置前，行情、计算工具和合约课程暂时不可进入。",
     );
     expect(html).not.toMatch(/已登录|VIP 用户|退出登录|前往主站登录/);
   });
@@ -38,6 +38,9 @@ describe("site header login foundation", () => {
     expect(headerSource).not.toMatch(/^\s*["']use client["'];?/);
     expect(toggleSource).toMatch(/^\s*["']use client["'];?/);
     expect(html).toContain('class="site-header__actions"');
+    expect(html).toContain('class="site-header__main-site-link"');
+    expect(html).toContain('href="https://www.wise-invest.org/"');
+    expect(html).toContain('aria-label="回到 Wise Invest 主站"');
     expect(html).toContain('class="site-header__theme-toggle"');
     expect(html).toContain('aria-label="切换到深色模式"');
     expect(html).toContain('title="切换到深色模式"');
@@ -54,7 +57,7 @@ describe("site header login foundation", () => {
       /\.site-header__account-trigger\s*\{[^}]*min-height:\s*2\.75rem;/s,
     );
     expect(css).toMatch(
-      /\.site-header__account-panel\s*\{[^}]*width:\s*min\(20rem, calc\(100vw - 2rem\)\);/s,
+      /\.site-header__account-panel\s*\{[^}]*width:\s*min\(22rem, calc\(100vw - 2rem\)\);/s,
     );
     expect(css).toMatch(
       /\.site-header__theme-toggle\s*\{[^}]*width:\s*2\.75rem;[^}]*min-width:\s*2\.75rem;[^}]*min-height:\s*2\.75rem;/s,
@@ -62,5 +65,45 @@ describe("site header login foundation", () => {
     expect(css).toMatch(
       /@media \(max-width: 42rem\)[\s\S]*?\.site-header__inner\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto;/,
     );
+  });
+
+  it("accepts only a complete, sanitized Wise ID account projection", () => {
+    expect(
+      parseAccountState({
+        status: "authenticated",
+        displayName: "Invest wise",
+        email: "member@example.com",
+        emailVerified: true,
+        imageUrl: "https://www.wise-invest.org/avatar.png",
+        label: "Wise VIP",
+        membershipTier: "VIP",
+        tier: "vip",
+        wiseId: "Y36FUHLKBHJVE",
+      }),
+    ).toEqual({
+      status: "authenticated",
+      displayName: "Invest wise",
+      email: "member@example.com",
+      emailVerified: true,
+      imageUrl: "https://www.wise-invest.org/avatar.png",
+      label: "Wise VIP",
+      membershipTier: "VIP",
+      tier: "vip",
+      wiseId: "Y36FUHLKBHJVE",
+    });
+
+    expect(
+      parseAccountState({
+        status: "authenticated",
+        displayName: "Invest wise",
+        email: null,
+        emailVerified: null,
+        imageUrl: "http://insecure.example/avatar.png",
+        label: "Wise VIP",
+        membershipTier: "VIP",
+        tier: "vip",
+        wiseId: "Y36FUHLKBHJVE",
+      }),
+    ).toEqual({ status: "error" });
   });
 });

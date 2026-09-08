@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { metadata as rootMetadata } from "../../src/app/layout";
+import { metadata as accountMetadata } from "../../src/app/account/page";
 import { metadata as btcMetadata } from "../../src/app/btc/page";
 import { metadata as ethMetadata } from "../../src/app/eth/page";
 import { metadata as toolsMetadata } from "../../src/app/tools/page";
@@ -14,8 +15,10 @@ import { metadata as notFoundMetadata } from "../../src/app/not-found";
 import { metadata as strategyStudioMetadata } from "../../src/app/studio/strategies/layout";
 import robots from "../../src/app/robots";
 import {
+  AUTHENTICATED_ROUTES,
   isPublicIndexingEnabled,
   PRODUCTION_SITE_URL,
+  PUBLIC_ROUTES,
   resolveSiteUrl,
 } from "../../src/config/site";
 
@@ -28,6 +31,7 @@ const routeMetadata = [
   ["/tools/leverage", leverageMetadata],
   ["/tools/dca", dcaMetadata],
   ["/tools/risk-reward", riskRewardMetadata],
+  ["/account", accountMetadata],
 ] as const;
 
 describe("SEO foundation", () => {
@@ -35,7 +39,7 @@ describe("SEO foundation", () => {
     vi.unstubAllEnvs();
   });
 
-  it("publishes complete and unique metadata for every static child route", () => {
+  it("publishes complete, unique and non-indexable metadata for every account-gated route", () => {
     const titles = new Set<string>();
 
     for (const [path, metadata] of routeMetadata) {
@@ -50,6 +54,16 @@ describe("SEO foundation", () => {
         twitter: {
           description: expect.any(String),
         },
+        robots: {
+          index: false,
+          follow: false,
+          noarchive: true,
+          googleBot: {
+            index: false,
+            follow: false,
+            noarchive: true,
+          },
+        },
       });
       expect(metadata.description).toEqual(expect.any(String));
       expect(String(metadata.description).length).toBeGreaterThan(20);
@@ -58,6 +72,10 @@ describe("SEO foundation", () => {
     }
 
     expect(titles.size).toBe(routeMetadata.length);
+    expect([...routeMetadata.map(([path]) => path)].sort()).toEqual(
+      [...AUTHENTICATED_ROUTES].sort(),
+    );
+    expect(PUBLIC_ROUTES).toEqual(["/"]);
   });
 
   it("uses the shared image only for the site and section pages", () => {
@@ -146,7 +164,11 @@ describe("SEO foundation", () => {
 
     vi.stubEnv("VERCEL_ENV", "production");
     expect(robots()).toMatchObject({
-      rules: { userAgent: "*", allow: "/", disallow: "/studio/" },
+      rules: {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/account", "/btc", "/eth", "/studio/", "/tools"],
+      },
       host: PRODUCTION_SITE_URL,
       sitemap: `${PRODUCTION_SITE_URL}/sitemap.xml`,
     });

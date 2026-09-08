@@ -6,19 +6,28 @@ declare module "next-auth" {
     user: DefaultSession["user"] & {
       id?: string;
       membershipTier?: WiseMembershipTier;
+      wiseEmailVerified?: boolean | null;
+      wiseId?: string;
     };
   }
 
   interface User {
     membershipTier?: WiseMembershipTier;
+    wiseEmailVerified?: boolean | null;
+    wiseId?: string;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
+    wiseDisplayName?: string | null;
+    wiseEmail?: string | null;
+    wiseEmailVerified?: boolean | null;
     wiseIdentityExpiresAt?: number;
+    wiseImage?: string | null;
     wiseMembershipTier?: WiseMembershipTier;
     wiseSubject?: string;
+    wiseUserId?: string;
   }
 }
 

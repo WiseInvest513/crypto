@@ -15,6 +15,7 @@ import { MarketChartCanvas, type HistoricalEventMarker } from "./market-chart-ca
 import { availableResearch, MarketResearchPanel } from "./market-research-panel";
 import { usePricePerformance } from "./use-price-performance";
 import { MarketPricePerformance } from "./market-price-performance";
+import { DismissibleDetails } from "@/components/ui/dismissible-details";
 
 const mobileQuery = "(max-width: 680px)";
 const subscribeMobile = (callback: () => void) => { const query = window.matchMedia(mobileQuery); query.addEventListener("change", callback); return () => query.removeEventListener("change", callback); };
@@ -210,7 +211,7 @@ export function MarketWorkbench({ asset, initialDatum, strategySlot }: { asset: 
   const refreshAll = () => { void market.refresh(market.interval, true); research.refresh(); performance.refresh(); };
   const name = asset === "btc" ? "比特币" : "以太坊";
 
-  return <div className={`market-workbench${expanded ? " market-workbench--expanded" : ""}`} onKeyDown={(event) => { if (event.key === "Escape") { setExpanded(false); if (settings.current) settings.current.open = false; } }}>
+  return <div className={`market-workbench${expanded ? " market-workbench--expanded" : ""}`} onKeyDown={(event) => { if (event.key === "Escape") setExpanded(false); }}>
     <header className="mw-asset-bar">
       <div className="mw-asset-identity">
         <nav className="mw-asset-switch" aria-label="切换行情资产"><Link href="/btc" aria-current={asset === "btc" ? "page" : undefined}>BTC</Link><Link href="/eth" aria-current={asset === "eth" ? "page" : undefined}>ETH</Link></nav>
@@ -231,7 +232,7 @@ export function MarketWorkbench({ asset, initialDatum, strategySlot }: { asset: 
             <div className="mw-analysis-modes" role="group" aria-label="分析视角">{analysisModeKeys.map((mode) => <button key={mode} aria-label={`${analysisModes[mode].label}分析，${analysisModes[mode].description}`} aria-pressed={analysisMode === mode} onClick={() => selectAnalysisMode(mode)}><strong>{analysisModes[mode].label}</strong><small>{analysisModes[mode].description}</small></button>)}</div>
           </div>
           <div className="mw-toolbar-actions">
-            <details className="mw-settings" ref={settings}><summary>图层 <WorkbenchIcon name="chevron" /></summary><div className="mw-settings-menu"><p>显示均线</p>{liveEmaKeys.map((key) => <label key={key}><input type="checkbox" checked={emaKeys.includes(key)} onChange={() => setEmaKeys((previous) => previous.includes(key) ? previous.filter((item) => item !== key) : [...previous, key])} />{liveEmaDefinitions[key].label}</label>)}<p>价格参考</p><label><input type="checkbox" checked={showProfile} onChange={(event) => setShowProfile(event.target.checked)} />成交密集区 · 估算</label><label><input type="checkbox" checked={showFibonacci} onChange={(event) => setShowFibonacci(event.target.checked)} />斐波那契参考线</label></div></details>
+            <DismissibleDetails className="mw-settings" detailsRef={settings}><summary>图层 <WorkbenchIcon name="chevron" /></summary><div className="mw-settings-menu"><p>显示均线</p>{liveEmaKeys.map((key) => <label key={key}><input type="checkbox" checked={emaKeys.includes(key)} onChange={() => setEmaKeys((previous) => previous.includes(key) ? previous.filter((item) => item !== key) : [...previous, key])} />{liveEmaDefinitions[key].label}</label>)}<p>价格参考</p><label><input type="checkbox" checked={showProfile} onChange={(event) => setShowProfile(event.target.checked)} />成交密集区 · 估算</label><label><input type="checkbox" checked={showFibonacci} onChange={(event) => setShowFibonacci(event.target.checked)} />斐波那契参考线</label></div></DismissibleDetails>
             <button className="mw-icon-button" aria-label="刷新行情与分析" title="刷新行情与分析" onClick={refreshAll} disabled={market.pending !== null}><WorkbenchIcon name="refresh" /></button>
             <button className="mw-icon-button mw-expand-button" aria-label={expanded ? "退出专注模式" : "进入专注模式"} aria-pressed={expanded} title="专注模式" onClick={() => setExpanded((value) => !value)}><WorkbenchIcon name="expand" /></button>
           </div>

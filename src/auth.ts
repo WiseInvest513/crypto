@@ -45,6 +45,11 @@ const authConfig = {
         if (!isWiseIdentityFresh(identityExpiresAt)) return null;
 
         token.wiseSubject = parsedProfile.id;
+        token.wiseUserId = parsedProfile.wiseId;
+        token.wiseDisplayName = parsedProfile.name;
+        token.wiseEmail = parsedProfile.email;
+        token.wiseEmailVerified = parsedProfile.wiseEmailVerified;
+        token.wiseImage = parsedProfile.image;
         token.wiseMembershipTier = parsedProfile.membershipTier;
         token.wiseIdentityExpiresAt = identityExpiresAt;
       }
@@ -57,9 +62,18 @@ const authConfig = {
         token.wiseMembershipTier,
       );
       const subject = readSafeSubject(token.wiseSubject);
+      const wiseId = readSafeSubject(token.wiseUserId) ?? subject;
 
-      if (session.user && subject && membershipTier) {
+      if (session.user && subject && wiseId && membershipTier) {
+        const email = readSafeString(token.wiseEmail, 320);
         session.user.id = subject;
+        session.user.wiseId = wiseId;
+        session.user.name = readSafeString(token.wiseDisplayName, 120);
+        if (email) session.user.email = email;
+        session.user.wiseEmailVerified = readOptionalBoolean(
+          token.wiseEmailVerified,
+        );
+        session.user.image = readSafeUrl(token.wiseImage);
         session.user.membershipTier = membershipTier;
       }
 
@@ -125,4 +139,30 @@ function readSafeSubject(value: unknown): string | null {
     !/[\u0000-\u001f\u007f]/u.test(value)
     ? value
     : null;
+}
+
+function readSafeString(value: unknown, maximumLength: number): string | null {
+  return typeof value === "string" &&
+    value.length >= 1 &&
+    value.length <= maximumLength &&
+    value.trim() === value &&
+    !/[\u0000-\u001f\u007f]/u.test(value)
+    ? value
+    : null;
+}
+
+function readOptionalBoolean(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
+}
+
+function readSafeUrl(value: unknown): string | null {
+  const candidate = readSafeString(value, 2_048);
+  if (!candidate) return null;
+
+  try {
+    const parsed = new URL(candidate);
+    return parsed.protocol === "https:" ? parsed.toString() : null;
+  } catch {
+    return null;
+  }
 }
