@@ -8,9 +8,13 @@ import {
   type WiseMembershipTier,
 } from "@/lib/auth/wise-membership";
 import { isWiseAuthConfigured } from "@/server/auth/wise-auth-config";
+import { isWiseLocalDevelopmentRequest } from "@/server/auth/wise-local-development";
 import type { IdentityPrincipal } from "@/server/access/resolve-user-access";
 
+export type WiseAuthenticationSource = "wise-id" | "local-development";
+
 export type WiseAccountSummary = Readonly<{
+  authenticationSource: WiseAuthenticationSource;
   displayName: string | null;
   email: string | null;
   emailVerified: boolean | null;
@@ -31,6 +35,13 @@ export async function resolveWiseAccount(): Promise<WiseAccountSummary | null> {
 }
 
 export async function resolveWiseAccountState(): Promise<WiseAccountState> {
+  if (await isWiseLocalDevelopmentRequest()) {
+    return Object.freeze({
+      status: "authenticated",
+      account: LOCAL_DEVELOPMENT_ACCOUNT,
+    });
+  }
+
   if (!isWiseAuthConfigured()) return Object.freeze({ status: "disabled" });
 
   try {
@@ -50,6 +61,7 @@ export async function resolveWiseAccountState(): Promise<WiseAccountState> {
     return Object.freeze({
       status: "authenticated",
       account: Object.freeze({
+        authenticationSource: "wise-id",
         displayName: readDisplayName(session.user?.name),
         email: readSafeEmail(session.user?.email),
         emailVerified: readOptionalBoolean(session.user?.wiseEmailVerified),
@@ -64,6 +76,21 @@ export async function resolveWiseAccountState(): Promise<WiseAccountState> {
     return Object.freeze({ status: "error" });
   }
 }
+
+const LOCAL_DEVELOPMENT_ACCOUNT: WiseAccountSummary = Object.freeze({
+  authenticationSource: "local-development",
+  displayName: "本地开发用户",
+  email: null,
+  emailVerified: null,
+  imageUrl: null,
+  label: formatWiseMembershipLabel("MEMBER"),
+  membershipTier: "MEMBER",
+  principal: Object.freeze({
+    subject: "local-development",
+    tier: "regular",
+  }),
+  wiseId: "LOCAL-DEVELOPMENT",
+});
 
 function readSafeSubject(value: unknown): string | null {
   return typeof value === "string" &&

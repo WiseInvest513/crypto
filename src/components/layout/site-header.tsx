@@ -2,10 +2,15 @@ import Link from "next/link";
 import { AccountMenu } from "./account-menu";
 import { SiteNav } from "./site-nav";
 import { ThemeToggle } from "./theme-toggle";
-import { WISE_INVEST_SITE_URL } from "@/config/site";
+import { WISE_INVEST_VIP_URL } from "@/config/site";
 import { getWiseAuthConfigurationStatus } from "@/server/auth/wise-auth-config";
+import { isWiseLocalDevelopmentRequest } from "@/server/auth/wise-local-development";
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const configurationStatus = (await isWiseLocalDevelopmentRequest())
+    ? "ready"
+    : getWiseAuthConfigurationStatus();
+
   return (
     <header className="site-header">
       <div className="page-container site-header__inner">
@@ -24,18 +29,17 @@ export function SiteHeader() {
         <div className="site-header__actions">
           <a
             className="site-header__main-site-link"
-            href={WISE_INVEST_SITE_URL}
-            aria-label="回到 Wise Invest 主站"
-            title="回到 Wise Invest 主站"
+            href={WISE_INVEST_VIP_URL}
+            aria-label="了解如何加入 Wise VIP"
+            title="加入 Wise VIP"
           >
             <svg viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M3.5 9.2 10 3.8l6.5 5.4" />
-              <path d="M5.3 8.4v7.5h9.4V8.4M8.1 15.9v-4.8h3.8v4.8" />
+              <path d="m10 3 1.8 4.2L16 9l-4.2 1.8L10 15l-1.8-4.2L4 9l4.2-1.8L10 3Z" />
             </svg>
-            <span>回到主站</span>
+            <span>加入 VIP</span>
           </a>
           <ThemeToggle />
-          <AccountMenu configurationStatus={getWiseAuthConfigurationStatus()} />
+          <AccountMenu configurationStatus={configurationStatus} />
         </div>
       </div>
     </header>

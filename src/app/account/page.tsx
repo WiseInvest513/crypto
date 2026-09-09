@@ -17,6 +17,8 @@ export const metadata: Metadata = createProtectedPageMetadata({
 
 export default async function AccountPage() {
   const account = await requireWisePageAccount("/account");
+  const isLocalDevelopment =
+    account.authenticationSource === "local-development";
   const accountName = account.displayName ?? "Wise 用户";
   const emailStatus = account.email
     ? account.emailVerified === true
@@ -41,16 +43,28 @@ export default async function AccountPage() {
             size="large"
           />
           <div>
-            <p>WISE ID · 已连接</p>
+            <p>
+              {isLocalDevelopment
+                ? "LOCAL DEV · 登录旁路"
+                : "WISE ID · 已连接"}
+            </p>
             <h1 id="account-title">{accountName}</h1>
             <span>{account.label}</span>
           </div>
         </div>
         <div className="account-center__hero-copy">
-          <p className="account-center__eyebrow">账户与会员</p>
-          <h2>一套身份，进入 Wise Crypto</h2>
+          <p className="account-center__eyebrow">
+            {isLocalDevelopment ? "本地调试身份" : "账户与会员"}
+          </p>
+          <h2>
+            {isLocalDevelopment
+              ? "直接调试，不经过主站登录"
+              : "一套身份，进入 Wise Crypto"}
+          </h2>
           <p>
-            登录身份和会员状态由 Wise ID 统一管理。Crypto 只读取本次会话需要的资料，不另建用户数据库。
+            {isLocalDevelopment
+              ? "这个固定普通用户只在本机 2222 端口的开发服务器生效，不创建 Cookie，也不会模拟 VIP；生产环境仍执行正常登录。"
+              : "登录身份和会员状态由 Wise ID 统一管理。Crypto 只读取本次会话需要的资料，不另建用户数据库。"}
           </p>
         </div>
       </section>
@@ -60,38 +74,62 @@ export default async function AccountPage() {
           <header>
             <div>
               <p className="account-center__eyebrow">只读资料</p>
-              <h2 id="account-details-title">当前账户</h2>
+              <h2 id="account-details-title">
+                {isLocalDevelopment ? "本地开发身份" : "当前账户"}
+              </h2>
             </div>
-            <span>实时取自当前 Wise ID 会话</span>
+            <span>
+              {isLocalDevelopment
+                ? "固定调试资料 · 不创建主站会话"
+                : "实时取自当前 Wise ID 会话"}
+            </span>
           </header>
 
           <dl>
             <div>
-              <dt>Wise ID</dt>
+              <dt>{isLocalDevelopment ? "调试 ID" : "Wise ID"}</dt>
               <dd>
                 <strong>{account.wiseId}</strong>
-                <span>同一 Wise ID 可用于 Wise 生态内的产品</span>
+                <span>
+                  {isLocalDevelopment
+                    ? "仅用于识别当前本地调试身份"
+                    : "同一 Wise ID 可用于 Wise 生态内的产品"}
+                </span>
               </dd>
             </div>
             <div>
               <dt>登录邮箱</dt>
               <dd>
                 <strong>{account.email ?? "暂未提供"}</strong>
-                <span>{emailStatus}</span>
+                <span>
+                  {isLocalDevelopment ? "本地身份不读取用户邮箱" : emailStatus}
+                </span>
               </dd>
             </div>
             <div>
               <dt>会员等级</dt>
               <dd>
                 <strong>{account.label}</strong>
-                <span>权限以 Wise ID 返回的最新有效状态为准</span>
+                <span>
+                  {isLocalDevelopment
+                    ? "开发旁路固定为普通用户，不授予 VIP 权限"
+                    : "权限以 Wise ID 返回的最新有效状态为准"}
+                </span>
               </dd>
             </div>
             <div>
               <dt>会话状态</dt>
               <dd>
-                <strong>当前设备已安全登录</strong>
-                <span>Wise Crypto 不保存你的主站密码</span>
+                <strong>
+                  {isLocalDevelopment
+                    ? "本地开发直通已启用"
+                    : "当前设备已安全登录"}
+                </strong>
+                <span>
+                  {isLocalDevelopment
+                    ? "关闭开发服务器即结束，不写入登录状态"
+                    : "Wise Crypto 不保存你的主站密码"}
+                </span>
               </dd>
             </div>
           </dl>
@@ -99,9 +137,15 @@ export default async function AccountPage() {
           <div className="account-center__protection">
             <ShieldIcon />
             <div>
-              <strong>由 Wise ID 保护登录</strong>
+              <strong>
+                {isLocalDevelopment
+                  ? "生产环境不会启用此身份"
+                  : "由 Wise ID 保护登录"}
+              </strong>
               <p>
-                昵称、头像、邮箱、用户 ID 与会员等级仅用于本次会话展示；如需修改资料，请前往主站账户中心。
+                {isLocalDevelopment
+                  ? "仅当运行 next dev 且请求来自 localhost 或 127.0.0.1:2222 时开放；Vercel、线上域名和生产预览全部关闭。"
+                  : "昵称、头像、邮箱、用户 ID 与会员等级仅用于本次会话展示；如需修改资料，请前往主站账户中心。"}
               </p>
             </div>
           </div>
@@ -109,20 +153,40 @@ export default async function AccountPage() {
 
         <aside className="account-center__actions" aria-labelledby="account-actions-title">
           <div>
-            <p className="account-center__eyebrow">账户管理</p>
-            <h2 id="account-actions-title">资料由主站统一维护</h2>
-            <p>修改头像、昵称、邮箱或会员方案时，前往 Wise ID 完成即可。</p>
+            <p className="account-center__eyebrow">
+              {isLocalDevelopment ? "调试边界" : "账户管理"}
+            </p>
+            <h2 id="account-actions-title">
+              {isLocalDevelopment ? "无需登录即可继续开发" : "资料由主站统一维护"}
+            </h2>
+            <p>
+              {isLocalDevelopment
+                ? "行情、工具和合约课程现在可以直接打开；如需验证真实登录，请使用生产预览。"
+                : "修改头像、昵称、邮箱或会员方案时，前往 Wise ID 完成即可。"}
+            </p>
           </div>
-          <a href={WISE_INVEST_ACCOUNT_URL}>
-            前往 Wise ID 管理账户
-            <span aria-hidden="true">↗</span>
-          </a>
-          <Link href="/auth/sign-out?returnTo=/account">
-            退出当前账户
-          </Link>
-          <small>
-            退出只结束 Wise Crypto 会话，不会退出 Wise Invest 主站。
-          </small>
+          {isLocalDevelopment ? (
+            <>
+              <Link href="/tools">
+                进入工具
+                <span aria-hidden="true">→</span>
+              </Link>
+              <small>本地调试身份没有退出按钮，因为它不创建登录会话。</small>
+            </>
+          ) : (
+            <>
+              <a href={WISE_INVEST_ACCOUNT_URL}>
+                前往 Wise ID 管理账户
+                <span aria-hidden="true">↗</span>
+              </a>
+              <Link href="/auth/sign-out?returnTo=/account">
+                退出当前账户
+              </Link>
+              <small>
+                退出只结束 Wise Crypto 会话，不会退出 Wise Invest 主站。
+              </small>
+            </>
+          )}
         </aside>
       </div>
     </div>

@@ -1,6 +1,7 @@
 export const navigation = [
   { href: "/", label: "市场总览" },
   { href: "/btc", label: "行情" },
+  { href: "/exchanges", label: "开户福利" },
   { href: "/tools", label: "工具" },
 ] as const;
 

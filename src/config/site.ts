@@ -4,6 +4,9 @@ export const WISE_INVEST_SITE_URL = "https://www.wise-invest.org/";
 export const WISE_INVEST_CRYPTO_PERKS_URL =
   "https://www.wise-invest.org/perk/crypto";
 export const WISE_INVEST_ACCOUNT_URL = "https://www.wise-invest.org/account";
+export const WISE_INVEST_VIP_URL = "https://www.wise-invest.org/vip";
+export const WISE_INVEST_EXCHANGE_REFERRAL_GUIDE_URL =
+  "https://www.wise-invest.org/guide/exchange-referral";
 
 export function resolveSiteUrl(
   value: string | undefined = process.env.SITE_URL,
@@ -47,6 +50,7 @@ export const PUBLIC_ROUTES = ["/"] as const;
 export const AUTHENTICATED_ROUTES = [
   "/btc",
   "/eth",
+  "/exchanges",
   "/tools",
   "/tools/position-size",
   "/tools/leverage",

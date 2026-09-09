@@ -119,6 +119,9 @@ pnpm dev
 
 打开 <http://localhost:2222>。本仓库的开发服务器与生产预览都固定使用
 `2222`，不会回退到 `3000`；脚本只监听 `127.0.0.1`，不会把本地策略发布台暴露到局域网。
+`pnpm dev` 在精确的 `localhost:2222` / `127.0.0.1:2222` 请求下自动使用固定普通调试身份，
+因此调试行情、工具和课程不需要反复登录。该身份不模拟 VIP、不创建登录 Cookie，也没有额外
+环境变量开关；`pnpm start`、Vercel、线上域名、局域网地址和其他端口始终关闭旁路。
 
 本地生产预览：
 
@@ -391,8 +394,10 @@ DNS 也未由本仓库自动配置。上线时：
   滑动 JWT 延长旧会员状态；当前没有 refresh token，到期后需重新通过主站确认身份。
 - Access Token、ID Token、Client Secret 与完整 Provider payload 不进入客户端 bundle、URL、
   Analytics 或公开页面响应；个性化账户接口与受限内容使用 `private, no-store`。
-- 公共市场数据、Provider cache、Metadata、工具和课程不依赖登录。身份系统关闭、异常或用户未登录
-  时，公开功能仍可使用；人工策略继续由服务端 Identity Adapter 与权限表 fail closed。
+- 首页及其公共 Provider cache、Metadata 不依赖登录；行情、工具、课程与账户页按服务端门禁要求
+  有效 Wise ID Session。本地 `pnpm dev` 只有在精确 loopback Host 与 2222 端口下使用固定
+  `MEMBER / regular` 调试身份；生产、Vercel 与其他 Host 继续 fail closed。人工策略仍由服务端
+  Identity Adapter 与权限表单独检查，普通调试身份不能读取 VIP 内容。
 - 真实 VIP 策略不得提交到 Git 或写入客户端 bundle。当前 Vercel 环境没有私有策略存储，且本地
   `/studio/strategies` 文件仓库会在部署环境强制关闭；正式策略仍需受控私有 CMS / 数据库与
   staff 身份，Wise ID 登录本身不会自动补齐这些内容。

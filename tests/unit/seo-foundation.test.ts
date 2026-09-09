@@ -5,6 +5,7 @@ import { metadata as rootMetadata } from "../../src/app/layout";
 import { metadata as accountMetadata } from "../../src/app/account/page";
 import { metadata as btcMetadata } from "../../src/app/btc/page";
 import { metadata as ethMetadata } from "../../src/app/eth/page";
+import { metadata as exchangesMetadata } from "../../src/app/exchanges/page";
 import { metadata as toolsMetadata } from "../../src/app/tools/page";
 import { metadata as futuresIntroMetadata } from "../../src/app/tools/futures-intro/page";
 import { metadata as positionSizeMetadata } from "../../src/app/tools/position-size/page";
@@ -25,6 +26,7 @@ import {
 const routeMetadata = [
   ["/btc", btcMetadata],
   ["/eth", ethMetadata],
+  ["/exchanges", exchangesMetadata],
   ["/tools", toolsMetadata],
   ["/tools/futures-intro", futuresIntroMetadata],
   ["/tools/position-size", positionSizeMetadata],
@@ -82,6 +84,7 @@ describe("SEO foundation", () => {
     expect(rootMetadata.openGraph).toMatchObject({
       images: [expect.objectContaining({ url: "/og.png", width: 1200, height: 630 })],
     });
+    expect(toRecord(exchangesMetadata.openGraph).images).toHaveLength(1);
     expect(toRecord(toolsMetadata.openGraph).images).toHaveLength(1);
     expect(toRecord(futuresIntroMetadata.openGraph).images).toHaveLength(1);
 
@@ -167,7 +170,14 @@ describe("SEO foundation", () => {
       rules: {
         userAgent: "*",
         allow: "/",
-        disallow: ["/account", "/btc", "/eth", "/studio/", "/tools"],
+        disallow: [
+          "/account",
+          "/btc",
+          "/eth",
+          "/exchanges",
+          "/studio/",
+          "/tools",
+        ],
       },
       host: PRODUCTION_SITE_URL,
       sitemap: `${PRODUCTION_SITE_URL}/sitemap.xml`,

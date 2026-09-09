@@ -7,10 +7,11 @@ import {
 } from "../../src/components/layout/navigation";
 
 describe("primary navigation", () => {
-  it("contains three task-focused sections with a single market entry", () => {
+  it("contains four task-focused sections with a single market entry", () => {
     expect(navigation.map((item) => item.href)).toEqual([
       "/",
       "/btc",
+      "/exchanges",
       "/tools",
     ]);
   });
@@ -19,6 +20,7 @@ describe("primary navigation", () => {
     expect(navigation.map((item) => item.label)).toEqual([
       "市场总览",
       "行情",
+      "开户福利",
       "工具",
     ]);
   });
@@ -26,6 +28,9 @@ describe("primary navigation", () => {
   it("matches overview exactly and section routes by segment", () => {
     expect(isCurrentRoute("/", "/")).toBe(true);
     expect(isCurrentRoute("/btc", "/")).toBe(false);
+    expect(isCurrentRoute("/exchanges", "/exchanges")).toBe(true);
+    expect(isCurrentRoute("/exchanges/guide", "/exchanges")).toBe(true);
+    expect(isCurrentRoute("/exchange", "/exchanges")).toBe(false);
     expect(isCurrentRoute("/tools/dca", "/tools")).toBe(true);
     expect(isCurrentRoute("/toolsmith", "/tools")).toBe(false);
   });

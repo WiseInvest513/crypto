@@ -9,7 +9,7 @@ describe("public chrome route boundary", () => {
     },
   );
 
-  it.each(["/", "/btc", "/eth", "/tools", "/studio-fake"])(
+  it.each(["/", "/btc", "/eth", "/exchanges", "/tools", "/studio-fake"])(
     "keeps public navigation on %s",
     (pathname) => {
       expect(isPrivateStudioPath(pathname)).toBe(false);

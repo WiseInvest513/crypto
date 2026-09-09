@@ -17,9 +17,13 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
-      ...["/btc/:path*", "/eth/:path*", "/tools/:path*", "/account/:path*"].map(
-        (source) => ({ source, headers: [...privatePageHeaders] }),
-      ),
+      ...[
+        "/btc/:path*",
+        "/eth/:path*",
+        "/exchanges/:path*",
+        "/tools/:path*",
+        "/account/:path*",
+      ].map((source) => ({ source, headers: [...privatePageHeaders] })),
       {
         source: "/studio/:path*",
         headers: [

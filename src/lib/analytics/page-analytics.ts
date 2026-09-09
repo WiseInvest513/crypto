@@ -2,6 +2,7 @@ export type PageViewPath =
   | "/"
   | "/btc"
   | "/eth"
+  | "/exchanges"
   | "/tools"
   | "/tools/position-size"
   | "/tools/leverage"
@@ -64,6 +65,7 @@ const STATIC_PAGE_PATHS = new Set<string>([
   "/",
   "/btc",
   "/eth",
+  "/exchanges",
   "/tools",
   "/tools/position-size",
   "/tools/leverage",

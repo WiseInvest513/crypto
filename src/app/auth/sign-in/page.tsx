@@ -1,19 +1,26 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { startWiseSignIn } from "@/app/auth/actions";
 import { normalizeAuthReturnTo } from "@/lib/auth/auth-return-to";
 import { getWiseAuthConfigurationStatus } from "@/server/auth/wise-auth-config";
+import { resolveWiseAccountState } from "@/server/auth/wise-session";
 
 export const metadata: Metadata = {
   title: "使用 Wise ID 登录",
   robots: { index: false, follow: false },
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function WiseSignInPage({
   searchParams,
 }: PageProps<"/auth/sign-in">) {
   const parameters = await searchParams;
   const returnTo = normalizeAuthReturnTo(parameters.returnTo);
+  const accountState = await resolveWiseAccountState();
+  if (accountState.status === "authenticated") redirect(returnTo);
+
   const configurationStatus = getWiseAuthConfigurationStatus();
   const enabled = configurationStatus === "ready";
   const misconfigured = configurationStatus === "misconfigured";

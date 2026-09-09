@@ -11,6 +11,7 @@ const PROJECT_ROOT = process.cwd();
 const protectedPages = {
   "/btc": "src/app/btc/page.tsx",
   "/eth": "src/app/eth/page.tsx",
+  "/exchanges": "src/app/exchanges/page.tsx",
   "/tools": "src/app/tools/page.tsx",
   "/tools/position-size": "src/app/tools/position-size/page.tsx",
   "/tools/leverage": "src/app/tools/leverage/page.tsx",

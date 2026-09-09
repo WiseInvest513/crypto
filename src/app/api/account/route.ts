@@ -5,35 +5,33 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(): Promise<Response> {
+  const result = await resolveWiseAccountState();
+  if (result.status === "authenticated") {
+    const { account } = result;
+
+    return accountResponse({
+      status: "authenticated",
+      authenticationSource: account.authenticationSource,
+      displayName: account.displayName,
+      email: account.email,
+      emailVerified: account.emailVerified,
+      imageUrl: account.imageUrl,
+      label: account.label,
+      membershipTier: account.membershipTier,
+      tier: account.principal.tier,
+      wiseId: account.wiseId,
+    });
+  }
+
   const configurationStatus = getWiseAuthConfigurationStatus();
+  if (configurationStatus === "misconfigured" || result.status === "error") {
+    return accountResponse({ status: "error" }, 503);
+  }
   if (configurationStatus === "disabled") {
     return accountResponse({ status: "disabled" });
   }
-  if (configurationStatus === "misconfigured") {
-    return accountResponse({ status: "error" }, 503);
-  }
 
-  const result = await resolveWiseAccountState();
-  if (result.status === "error") {
-    return accountResponse({ status: "error" }, 503);
-  }
-  if (result.status !== "authenticated") {
-    return accountResponse({ status: result.status });
-  }
-
-  const { account } = result;
-
-  return accountResponse({
-    status: "authenticated",
-    displayName: account.displayName,
-    email: account.email,
-    emailVerified: account.emailVerified,
-    imageUrl: account.imageUrl,
-    label: account.label,
-    membershipTier: account.membershipTier,
-    tier: account.principal.tier,
-    wiseId: account.wiseId,
-  });
+  return accountResponse({ status: result.status });
 }
 
 function accountResponse(body: Record<string, unknown>, status = 200): Response {

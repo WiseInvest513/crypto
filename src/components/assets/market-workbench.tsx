@@ -105,6 +105,7 @@ export function MarketWorkbench({ asset, initialDatum, strategySlot }: { asset: 
   const [expanded, setExpanded] = useState(false);
   const [viewport, setViewport] = useState<{ interval: ChartCandleInterval; count: number; endAt: string | null } | null>(null);
   const settings = useRef<HTMLDetailsElement>(null);
+  const chartPanel = useRef<HTMLElement>(null);
   const points = useMemo(() => buildLiveChartPoints(market.candles), [market.candles]);
   const latest = points.at(-1);
   const latestCurrent = market.currentPriceAvailable ? latest : undefined;
@@ -154,6 +155,15 @@ export function MarketWorkbench({ asset, initialDatum, strategySlot }: { asset: 
   const historyReviewMode = historicalEnd >= 0 || activeSelectedHistoryEventAt !== null;
   const historicalView = historyReviewMode || market.expired;
   const reset = () => { setViewport(null); setSelectedLevel(null); setSelectedHistoryEventAt(null); };
+  const revealChart = () => {
+    requestAnimationFrame(() => {
+      const panel = chartPanel.current;
+      if (!panel) return;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      panel.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+      panel.querySelector<HTMLElement>(".mw-canvas")?.focus({ preventScroll: true });
+    });
+  };
   const selectLevel = (id: string) => {
     const analyticsSelection = resolveKeyLevelAnalyticsSelection(
       id,
@@ -173,6 +183,7 @@ export function MarketWorkbench({ asset, initialDatum, strategySlot }: { asset: 
     else if (["poc", "vah", "val"].includes(id)) setShowProfile(true);
     else setShowLevels(true);
     setViewport({ interval: market.interval, count, endAt: null });
+    revealChart();
   };
   const selectHistoryEvent = (eventOpenedAt: string) => {
     const eventIndex = points.findIndex((point) => point.openedAt === eventOpenedAt);
@@ -183,6 +194,7 @@ export function MarketWorkbench({ asset, initialDatum, strategySlot }: { asset: 
     setShowHistoryEvents(true);
     setSelectedHistoryEventAt(eventOpenedAt);
     setViewport({ interval: market.interval, count: viewCount, endAt: nextEnd === points.length ? null : points[nextEnd - 1]?.openedAt ?? null });
+    revealChart();
   };
   const selectInterval = (interval: ChartCandleInterval) => {
     if (market.interval !== interval) {
@@ -225,7 +237,7 @@ export function MarketWorkbench({ asset, initialDatum, strategySlot }: { asset: 
     </header>
 
     <div className="mw-workspace">
-      <section className="mw-chart-panel" aria-label={`${name}行情图表`}>
+      <section ref={chartPanel} className="mw-chart-panel" aria-label={`${name}行情图表`}>
         <div className="mw-toolbar">
           <div className="mw-toolbar-primary">
             <div className="mw-periods" role="group" aria-label="时间周期">{workbenchIntervals.map((interval) => <button key={interval} aria-pressed={market.interval === interval} onClick={() => selectInterval(interval)}>{periodLabels[interval]}</button>)}</div>

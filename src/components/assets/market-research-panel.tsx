@@ -365,80 +365,96 @@ export function MarketResearchPanel({ points, interval, analysisMode = "short", 
   const longHistoryStale = longHistoryDelayed || longHistoryIssue || snapshot?.longHistory.status === "stale";
   const cycle = availableResearch(snapshot?.cycle);
   const cycleStale = cycleDelayed || cycleIssue || snapshot?.cycle.status === "stale";
-  return <aside className="mw-research" aria-label="行情分析">
-    <section className="mw-research-section mw-interpretation">
-      <div className="mw-section-heading"><h2>当前阶段</h2><span>{periodLabels[interval]} · {mode.label}视角</span></div>
-      {current ? <>
-        <h3>{current.headline.replace("当前价格", delayed ? "最近记录的闭合收盘" : "最新闭合收盘")}<span>{current.ordering}</span></h3>
-        <p className="mw-position-summary">{current.movementLabel} <b className={`mw-${changeTone(current.movement)}`}>{formatChange(current.movement)}</b></p>
-        <div className="mw-ema-facts">{current.comparisons.map((entry) => <div key={entry.key} title={`最新闭合收盘相对均线 ${formatChange(entry.distance)}`}><span><i style={{ background: emaColors[entry.key] }} />{liveEmaDefinitions[entry.key].label}</span><strong>{entry.distance === null ? "样本不足" : entry.distance > 0 ? "上方" : entry.distance < 0 ? "下方" : "线上"}</strong><small>{entry.distance === null ? "—" : `相差 ${formatChange(entry.distance)}`}</small></div>)}</div>
-        {intrabar ? <div className="mw-intrabar-position"><span>盘中位置</span><strong>{formatPrice(latestPoint?.close)} USDT</strong><small>{intrabar.headline.replace("当前价格", "盘中价格")} 仅供观察，闭合后才进入阶段判断。</small></div> : null}
-        <div className="mw-confirmation-facts" aria-label="通用策略确认证据">
-          <div><span>已闭合量能</span><strong>{strategyEvidence.closedVolume.headline}</strong><small>{stale ? "数据延迟 · " : ""}{strategyEvidence.closedVolume.detail}</small></div>
-          <div><span>多周期位置</span><strong>{strategyEvidence.multiTimeframe.headline}</strong><small>{stale ? "数据延迟 · " : ""}{strategyEvidence.multiTimeframe.detail}</small></div>
-        </div>
-      </> : <p className="mw-empty-copy">行情暂不可用，恢复后将显示价格与均线的位置。</p>}
-    </section>
-    <section className="mw-research-section mw-history">
-      <div className="mw-section-heading"><h2>历史参照</h2><span>机械统计 · 非预测</span></div>
-      <MarketCycleReference analysis={cycle} loading={!snapshot && !cycleIssue} issue={cycleIssue} stale={cycleStale} updatedAt={snapshot?.cycle.updatedAt ?? null} onRetry={onRetry} onTimelineToggle={onCycleTimelineToggle} />
-      {interval === "15m" ? <p className="mw-empty-copy mw-history-interval-note">15 分钟暂不进行精确 EMA 历史匹配；可切换至 1 小时、4 小时或日线查看。</p> : <>
-        <LongHistoryReference analysis={longHistory} interval={interval} loading={!snapshot && !longHistoryIssue} issue={longHistoryIssue} stale={longHistoryStale} horizon={historyHorizon} onSelectHorizon={onSelectHistoryHorizon ?? noopHistoryHorizonSelection} onRetry={onRetry} />
-        <RecentHistoryReference analysis={history} loading={!snapshot && !historyIssue} issue={historyIssue} stale={historyStale} selectedEventAt={selectedHistoryEventAt ?? null} onSelectEvent={onSelectHistoryEvent ?? noopHistorySelection} onRetry={onRetry} />
-      </>}
-    </section>
-    <section className="mw-research-section mw-levels-section">
-      <div className="mw-section-heading"><h2>关键位置</h2><span>{stale && analysis ? "数据延迟" : "点击定位"}</span></div>
-      {analysis && price ? <>
-        <div className="mw-key-levels">
-          {atPrice.map((level) => <KeyLevelRow key={level.id} level={level} name="现价附近" price={price} selectedLevel={selectedLevel} onSelectLevel={onSelectLevel} />)}
-          {([
-            { name: "压力", levels: nearest.resistances },
-            { name: "支撑", levels: nearest.supports },
-          ] as const).map((group) => group.levels.length ? group.levels.map((level, index) => <KeyLevelRow key={level.id} level={level} name={group.name} rank={index + 1} price={price} selectedLevel={selectedLevel} groupStart={group.name === "支撑" && index === 0} onSelectLevel={onSelectLevel} />) : <div className={`mw-level-row${group.name === "支撑" ? " mw-level-row--group-start" : ""}`} key={group.name}><span>{group.name}</span><strong>暂未识别</strong><small>—</small></div>)}
-        </div>
-        {profile ? <div className="mw-profile">
-          <button onClick={() => onSelectLevel("poc")} aria-pressed={selectedLevel === "poc"}><span><i className="mw-poc-dot" />成交密集价 <small>估算</small></span><strong>≈ {formatPrice(profile.poc)}</strong></button>
-          <div><span>价值区间</span><span className="mw-profile-range"><button onClick={() => onSelectLevel("val")} aria-pressed={selectedLevel === "val"} aria-label={`在图表定位价值区下沿 ${formatPrice(profile.val)}`}>{formatPrice(profile.val)}</button><span>—</span><button onClick={() => onSelectLevel("vah")} aria-pressed={selectedLevel === "vah"} aria-label={`在图表定位价值区上沿 ${formatPrice(profile.vah)}`}>{formatPrice(profile.vah)}</button></span></div>
-        </div> : <p className="mw-quiet">成交量样本不足，密集区暂不可用。</p>}
-        {moreCount > 0 || fibonacci.length > 0 ? <details className="mw-more-levels">
-          <summary>更多关键位<span>{moreCount > 0 ? `${moreCount} 个候选` : "斐波那契参考"}</span></summary>
-          <div className="mw-more-levels-content">
-            {([
-              { name: "压力", levels: remainingResistance, offset: nearest.resistances.length },
-              { name: "支撑", levels: remainingSupport, offset: nearest.supports.length },
-            ] as const).map((group) => group.levels.map((level, index) => <KeyLevelRow key={level.id} level={level} name={group.name} rank={group.offset + index + 1} price={price} selectedLevel={selectedLevel} expanded onSelectLevel={onSelectLevel} />))}
-            {fibonacci.length > 0 && <div className="mw-fibonacci-levels"><h3>斐波那契参考</h3>{fibonacci.map((line) => <button type="button" key={line.id} className={`mw-level-row${selectedLevel === line.id ? " is-selected" : ""}`} onClick={() => onSelectLevel(line.id)} aria-pressed={selectedLevel === line.id} aria-label={`在图表定位 ${line.label} ${formatPrice(line.price)}`}><span>{line.label}</span><strong>{formatPrice(line.price)}</strong><small>{formatChange((line.price / price - 1) * 100)}</small></button>)}</div>}
-            <p className="mw-more-levels-note">相近价位已合并为区域，多种依据重合不代表成功率。图表默认显示最近三档，点击其他价位可定位。</p>
+  return <>
+    <aside className="mw-research mw-research--summary" aria-label="当前行情摘要">
+      <section className="mw-research-section mw-interpretation">
+        <div className="mw-section-heading"><h2>当前阶段</h2><span>{periodLabels[interval]} · {mode.label}视角</span></div>
+        {current ? <>
+          <h3>{current.headline.replace("当前价格", delayed ? "最近记录的闭合收盘" : "最新闭合收盘")}<span>{current.ordering}</span></h3>
+          <p className="mw-position-summary">{current.movementLabel} <b className={`mw-${changeTone(current.movement)}`}>{formatChange(current.movement)}</b></p>
+          <div className="mw-ema-facts">{current.comparisons.map((entry) => <div key={entry.key} title={`最新闭合收盘相对均线 ${formatChange(entry.distance)}`}><span><i style={{ background: emaColors[entry.key] }} />{liveEmaDefinitions[entry.key].label}</span><strong>{entry.distance === null ? "样本不足" : entry.distance > 0 ? "上方" : entry.distance < 0 ? "下方" : "线上"}</strong><small>{entry.distance === null ? "—" : `相差 ${formatChange(entry.distance)}`}</small></div>)}</div>
+          {intrabar ? <div className="mw-intrabar-position"><span>盘中位置</span><strong>{formatPrice(latestPoint?.close)} USDT</strong><small>{intrabar.headline.replace("当前价格", "盘中价格")} 仅供观察，闭合后才进入阶段判断。</small></div> : null}
+        </> : <p className="mw-empty-copy">行情暂不可用，恢复后将显示价格与均线的位置。</p>}
+      </section>
+    </aside>
+
+    <section className="mw-research-details" aria-labelledby="mw-research-details-title">
+      <header className="mw-research-details__header">
+        <div><p>深入参考</p><h2 id="mw-research-details-title">历史、关键位与周期</h2></div>
+        <span>点击价格或案例，可在上方图表定位</span>
+      </header>
+      <div className="mw-research-details__grid">
+        <section className="mw-research-section mw-history">
+          <div className="mw-section-heading"><h2>历史参照</h2><span>机械统计 · 非预测</span></div>
+          <MarketCycleReference analysis={cycle} loading={!snapshot && !cycleIssue} issue={cycleIssue} stale={cycleStale} updatedAt={snapshot?.cycle.updatedAt ?? null} onRetry={onRetry} onTimelineToggle={onCycleTimelineToggle} />
+          {interval === "15m" ? <p className="mw-empty-copy mw-history-interval-note">15 分钟暂不进行精确 EMA 历史匹配；可切换至 1 小时、4 小时或日线查看。</p> : <>
+            <LongHistoryReference analysis={longHistory} interval={interval} loading={!snapshot && !longHistoryIssue} issue={longHistoryIssue} stale={longHistoryStale} horizon={historyHorizon} onSelectHorizon={onSelectHistoryHorizon ?? noopHistoryHorizonSelection} onRetry={onRetry} />
+            <RecentHistoryReference analysis={history} loading={!snapshot && !historyIssue} issue={historyIssue} stale={historyStale} selectedEventAt={selectedHistoryEventAt ?? null} onSelectEvent={onSelectHistoryEvent ?? noopHistorySelection} onRetry={onRetry} />
+          </>}
+        </section>
+
+        <section className="mw-research-section mw-levels-section">
+          <div className="mw-section-heading"><h2>关键位置</h2><span>{stale && analysis ? "数据延迟" : "点击定位"}</span></div>
+          {analysis && price ? <>
+            <div className="mw-key-levels">
+              {atPrice.map((level) => <KeyLevelRow key={level.id} level={level} name="现价附近" price={price} selectedLevel={selectedLevel} onSelectLevel={onSelectLevel} />)}
+              {([
+                { name: "压力", levels: nearest.resistances },
+                { name: "支撑", levels: nearest.supports },
+              ] as const).map((group) => group.levels.length ? group.levels.map((level, index) => <KeyLevelRow key={level.id} level={level} name={group.name} rank={index + 1} price={price} selectedLevel={selectedLevel} groupStart={group.name === "支撑" && index === 0} onSelectLevel={onSelectLevel} />) : <div className={`mw-level-row${group.name === "支撑" ? " mw-level-row--group-start" : ""}`} key={group.name}><span>{group.name}</span><strong>暂未识别</strong><small>—</small></div>)}
+            </div>
+            {profile ? <div className="mw-profile">
+              <button onClick={() => onSelectLevel("poc")} aria-pressed={selectedLevel === "poc"}><span><i className="mw-poc-dot" />成交密集价 <small>估算</small></span><strong>≈ {formatPrice(profile.poc)}</strong></button>
+              <div><span>价值区间</span><span className="mw-profile-range"><button onClick={() => onSelectLevel("val")} aria-pressed={selectedLevel === "val"} aria-label={`在图表定位价值区下沿 ${formatPrice(profile.val)}`}>{formatPrice(profile.val)}</button><span>—</span><button onClick={() => onSelectLevel("vah")} aria-pressed={selectedLevel === "vah"} aria-label={`在图表定位价值区上沿 ${formatPrice(profile.vah)}`}>{formatPrice(profile.vah)}</button></span></div>
+            </div> : <p className="mw-quiet">成交量样本不足，密集区暂不可用。</p>}
+            {moreCount > 0 || fibonacci.length > 0 ? <details className="mw-more-levels">
+              <summary>更多关键位<span>{moreCount > 0 ? `${moreCount} 个候选` : "斐波那契参考"}</span></summary>
+              <div className="mw-more-levels-content">
+                {([
+                  { name: "压力", levels: remainingResistance, offset: nearest.resistances.length },
+                  { name: "支撑", levels: remainingSupport, offset: nearest.supports.length },
+                ] as const).map((group) => group.levels.map((level, index) => <KeyLevelRow key={level.id} level={level} name={group.name} rank={group.offset + index + 1} price={price} selectedLevel={selectedLevel} expanded onSelectLevel={onSelectLevel} />))}
+                {fibonacci.length > 0 && <div className="mw-fibonacci-levels"><h3>斐波那契参考</h3>{fibonacci.map((line) => <button type="button" key={line.id} className={`mw-level-row${selectedLevel === line.id ? " is-selected" : ""}`} onClick={() => onSelectLevel(line.id)} aria-pressed={selectedLevel === line.id} aria-label={`在图表定位 ${line.label} ${formatPrice(line.price)}`}><span>{line.label}</span><strong>{formatPrice(line.price)}</strong><small>{formatChange((line.price / price - 1) * 100)}</small></button>)}</div>}
+                <p className="mw-more-levels-note">相近价位已合并为区域，多种依据重合不代表成功率。图表默认显示最近三档，点击其他价位可定位。</p>
+              </div>
+            </details> : null}
+          </> : <div className="mw-research-empty" aria-live="polite"><p>{!snapshot && !issue ? "正在计算关键价位…" : "关键价位暂不可用"}</p><span>有足够行情样本后显示，不用占位数字替代。</span>{issue && <button onClick={onRetry}>重新获取</button>}</div>}
+        </section>
+
+        <section className="mw-research-section mw-watch">
+          <div className="mw-section-heading"><h2>确认与失效</h2></div>
+          {stale ? <p className="mw-empty-copy">等待数据恢复后更新观察条件，当前不提供即时判断。</p> : analysis ? <ul>
+            {atPrice[0] ? <li><i className="mw-watch-zone" /><p>现价正在 <button onClick={() => onSelectLevel(atPrice[0].id)}>{formatLevelRange(atPrice[0])}</button> 关键区域内，先等待本周期收盘离开区域再确认。</p></li> : null}
+            <li><i className="mw-watch-up" /><p>{resistance ? <>站上 <button onClick={() => onSelectLevel(resistance.id)}>{formatPrice(resistance.upper)}</button> 压力区上沿后，观察本周期收盘能否守住。</> : "上方尚未识别出有效关键位，继续观察价格与均线的位置。"}</p></li>
+            <li><i className="mw-watch-down" /><p>{support ? <>若本周期收盘跌破 <button onClick={() => onSelectLevel(support.id)}>{formatPrice(support.lower)}</button> 支撑区下沿，需重新评估当前结构。</> : "下方尚未识别出有效关键位，不推测支撑价格。"}</p></li>
+          </ul> : <p className="mw-empty-copy">等待关键位计算完成后，显示对应的观察条件。</p>}
+          <div className="mw-risk-next">
+            <p><strong>确认条件后，再核算风险</strong><span>只计算计划，不替你决定开多或开空。</span></p>
+            <div><Link href="/tools/position-size">计算可承受仓位</Link><Link href="/tools/risk-reward">检查风险回报</Link></div>
           </div>
-        </details> : null}
-      </> : <div className="mw-research-empty" aria-live="polite"><p>{!snapshot && !issue ? "正在计算关键价位…" : "关键价位暂不可用"}</p><span>有足够行情样本后显示，不用占位数字替代。</span>{issue && <button onClick={onRetry}>重新获取</button>}</div>}
-    </section>
-    <section className="mw-research-section mw-watch">
-      <div className="mw-section-heading"><h2>确认与失效</h2></div>
-      {stale ? <p className="mw-empty-copy">等待数据恢复后更新观察条件，当前不提供即时判断。</p> : analysis ? <ul>
-        {atPrice[0] ? <li><i className="mw-watch-zone" /><p>现价正在 <button onClick={() => onSelectLevel(atPrice[0].id)}>{formatLevelRange(atPrice[0])}</button> 关键区域内，先等待本周期收盘离开区域再确认。</p></li> : null}
-        <li><i className="mw-watch-up" /><p>{resistance ? <>站上 <button onClick={() => onSelectLevel(resistance.id)}>{formatPrice(resistance.upper)}</button> 压力区上沿后，观察本周期收盘能否守住。</> : "上方尚未识别出有效关键位，继续观察价格与均线的位置。"}</p></li>
-        <li><i className="mw-watch-down" /><p>{support ? <>若本周期收盘跌破 <button onClick={() => onSelectLevel(support.id)}>{formatPrice(support.lower)}</button> 支撑区下沿，需重新评估当前结构。</> : "下方尚未识别出有效关键位，不推测支撑价格。"}</p></li>
-      </ul> : <p className="mw-empty-copy">等待关键位计算完成后，显示对应的观察条件。</p>}
-      <div className="mw-risk-next">
-        <p><strong>确认条件后，再核算风险</strong><span>只计算计划，不替你决定开多或开空。</span></p>
-        <div><Link href="/tools/position-size">计算可承受仓位</Link><Link href="/tools/risk-reward">检查风险回报</Link></div>
+        </section>
+
+        {strategySlot ? <div className="mw-research-details__strategy">{strategySlot}</div> : null}
+
+        <section className="mw-research-section mw-timeframes">
+          <div className="mw-section-heading"><h2>量能与周期</h2><span>闭合数据</span></div>
+          <div className="mw-confirmation-facts" aria-label="通用策略确认证据">
+            <div><span>已闭合量能</span><strong>{strategyEvidence.closedVolume.headline}</strong><small>{stale ? "数据延迟 · " : ""}{strategyEvidence.closedVolume.detail}</small></div>
+            <div><span>多周期位置</span><strong>{strategyEvidence.multiTimeframe.headline}</strong><small>{stale ? "数据延迟 · " : ""}{strategyEvidence.multiTimeframe.detail}</small></div>
+          </div>
+          <details className="mw-timeframe-details"><summary><span>多周期对照</span><small>确认结构</small></summary>
+          <div><table><thead><tr><th>周期</th><th>{mode.label}结构</th><th>距 EMA20</th></tr></thead><tbody>{(["15m", "1h", "4h", "1d"] as const).map((timeframe) => {
+            const datum = snapshot?.timeframes.find((entry) => entry.interval === timeframe)?.datum;
+            const value = availableResearch(datum);
+            const comparison = value?.comparisons.find((entry) => entry.key === "ema20");
+            const label = value ? summarizeModeOrdering(value.comparisons, analysisMode) : !snapshot && !issue ? "计算中" : "暂不可用";
+            return <tr key={timeframe} className={timeframe === interval ? "is-current" : undefined} title={value ? `数据更新 ${formatUpdate(value.latestClosedAt)}；${mode.description}` : undefined}><th><button aria-pressed={timeframe === interval} onClick={() => onSelectInterval(timeframe)}>{periodLabels[timeframe]}</button></th><td>{label}{value && (stale || datum?.status === "stale") && <small> · 延迟</small>}</td><td className={`mw-${changeTone(comparison?.distancePercent)}`}>{formatChange(comparison?.distancePercent)}</td></tr>;
+          })}</tbody></table>
+          <p className="mw-quiet">研究更新 {formatUpdate(snapshot?.levels.updatedAt)}</p></div></details>
+        </section>
       </div>
     </section>
-    {strategySlot}
-    <section className="mw-research-section mw-timeframes">
-      <details className="mw-timeframe-details"><summary><span>多周期对照</span><small>确认结构</small></summary>
-      <div><table><thead><tr><th>周期</th><th>{mode.label}结构</th><th>距 EMA20</th></tr></thead><tbody>{(["15m", "1h", "4h", "1d"] as const).map((timeframe) => {
-        const datum = snapshot?.timeframes.find((entry) => entry.interval === timeframe)?.datum;
-        const value = availableResearch(datum);
-        const comparison = value?.comparisons.find((entry) => entry.key === "ema20");
-        const label = value ? summarizeModeOrdering(value.comparisons, analysisMode) : !snapshot && !issue ? "计算中" : "暂不可用";
-        return <tr key={timeframe} className={timeframe === interval ? "is-current" : undefined} title={value ? `数据更新 ${formatUpdate(value.latestClosedAt)}；${mode.description}` : undefined}><th><button aria-pressed={timeframe === interval} onClick={() => onSelectInterval(timeframe)}>{periodLabels[timeframe]}</button></th><td>{label}{value && (stale || datum?.status === "stale") && <small> · 延迟</small>}</td><td className={`mw-${changeTone(comparison?.distancePercent)}`}>{formatChange(comparison?.distancePercent)}</td></tr>;
-      })}</tbody></table>
-      <p className="mw-quiet">研究更新 {formatUpdate(snapshot?.levels.updatedAt)}</p></div></details>
-    </section>
-  </aside>;
+  </>;
 }
 
 function noopHistorySelection(): void {}

@@ -9,11 +9,13 @@ import { DismissibleDetails } from "@/components/ui/dismissible-details";
 import type { UserTier } from "@/lib/access/user-access";
 import type { WiseMembershipTier } from "@/lib/auth/wise-membership";
 import type { WiseAuthConfigurationStatus } from "@/server/auth/wise-auth-config";
+import type { WiseAuthenticationSource } from "@/server/auth/wise-session";
 
 type AccountState =
   | Readonly<{ status: "disabled" | "loading" | "anonymous" | "error" }>
   | Readonly<{
       status: "authenticated";
+      authenticationSource: WiseAuthenticationSource;
       displayName: string | null;
       email: string | null;
       emailVerified: boolean | null;
@@ -82,7 +84,11 @@ export function AccountMenu({
             />
             <span className="site-header__account-trigger-copy">
               <strong>{account.displayName ?? account.label}</strong>
-              <small>{account.label}</small>
+              <small>
+                {account.authenticationSource === "local-development"
+                  ? "本地调试"
+                  : account.label}
+              </small>
             </span>
           </>
         ) : (
@@ -102,6 +108,9 @@ function renderAccountPanel(account: AccountState, returnTo: string) {
   const encodedReturnTo = encodeURIComponent(returnTo);
 
   if (account.status === "authenticated") {
+    const isLocalDevelopment =
+      account.authenticationSource === "local-development";
+
     return (
       <>
         <div className="site-header__account-heading">
@@ -112,18 +121,24 @@ function renderAccountPanel(account: AccountState, returnTo: string) {
           />
           <div>
             <strong>{account.displayName ?? "Wise 用户"}</strong>
-            <p>{account.email ?? "邮箱由 Wise ID 管理"}</p>
+            <p>
+              {isLocalDevelopment
+                ? "不创建主站会话"
+                : account.email ?? "邮箱由 Wise ID 管理"}
+            </p>
           </div>
           <span className="site-header__membership-badge">{account.label}</span>
         </div>
         <dl className="site-header__account-meta">
           <div>
-            <dt>Wise ID</dt>
+            <dt>{isLocalDevelopment ? "调试 ID" : "Wise ID"}</dt>
             <dd>{account.wiseId}</dd>
           </div>
           <div>
             <dt>登录状态</dt>
-            <dd>当前设备已登录</dd>
+            <dd>
+              {isLocalDevelopment ? "本地开发直通" : "当前设备已登录"}
+            </dd>
           </div>
         </dl>
         <nav className="site-header__account-links" aria-label="账户操作">
@@ -131,16 +146,24 @@ function renderAccountPanel(account: AccountState, returnTo: string) {
             打开账户中心
             <span aria-hidden="true">→</span>
           </Link>
-          <a href="https://www.wise-invest.org/account">
-            前往 Wise ID 管理资料
-            <span aria-hidden="true">↗</span>
-          </a>
-          <Link
-            className="site-header__account-sign-out"
-            href={`/auth/sign-out?returnTo=${encodedReturnTo}` as Route}
-          >
-            退出当前账户
-          </Link>
+          {isLocalDevelopment ? (
+            <p className="site-header__account-local-note">
+              只在本机 2222 端口的开发服务器生效；线上仍需 Wise ID 登录。
+            </p>
+          ) : (
+            <>
+              <a href="https://www.wise-invest.org/account">
+                前往 Wise ID 管理资料
+                <span aria-hidden="true">↗</span>
+              </a>
+              <Link
+                className="site-header__account-sign-out"
+                href={`/auth/sign-out?returnTo=${encodedReturnTo}` as Route}
+              >
+                退出当前账户
+              </Link>
+            </>
+          )}
         </nav>
       </>
     );
@@ -220,6 +243,11 @@ export function parseAccountState(value: unknown): AccountState {
   const imageUrl = readNullableHttpsUrl(candidate.imageUrl);
   const wiseId = readRequiredString(candidate.wiseId, 128);
   const emailVerified = readNullableBoolean(candidate.emailVerified);
+  const authenticationSource =
+    candidate.authenticationSource === "wise-id" ||
+    candidate.authenticationSource === "local-development"
+      ? candidate.authenticationSource
+      : null;
 
   if (
     candidate.status === "authenticated" &&
@@ -228,6 +256,7 @@ export function parseAccountState(value: unknown): AccountState {
       candidate.membershipTier === "VIP" ||
       candidate.membershipTier === "VIP_PLUS") &&
     typeof candidate.label === "string" &&
+    authenticationSource !== null &&
     displayName !== undefined &&
     email !== undefined &&
     imageUrl !== undefined &&
@@ -236,6 +265,7 @@ export function parseAccountState(value: unknown): AccountState {
   ) {
     return {
       status: "authenticated",
+      authenticationSource,
       displayName,
       email,
       emailVerified,

@@ -27,6 +27,7 @@ describe("Wise account route", () => {
     mocks.resolveWiseAccountState.mockResolvedValue({
       status: "authenticated",
       account: {
+        authenticationSource: "wise-id",
         displayName: "Wise Member",
         email: "member@example.com",
         emailVerified: true,
@@ -47,6 +48,7 @@ describe("Wise account route", () => {
     expectPrivateAccountHeaders(response);
     await expect(response.json()).resolves.toEqual({
       status: "authenticated",
+      authenticationSource: "wise-id",
       displayName: "Wise Member",
       email: "member@example.com",
       emailVerified: true,
@@ -74,7 +76,7 @@ describe("Wise account route", () => {
     expect(response.status).toBe(503);
     expectPrivateAccountHeaders(response);
     await expect(response.json()).resolves.toEqual({ status: "error" });
-    expect(mocks.resolveWiseAccountState).not.toHaveBeenCalled();
+    expect(mocks.resolveWiseAccountState).toHaveBeenCalledOnce();
   });
 
   it("keeps a disabled integration distinct from a broken configuration", async () => {
@@ -85,7 +87,45 @@ describe("Wise account route", () => {
     expect(response.status).toBe(200);
     expectPrivateAccountHeaders(response);
     await expect(response.json()).resolves.toEqual({ status: "disabled" });
-    expect(mocks.resolveWiseAccountState).not.toHaveBeenCalled();
+    expect(mocks.resolveWiseAccountState).toHaveBeenCalledOnce();
+  });
+
+  it("returns the local development account before disabled OIDC configuration", async () => {
+    mocks.getWiseAuthConfigurationStatus.mockReturnValue("disabled");
+    mocks.resolveWiseAccountState.mockResolvedValue({
+      status: "authenticated",
+      account: {
+        authenticationSource: "local-development",
+        displayName: "本地开发用户",
+        email: null,
+        emailVerified: null,
+        imageUrl: null,
+        label: "普通用户",
+        membershipTier: "MEMBER",
+        principal: {
+          subject: "local-development",
+          tier: "regular",
+        },
+        wiseId: "LOCAL-DEVELOPMENT",
+      },
+    });
+
+    const response = await GET();
+
+    expect(response.status).toBe(200);
+    expectPrivateAccountHeaders(response);
+    await expect(response.json()).resolves.toEqual({
+      status: "authenticated",
+      authenticationSource: "local-development",
+      displayName: "本地开发用户",
+      email: null,
+      emailVerified: null,
+      imageUrl: null,
+      label: "普通用户",
+      membershipTier: "MEMBER",
+      tier: "regular",
+      wiseId: "LOCAL-DEVELOPMENT",
+    });
   });
 
   it("does not expose session resolution failures", async () => {

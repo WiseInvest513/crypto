@@ -318,7 +318,7 @@ describe("public market workbench rendering", () => {
     expect(html).toContain("124.50");
     expect(html).toContain("价格更新 08-11 08:05:00 北京时间");
     expect(html.indexOf('class="mw-price"')).toBeLessThan(html.indexOf('class="mw-canvas"'));
-    expect(html.indexOf('class="mw-canvas"')).toBeLessThan(html.indexOf('class="mw-research"'));
+    expect(html.indexOf('class="mw-canvas"')).toBeLessThan(html.indexOf('class="mw-research mw-research--summary"'));
     expect(html).toContain('role="img"');
     expect(html).toContain('tabindex="0"');
     for (const removed of [SOURCE.label, SOURCE.url, "DO_NOT_RENDER_SCOPE", "VIP", "可见区间统计", "查看最近 20", "图表范围与计算口径", 'class="asset-chart__data"']) {
@@ -359,6 +359,37 @@ describe("public market workbench rendering", () => {
     expect(html).not.toContain("VIP");
     expect(html).not.toContain(SOURCE.label);
     expect(html).not.toContain(SOURCE.url);
+  });
+
+  it("keeps the chart-side summary concise and moves long-form research below the chart", () => {
+    const html = renderResearch();
+    const summaryStart = html.indexOf('class="mw-research mw-research--summary"');
+    const detailsStart = html.indexOf('class="mw-research-details"');
+    const summary = html.slice(summaryStart, detailsStart);
+    const details = html.slice(detailsStart);
+
+    expect(summaryStart).toBeGreaterThan(-1);
+    expect(detailsStart).toBeGreaterThan(summaryStart);
+    expect(summary).toContain("当前阶段");
+    for (const moved of ["历史参照", "关键位置", "确认与失效", "量能与周期", "多周期对照"]) {
+      expect(summary).not.toContain(moved);
+      expect(details).toContain(moved);
+    }
+    expect(details.indexOf("历史参照")).toBeLessThan(details.indexOf("关键位置"));
+    expect(details.indexOf("关键位置")).toBeLessThan(details.indexOf("确认与失效"));
+    expect(details).toContain("点击价格或案例，可在上方图表定位");
+  });
+
+  it("keeps the lower research area full-width without a nested desktop scrollbar", () => {
+    const css = readFileSync(
+      new URL("../../src/app/market-workbench.css", import.meta.url),
+      "utf8",
+    );
+
+    expect(css).toMatch(/\.mw-research-details\s*\{[^}]*grid-column:1\/-1;/s);
+    expect(css).toMatch(/@media\(min-width:981px\)[\s\S]*?\.mw-research--summary\s*\{[^}]*overflow:visible;/s);
+    expect(css).not.toMatch(/\.mw-research\s*\{[^}]*overflow-y:auto;/s);
+    expect(css).toMatch(/@media\(max-width:980px\)[\s\S]*?\.mw-research-details__grid\s*\{[^}]*grid-template-columns:1fr;/s);
   });
 
   it("presents the current cycle and timeline before the two long-history cohorts", () => {
@@ -625,6 +656,7 @@ describe("public market workbench rendering", () => {
     expect(html).not.toContain("确认与失效");
     expect(html).not.toContain("data-private-strategy-slot");
     expect(html).not.toContain("多周期对照");
+    expect(html).not.toContain('class="mw-research-details"');
   });
 
   it("routes an expired retained market window through history-review mode", () => {

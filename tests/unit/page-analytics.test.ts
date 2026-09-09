@@ -25,6 +25,10 @@ describe("page analytics facade", () => {
   });
 
   it("accepts the single public course URL without allowing lesson state URLs", () => {
+    expect(isPublicPagePath("/exchanges")).toBe(true);
+    expect(isStaticPageViewPath("/exchanges")).toBe(true);
+    expect(isPublicPagePath("/exchanges?from=header")).toBe(false);
+    expect(isPublicPagePath("/exchanges/binance")).toBe(false);
     expect(isPublicPagePath("/tools/futures-intro")).toBe(true);
     expect(isStaticPageViewPath("/tools/futures-intro")).toBe(true);
     expect(isPublicPagePath("/tools/futures-intro?lesson=lesson-01")).toBe(false);
@@ -73,11 +77,13 @@ describe("page analytics facade", () => {
     trackPageViewOnce(previous, "/btc", analytics);
     trackPageViewOnce(previous, "/missing", analytics);
     trackPageViewOnce(previous, "/products/not-published", analytics);
+    trackPageViewOnce(previous, "/exchanges", analytics);
     trackPageViewOnce(previous, "/eth", analytics);
 
-    expect(trackPageView).toHaveBeenCalledTimes(2);
+    expect(trackPageView).toHaveBeenCalledTimes(3);
     expect(trackPageView).toHaveBeenNthCalledWith(1, "/btc");
-    expect(trackPageView).toHaveBeenNthCalledWith(2, "/eth");
+    expect(trackPageView).toHaveBeenNthCalledWith(2, "/exchanges");
+    expect(trackPageView).toHaveBeenNthCalledWith(3, "/eth");
   });
 
   it("tracks a static page again after traversing a retired product path", () => {

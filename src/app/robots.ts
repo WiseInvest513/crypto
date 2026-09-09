@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: allowIndexing ? "/" : undefined,
       disallow: allowIndexing
-        ? ["/account", "/btc", "/eth", "/studio/", "/tools"]
+        ? ["/account", "/btc", "/eth", "/exchanges", "/studio/", "/tools"]
         : "/",
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
