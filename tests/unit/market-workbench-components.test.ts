@@ -345,14 +345,14 @@ describe("public market workbench rendering", () => {
     expect(html).not.toContain("124.50");
   });
 
-  it("orders automatic research by stage, history, levels, confirmation, then folded comparison", () => {
+  it("orders the mechanical summary before history, levels, confirmation, then folded comparison", () => {
     const html = renderResearch();
     for (const title of ["当前阶段", "已闭合量能", "多周期位置", "历史参照", "关键位置", "确认与失效", "多周期对照", "成交密集价", "估算", "计算可承受仓位", "检查风险回报"]) {
       expect(html).toContain(title);
     }
-    expect(html.indexOf("当前阶段")).toBeLessThan(html.indexOf("历史参照"));
-    expect(html.indexOf("历史参照")).toBeLessThan(html.indexOf("关键位置"));
-    expect(html.indexOf("关键位置")).toBeLessThan(html.indexOf("确认与失效"));
+    expect(html.indexOf("当前阶段")).toBeLessThan(html.indexOf("<h2>历史参照</h2>"));
+    expect(html.indexOf("<h2>历史参照</h2>")).toBeLessThan(html.indexOf("<h2>关键位置</h2>"));
+    expect(html.indexOf("<h2>关键位置</h2>")).toBeLessThan(html.indexOf("<h2>确认与失效</h2>"));
     expect(html).not.toContain("当前市场位置");
     expect(html).toContain('<details class="mw-timeframe-details">');
     expect(html).toContain('aria-label="在图表定位');
@@ -361,35 +361,46 @@ describe("public market workbench rendering", () => {
     expect(html).not.toContain(SOURCE.url);
   });
 
-  it("keeps the chart-side summary concise and moves long-form research below the chart", () => {
+  it("places one concise mechanical summary beside the long-form research below the full-width chart", () => {
     const html = renderResearch();
+    const rootStart = html.indexOf('class="mw-research-details"');
+    const layoutStart = html.indexOf('class="mw-research-layout"');
     const summaryStart = html.indexOf('class="mw-research mw-research--summary"');
-    const detailsStart = html.indexOf('class="mw-research-details"');
+    const detailsStart = html.indexOf('class="mw-research-details__grid"');
     const summary = html.slice(summaryStart, detailsStart);
     const details = html.slice(detailsStart);
 
+    expect(rootStart).toBeGreaterThan(-1);
+    expect(layoutStart).toBeGreaterThan(rootStart);
     expect(summaryStart).toBeGreaterThan(-1);
+    expect(summaryStart).toBeGreaterThan(layoutStart);
     expect(detailsStart).toBeGreaterThan(summaryStart);
-    expect(summary).toContain("当前阶段");
-    for (const moved of ["历史参照", "关键位置", "确认与失效", "量能与周期", "多周期对照"]) {
-      expect(summary).not.toContain(moved);
-      expect(details).toContain(moved);
+    for (const text of ["当前市场结论", "基于已闭合 K 线", "当前阶段", "接下来验证什么", "不是买卖指令"]) {
+      expect(summary).toContain(text);
+    }
+    for (const detail of ["历史参照", "关键位置", "确认与失效", "量能与周期", "多周期对照"]) {
+      expect(summary).not.toContain(detail);
+      expect(details).toContain(detail);
     }
     expect(details.indexOf("历史参照")).toBeLessThan(details.indexOf("关键位置"));
     expect(details.indexOf("关键位置")).toBeLessThan(details.indexOf("确认与失效"));
-    expect(details).toContain("点击价格或案例，可在上方图表定位");
+    expect(html).toContain("点击价格或案例可回到上方图表定位");
   });
 
-  it("keeps the lower research area full-width without a nested desktop scrollbar", () => {
+  it("keeps the chart full-width and uses a responsive lower two-column research area without nested scrolling", () => {
     const css = readFileSync(
       new URL("../../src/app/market-workbench.css", import.meta.url),
       "utf8",
     );
 
-    expect(css).toMatch(/\.mw-research-details\s*\{[^}]*grid-column:1\/-1;/s);
-    expect(css).toMatch(/@media\(min-width:981px\)[\s\S]*?\.mw-research--summary\s*\{[^}]*overflow:visible;/s);
+    expect(css).toMatch(/\.mw-workspace\s*\{[^}]*grid-template-columns:minmax\(0,1fr\);/s);
+    expect(css).toMatch(/\.mw-chart-panel\s*\{[^}]*border-right:0;/s);
+    expect(css).toMatch(/\.mw-research-details\s*\{[^}]*grid-column:1;/s);
+    expect(css).toMatch(/\.mw-research-layout\s*\{[^}]*grid-template-columns:minmax\(0,1\.65fr\) minmax\(340px,\.85fr\);/s);
+    expect(css).toMatch(/\.mw-research--summary\s*\{[^}]*grid-column:2;[^}]*position:sticky;/s);
     expect(css).not.toMatch(/\.mw-research\s*\{[^}]*overflow-y:auto;/s);
-    expect(css).toMatch(/@media\(max-width:980px\)[\s\S]*?\.mw-research-details__grid\s*\{[^}]*grid-template-columns:1fr;/s);
+    expect(css).toMatch(/@media\(max-width:980px\)[\s\S]*?\.mw-research-layout\s*\{[^}]*grid-template-columns:1fr;[^}]*\}[\s\S]*?\.mw-research--summary\s*\{[^}]*grid-column:1;[^}]*position:static;/s);
+    expect(css).toMatch(/@media\(max-width:980px\)[\s\S]*?\.mw-research-details__grid\s*\{[^}]*grid-column:1;[^}]*grid-row:2;/s);
   });
 
   it("presents the current cycle and timeline before the two long-history cohorts", () => {
@@ -646,6 +657,10 @@ describe("public market workbench rendering", () => {
     expect(html).toContain("今天的阶段、历史统计、关键位置、策略与多周期信息已全部隐藏");
     expect(html).toContain("返回最新行情");
     expect(html).not.toContain("当前阶段");
+    expect(html).not.toContain("当前市场结论");
+    expect(html).not.toContain("结构偏强");
+    expect(html).not.toContain("结构偏弱");
+    expect(html).not.toContain("震荡等待确认");
     expect(html).not.toContain("历史参照");
     expect(html).not.toContain("当前 EMA 状态");
     expect(html).not.toContain("当前周期位置");
@@ -727,15 +742,20 @@ describe("public market workbench rendering", () => {
   it.each([{ delayed: true }, { issue: true }])("marks retained research delayed and suppresses immediate watch conditions: %o", (state) => {
     const html = renderResearch(state);
     expect(html).toContain("数据延迟");
+    expect(html).toContain("暂不形成结论");
+    expect(html).toContain("行情或关键位置数据正在延迟");
     expect(html).toContain("等待数据恢复后更新观察条件");
     expect(html).toContain(" · 延迟");
     expect(html).not.toContain("观察价格能否站上");
   });
 
   it("distinguishes initial calculation from a failed request", () => {
-    expect(renderResearch({ snapshot: null })).toContain("正在计算关键价位");
+    const loading = renderResearch({ snapshot: null });
+    expect(loading).toContain("正在计算关键价位");
+    expect(loading).toContain("暂不形成结论");
     const failed = renderResearch({ snapshot: null, issue: true });
     expect(failed).toContain("关键价位暂不可用");
+    expect(failed).toContain("暂不形成结论");
     expect(failed).toContain("重新获取");
     expect(failed).not.toContain("正在计算关键价位");
   });

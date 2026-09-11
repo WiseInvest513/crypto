@@ -919,7 +919,7 @@ html[data-theme="dark"] .site-header__theme-icon--sun {
   color: var(--control-strong-foreground);
 }
 
-.account-center__actions > a:nth-of-type(2) {
+.account-center__actions > a.account-center__sign-out {
   color: var(--danger);
 }
 
@@ -987,6 +987,46 @@ html[data-theme="dark"] .site-header__theme-icon--sun {
   gap: 0.75rem;
   margin-top: 1.75rem;
   flex-wrap: wrap;
+}
+
+.auth-result__session-choice {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface-soft);
+  text-align: left;
+}
+
+.auth-result__session-choice label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.auth-result__session-choice input {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0.15rem 0 0;
+  flex: 0 0 auto;
+  accent-color: var(--control-strong-background);
+}
+
+.auth-result__session-choice span {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.auth-result__session-choice strong {
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.auth-result__session-choice small {
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  line-height: 1.55;
 }
 
 .auth-result__actions a {

@@ -9,7 +9,8 @@ V0 按七个阶段完成，随后持续完善实用性、K 线与风险工具。
 行情工作台的已批准设计见
 [`docs/designs/market-workbench-v2/README.md`](docs/designs/market-workbench-v2/README.md)。
 旧阶段、旧工作台与 VIP 基础文档记录当时的实现；公开研究和人工策略边界以
-主产品规范第 16–21 节的后续决策为准，Wise ID 登录以第 27 节为准，不沿用旧文档的
+主产品规范第 16–21 节的后续决策为准，Wise ID 协议以第 27 节、基础登录期限与 VIP 权益新鲜度
+以第 34 节为准，不沿用旧文档的
 多周期 VIP 限制或“尚未接入真实登录”的历史描述。
 
 ## 当前状态
@@ -17,18 +18,18 @@ V0 按七个阶段完成，随后持续完善实用性、K 线与风险工具。
 Wise Crypto V0 的 Phase 1–7 已完成。当前公开体验包括：
 
 - 中文响应式 Layout、Header、Footer、Navigation、loading、error 与 404。
-- 首页 Market Pulse、BTC/ETH 概览、关键市场数据、人工配置的 Market Status、
-  Today in Crypto 和 Wise Take；其中 Market Status 与 Wise Take 属于 VIP 主观内容，
-  普通权限只可能看到带来源的 Today in Crypto 公共事实简报。
-- 导航只保留市场总览、行情、工具；BTC/ETH 在行情工作台内切换，原 `/btc`、`/eth`
+- 首页是公开品牌入口，只说明 Wise Crypto 是什么、可以做什么以及从哪里开始，不请求或展示
+  行情、研究、人工判断、身份状态与开户福利细则。
+- 一级导航包含市场总览、行情、开户福利和工具；BTC/ETH 在行情工作台内切换，原 `/btc`、`/eth`
   分享地址继续有效。整体采用黑白灰表面、系统无衬线字体与蓝红涨跌色。
-- BTC/ETH 行情工作台首屏优先呈现当前 USDT 价格和大尺寸 K 线，右侧依次显示
-  当前价格与 EMA 的关系、最近支撑/压力、估算成交密集区、观察条件及多周期对照。
+- BTC/ETH 行情工作台首屏优先呈现当前 USDT 价格和全宽大尺寸 K 线；当前阶段、历史参照、
+  关键位置、确认与失效、量能和多周期统一放在图表下方。右侧机械结论只基于同一范围的已闭合
+  K 线输出结构偏强、结构偏弱、等待确认或暂不形成结论，并明确列出下一步验证边界。
   右上角显示同 Binance Spot USDT 口径的近 1 天、7 天、30 天涨跌，独立于图表周期，
   约每分钟更新；主价格继续每 5 秒检查，两者具有独立采样时间，不混用聚合 USD 报价。
   页面左右保留响应式留白。主界面只显示简洁更新时间与异常状态，来源、缓存、原始 K 线表和
   可见区间统计不占用界面；完整数据链仍保留在服务端及标准化合同内。
-- 公开客观研究：不读取身份即可比较 15m / 1h / 4h / 1d 的已完成周期与 EMA，
+- 登录后的客观研究可以比较 15m / 1h / 4h / 1d 的已完成周期与 EMA，
   并查看由最近最多 500 根已完成 K 线计算的关键位置；至少需要 200 根。
   默认展示上方三档压力、下方三档支撑，附距离与真实计算依据；不足三档不补数。
   “更多关键位”可展开其余候选并点击定位，成交密集区与斐波那契图层独立开关。
@@ -53,9 +54,9 @@ Wise Crypto V0 的 Phase 1–7 已完成。当前公开体验包括：
   仅限本机的编辑、独立复核、发布、退回与撤回闭环；草稿使用 AES-256-GCM 加密文件
   保存，目录与文件权限按 `0700/0600` 校验；初始化后若主密文丢失会停止读写，不会静默
   建立空库。真实内容不进入 Git。该发布台在任何检测到的部署环境强制关闭，不能替代未来的
-  Wise staff 身份与私有 CMS。Wise ID 的 OIDC 本地接入已经建立，但主站 `wise_crypto`
-  Client 尚未注册 / 启用，真实登录还不能完成端到端验证；AI、主观牛熊判断及持久化关键位
-  事件仍未接入。当前 bull/bear 仅是用于历史分组的可复算日线机械标签。
+  Wise staff 身份与私有 CMS。Wise ID OIDC 与独立子站 Session 已接入；生产授权往返仍需在
+  每次发布后以正式域名复核。AI、主观牛熊判断及持久化关键位事件仍未接入。当前 bull/bear
+  仅是用于历史分组的可复算日线机械标签。
 - 仓位风险、杠杆与盈亏、历史 DCA、风险回报四个独立计算器，通过“工具”导航进入；
   工具地址支持 `asset=btc|eth`，金融输入与计算结果不会通过 URL 传递。
 - 合约入门也位于“工具”内，提供 5 章 26 关、8 关快速路径、逐关练习与本地进度。
@@ -148,7 +149,7 @@ pnpm start
 `http://127.0.0.1:2222`。完整空白模板见 [`.env.example`](.env.example)。严禁创建
 `NEXT_PUBLIC_COINMARKETCAP_API_KEY`、`NEXT_PUBLIC_WISE_AUTH_*` 或任何
 `NEXT_PUBLIC_WISE_STRATEGY_*`；发布台会在发现公开策略变量时主动关闭，客户端也不导入
-市场 Provider、OIDC Secret、登录 digest 或加密密钥。
+  市场 Provider、OIDC Secret、登录 digest 或加密密钥。
 
 本地登录固定使用 `127.0.0.1:2222`，主站登记的本地 callback 必须是
 `http://127.0.0.1:2222/api/auth/callback/wise`。主站管理员需在
@@ -381,17 +382,20 @@ DNS 也未由本仓库自动配置。上线时：
 
 ## Wise ID 主站登录边界
 
-本地已按主站架构接入 Wise ID OIDC，并已在被 Git 忽略的本地环境中配置 Client Secret；但在
-主站确认启用 `wise_crypto`、登记精确生产 callback，并在正式域名完成真实授权往返之前，仍不能
-报告为已上线：
+代码已按主站架构接入 Wise ID OIDC，本地 Secret 保存在被 Git 忽略的环境文件中；主站必须持续
+启用 `wise_crypto` 并登记精确生产 callback，正式域名授权往返属于每次发布后的独立验收项：
 
 - 使用 Authorization Code + PKCE、`state`、`nonce` 与精确 callback allowlist；子站不共享
   主站 Cookie 或用户数据库，而是创建自己的 host-only Session；生产 Cookie 使用 Secure，
   所有 Session Cookie 使用 HttpOnly / SameSite=Lax。
 - `MEMBER` 映射为 `regular`，`VIP` / `VIP_PLUS` 映射为 `vip`；未知或缺失会员字段 fail closed，
   不存在 URL、localStorage、客户端状态或环境变量 VIP 开关。
-- Session 身份期限固定跟随 Provider 当前返回的 1 小时（`expires_in=3600`）截止时间，不通过
-  滑动 JWT 延长旧会员状态；当前没有 refresh token，到期后需重新通过主站确认身份。
+- 基础登录 Session 使用固定绝对期限：默认 3 天，用户在登录页明确勾选后为 7 天；访问页面或
+  接口不会滑动续期，主动退出会立即结束本子站会话。第 27 节曾记录的“Session 固定 1 小时”
+  初始规则已由产品规范第 34 节覆盖。
+- Provider 当前仍只返回 1 小时的身份有效期（`expires_in=3600`），且没有 refresh token。基础
+  登录可以继续到 3 / 7 天绝对期限，但 VIP 私有权益每次都检查 `wiseIdentityExpiresAt`；超过 1
+  小时后 fail closed 为普通权限，重新通过主站 OIDC 验证后才能恢复 VIP 私有访问。
 - Access Token、ID Token、Client Secret 与完整 Provider payload 不进入客户端 bundle、URL、
   Analytics 或公开页面响应；个性化账户接口与受限内容使用 `private, no-store`。
 - 首页及其公共 Provider cache、Metadata 不依赖登录；行情、工具、课程与账户页按服务端门禁要求
@@ -414,9 +418,9 @@ DNS 也未由本仓库自动配置。上线时：
 - Analytics 默认 noop；部署第三方 Analytics 前必须先确定隐私、Cookie 与数据保留政策。
 - 人工策略发布台当前只支持单机文件存储与两名预配置 staff，不支持多实例、账号恢复、
   远程协作或正式生产持久化；检测到部署环境时会强制关闭。
-- 公开多周期与算法关键位不依赖 Wise ID；人工策略依赖服务端验证且未过期的 VIP。
-  主站 `wise_crypto` Client 尚未注册 / 启用，生产也没有私有策略存储；当前没有客户端 VIP
-  开关、AI 结果或虚构的关键位事件历史。
+- 多周期与算法关键位的计算不因会员等级改变，但页面和同源接口仍要求有效基础 Session；人工
+  策略依赖服务端验证且上游 1 小时身份证明仍新鲜的 VIP。生产当前没有私有策略存储；也没有
+  客户端 VIP 开关、AI 结果或虚构的关键位事件历史。
 - 公开研究缓存每 Provider 实例最多 8 项，仍不跨 Serverless 实例或冷启动共享。
   OHLCV 成交分布并非逐笔成交；缺少有效成交量时成交分布不可用，不补零估算。
 - 精确 EMA 指纹长期统计当前只覆盖 BTC/ETH 的 `1h / 4h / 1d`；`15m` 仍可查看独立的

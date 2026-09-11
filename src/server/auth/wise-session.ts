@@ -10,6 +10,7 @@ import {
 import { isWiseAuthConfigured } from "@/server/auth/wise-auth-config";
 import { isWiseLocalDevelopmentRequest } from "@/server/auth/wise-local-development";
 import type { IdentityPrincipal } from "@/server/access/resolve-user-access";
+import { isWiseIdentityFresh } from "@/lib/auth/wise-session-policy";
 
 export type WiseAuthenticationSource = "wise-id" | "local-development";
 
@@ -20,6 +21,7 @@ export type WiseAccountSummary = Readonly<{
   emailVerified: boolean | null;
   imageUrl: string | null;
   label: ReturnType<typeof formatWiseMembershipLabel>;
+  membershipAccessFresh: boolean;
   membershipTier: WiseMembershipTier;
   principal: IdentityPrincipal;
   wiseId: string;
@@ -51,12 +53,22 @@ export async function resolveWiseAccountState(): Promise<WiseAccountState> {
     const membershipTier = readWiseMembershipTier(
       session?.user?.membershipTier,
     );
-    const tier = mapWiseMembershipToUserTier(membershipTier);
+    const mappedTier = mapWiseMembershipToUserTier(membershipTier);
 
     if (!session) return Object.freeze({ status: "anonymous" });
-    if (!subject || !wiseId || !membershipTier || !tier) {
+    if (!subject || !wiseId || !membershipTier || !mappedTier) {
       return Object.freeze({ status: "error" });
     }
+
+    // The local identity can remain signed in for 3 / 7 days, but a private
+    // VIP entitlement is only trusted while the upstream Wise ID proof is
+    // fresh. Regular access does not depend on an elevated entitlement.
+    const membershipAccessFresh = mappedTier !== "vip" || isWiseIdentityFresh(
+      session.user?.wiseIdentityExpiresAt,
+    );
+    const tier = mappedTier === "vip" && !membershipAccessFresh
+      ? "regular"
+      : mappedTier;
 
     return Object.freeze({
       status: "authenticated",
@@ -67,6 +79,7 @@ export async function resolveWiseAccountState(): Promise<WiseAccountState> {
         emailVerified: readOptionalBoolean(session.user?.wiseEmailVerified),
         imageUrl: readSafeImageUrl(session.user?.image),
         label: formatWiseMembershipLabel(membershipTier),
+        membershipAccessFresh,
         membershipTier,
         principal: Object.freeze({ subject, tier }),
         wiseId,
@@ -84,6 +97,7 @@ const LOCAL_DEVELOPMENT_ACCOUNT: WiseAccountSummary = Object.freeze({
   emailVerified: null,
   imageUrl: null,
   label: formatWiseMembershipLabel("MEMBER"),
+  membershipAccessFresh: true,
   membershipTier: "MEMBER",
   principal: Object.freeze({
     subject: "local-development",

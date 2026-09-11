@@ -37,6 +37,7 @@ describe("Wise session resolution", () => {
         emailVerified: null,
         imageUrl: null,
         label: "普通用户",
+        membershipAccessFresh: true,
         membershipTier: "MEMBER",
         principal: {
           subject: "local-development",
@@ -55,5 +56,40 @@ describe("Wise session resolution", () => {
     });
     expect(mocks.isWiseAuthConfigured).toHaveBeenCalledOnce();
     expect(mocks.auth).not.toHaveBeenCalled();
+  });
+
+  it("keeps the base session but downgrades expired VIP proof to regular access", async () => {
+    mocks.isWiseAuthConfigured.mockReturnValue(true);
+    mocks.auth.mockResolvedValue({
+      user: {
+        id: "Y123456789",
+        wiseId: "Y123456789",
+        name: "Wise Member",
+        email: "member@example.com",
+        wiseEmailVerified: true,
+        image: "https://www.wise-invest.org/avatar.png",
+        membershipTier: "VIP",
+        wiseIdentityExpiresAt: Math.floor(Date.now() / 1_000) - 1,
+      },
+    });
+
+    await expect(resolveWiseAccountState()).resolves.toEqual({
+      status: "authenticated",
+      account: {
+        authenticationSource: "wise-id",
+        displayName: "Wise Member",
+        email: "member@example.com",
+        emailVerified: true,
+        imageUrl: "https://www.wise-invest.org/avatar.png",
+        label: "VIP 用户",
+        membershipAccessFresh: false,
+        membershipTier: "VIP",
+        principal: {
+          subject: "Y123456789",
+          tier: "regular",
+        },
+        wiseId: "Y123456789",
+      },
+    });
   });
 });

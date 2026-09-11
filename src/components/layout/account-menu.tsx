@@ -21,6 +21,7 @@ type AccountState =
       emailVerified: boolean | null;
       imageUrl: string | null;
       label: string;
+      membershipAccessFresh: boolean;
       membershipTier: WiseMembershipTier;
       tier: UserTier;
       wiseId: string;
@@ -87,7 +88,9 @@ export function AccountMenu({
               <small>
                 {account.authenticationSource === "local-development"
                   ? "本地调试"
-                  : account.label}
+                  : account.membershipAccessFresh
+                    ? account.label
+                    : "VIP 权益待验证"}
               </small>
             </span>
           </>
@@ -127,7 +130,9 @@ function renderAccountPanel(account: AccountState, returnTo: string) {
                 : account.email ?? "邮箱由 Wise ID 管理"}
             </p>
           </div>
-          <span className="site-header__membership-badge">{account.label}</span>
+          <span className="site-header__membership-badge">
+            {account.membershipAccessFresh ? account.label : "VIP 待验证"}
+          </span>
         </div>
         <dl className="site-header__account-meta">
           <div>
@@ -137,7 +142,11 @@ function renderAccountPanel(account: AccountState, returnTo: string) {
           <div>
             <dt>登录状态</dt>
             <dd>
-              {isLocalDevelopment ? "本地开发直通" : "当前设备已登录"}
+              {isLocalDevelopment
+                ? "本地开发直通"
+                : account.membershipAccessFresh
+                  ? "当前设备已登录"
+                  : "已登录 · VIP 权益需重新验证"}
             </dd>
           </div>
         </dl>
@@ -152,6 +161,15 @@ function renderAccountPanel(account: AccountState, returnTo: string) {
             </p>
           ) : (
             <>
+              {!account.membershipAccessFresh ? (
+                <Link
+                  className="site-header__account-action"
+                  href={`/auth/sign-in?returnTo=${encodedReturnTo}&reauth=1` as Route}
+                >
+                  重新验证 VIP 权益
+                  <span aria-hidden="true">↗</span>
+                </Link>
+              ) : null}
               <a href="https://www.wise-invest.org/account">
                 前往 Wise ID 管理资料
                 <span aria-hidden="true">↗</span>
@@ -243,6 +261,10 @@ export function parseAccountState(value: unknown): AccountState {
   const imageUrl = readNullableHttpsUrl(candidate.imageUrl);
   const wiseId = readRequiredString(candidate.wiseId, 128);
   const emailVerified = readNullableBoolean(candidate.emailVerified);
+  const membershipAccessFresh =
+    typeof candidate.membershipAccessFresh === "boolean"
+      ? candidate.membershipAccessFresh
+      : null;
   const authenticationSource =
     candidate.authenticationSource === "wise-id" ||
     candidate.authenticationSource === "local-development"
@@ -256,6 +278,7 @@ export function parseAccountState(value: unknown): AccountState {
       candidate.membershipTier === "VIP" ||
       candidate.membershipTier === "VIP_PLUS") &&
     typeof candidate.label === "string" &&
+    membershipAccessFresh !== null &&
     authenticationSource !== null &&
     displayName !== undefined &&
     email !== undefined &&
@@ -271,6 +294,7 @@ export function parseAccountState(value: unknown): AccountState {
       emailVerified,
       imageUrl,
       label: candidate.label,
+      membershipAccessFresh,
       membershipTier: candidate.membershipTier,
       tier: candidate.tier,
       wiseId,

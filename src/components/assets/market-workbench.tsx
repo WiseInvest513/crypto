@@ -94,8 +94,8 @@ export function MarketWorkbench({ asset, initialDatum, strategySlot }: { asset: 
   const mobile = useSyncExternalStore(subscribeMobile, mobileSnapshot, desktopSnapshot);
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>("short");
   const [emaKeys, setEmaKeys] = useState<readonly LiveEmaKey[]>(["ema10", "ema20", "ema50"]);
-  const [showLevels, setShowLevels] = useState(true);
-  const [showProfile, setShowProfile] = useState(true);
+  const [showLevels, setShowLevels] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [showFibonacci, setShowFibonacci] = useState(false);
   const [showVolume, setShowVolume] = useState(true);
   const [showHistoryEvents, setShowHistoryEvents] = useState(false);

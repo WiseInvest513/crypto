@@ -7,6 +7,7 @@ import {
   type ChartCandleInterval,
 } from "@/lib/market/live-chart";
 import {
+  buildMechanicalMarketConclusion,
   formatChange,
   formatMarketHeaderUpdate,
   formatPrice,
@@ -129,6 +130,41 @@ function analysis(): KeyLevelAnalysis {
   };
 }
 
+function fallingCandles(count = 61): ChartCandle[] {
+  const duration = chartIntervalMilliseconds["1h"];
+  return Array.from({ length: count }, (_, index) => {
+    const close = 200 - index;
+    return {
+      asset: "btc",
+      symbol: "BTCUSDT",
+      interval: "1h",
+      quoteCurrency: "USDT",
+      state: index === count - 1 ? "forming" : "closed",
+      openedAt: new Date(START + duration * index).toISOString(),
+      closedAt: new Date(START + duration * (index + 1) - 1).toISOString(),
+      open: close + 0.5,
+      high: close + 1,
+      low: close - 1,
+      close,
+      volume: index + 1,
+    };
+  });
+}
+
+function conclusionAnalysis(
+  input: ReturnType<typeof buildLiveChartPoints>,
+  prices: readonly number[],
+  overrides: Partial<KeyLevelAnalysis> = {},
+): KeyLevelAnalysis {
+  const latestClosed = input.filter((point) => point.state === "closed").at(-1)!;
+  return {
+    ...analysis(),
+    confirmedAt: latestClosed.closedAt,
+    levels: prices.map((price) => level(price)),
+    ...overrides,
+  };
+}
+
 describe("current-price workbench presentation", () => {
   it("compares the forming price with EMAs from that same live point", () => {
     const points = buildLiveChartPoints(candles());
@@ -217,6 +253,97 @@ describe("current-price workbench presentation", () => {
       { ...points[0], asset: "eth", symbol: "ETHUSDT" },
       ...points.slice(1),
     ])).toThrow("Cannot summarize mixed-scope chart points.");
+  });
+});
+
+describe("closed-candle mechanical market conclusion", () => {
+  it("reports a strong structure only when close, EMA ordering, movement, and price-zone evidence agree", () => {
+    const input = buildLiveChartPoints(candles());
+    const result = buildMechanicalMarketConclusion(
+      input,
+      conclusionAnalysis(input, [120, 180]),
+    );
+
+    expect(result).toMatchObject({
+      status: "available",
+      stance: "strong",
+      label: "结构偏强",
+      priceZone: null,
+    });
+    expect(result.current?.latest.state).toBe("closed");
+    expect(result.rationale).toContain("不代表下一根必然上涨");
+    for (const prohibited of ["买入", "卖出", "做多", "做空", "目标价", "胜率"]) {
+      expect(result.rationale).not.toContain(prohibited);
+    }
+  });
+
+  it("reports a weak structure only when the same closed-candle evidence agrees downward", () => {
+    const input = buildLiveChartPoints(fallingCandles());
+    const result = buildMechanicalMarketConclusion(
+      input,
+      conclusionAnalysis(input, [120, 160]),
+    );
+
+    expect(result).toMatchObject({
+      status: "available",
+      stance: "weak",
+      label: "结构偏弱",
+      priceZone: null,
+    });
+    expect(result.current?.latest.state).toBe("closed");
+    expect(result.rationale).toContain("不代表下一根必然下跌");
+  });
+
+  it("waits for confirmation when the latest closed price remains inside a key zone", () => {
+    const input = buildLiveChartPoints(candles());
+    const latestClosed = input.filter((point) => point.state === "closed").at(-1)!;
+    const result = buildMechanicalMarketConclusion(
+      input,
+      conclusionAnalysis(input, [120, latestClosed.close, 180]),
+    );
+
+    expect(result).toMatchObject({
+      status: "available",
+      stance: "wait",
+      label: "震荡等待确认",
+    });
+    expect(result.priceZone?.price).toBe(latestClosed.close);
+    expect(result.rationale).toContain("仍在关键价格区域内");
+  });
+
+  it("fails closed when data is delayed, incomplete, or scoped to another market", () => {
+    const input = buildLiveChartPoints(candles());
+    const matching = conclusionAnalysis(input, [120, 180]);
+
+    expect(buildMechanicalMarketConclusion(input, matching, "short", true)).toMatchObject({
+      status: "unavailable",
+      stance: "unavailable",
+      label: "暂不形成结论",
+    });
+    expect(buildMechanicalMarketConclusion(input, null)).toMatchObject({
+      status: "unavailable",
+      stance: "unavailable",
+    });
+    expect(buildMechanicalMarketConclusion(input, { ...matching, interval: "4h" })).toMatchObject({
+      status: "unavailable",
+      stance: "unavailable",
+    });
+    expect(buildMechanicalMarketConclusion(input, { ...matching, asset: "eth", symbol: "ETHUSDT" })).toMatchObject({
+      status: "unavailable",
+      stance: "unavailable",
+    });
+  });
+
+  it("does not let a forming-candle spike change the mechanical conclusion", () => {
+    const source = candles();
+    const baselinePoints = buildLiveChartPoints(source);
+    const scope = conclusionAnalysis(baselinePoints, [120, 180]);
+    const baseline = buildMechanicalMarketConclusion(baselinePoints, scope);
+    const spikedPoints = buildLiveChartPoints(source.map((candle, index) => index === source.length - 1
+      ? { ...candle, open: 159, high: 260, low: 70, close: 80 }
+      : candle));
+
+    expect(buildMechanicalMarketConclusion(spikedPoints, scope)).toEqual(baseline);
   });
 });
 

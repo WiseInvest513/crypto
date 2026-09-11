@@ -6,7 +6,7 @@ import type { ComputedKeyLevel } from "@/lib/market/key-levels";
 import type { HistoricalContextAnalysis, HistoricalContextCase, HistoricalContextCurrent, HistoricalContextHorizon } from "@/lib/market/historical-context";
 import { HISTORICAL_CONTEXT_MINIMUM_DIRECTION_SAMPLES } from "@/lib/market/historical-context";
 import type { LongTermHistoryAnalysis, MarketCycleAnalysis } from "@/lib/market/long-term-history";
-import { analysisModes, changeTone, emaColors, fibonacciOverlays, formatChange, formatPrice, formatUpdate, keyLevelBasis, keyLevelsContainingPrice, nearestKeyLevels, periodLabels, summarizeCurrentPosition, summarizeModeOrdering, type AnalysisMode } from "@/lib/market/workbench-presentation";
+import { analysisModes, buildMechanicalMarketConclusion, changeTone, emaColors, fibonacciOverlays, formatChange, formatPrice, formatUpdate, keyLevelBasis, keyLevelsContainingPrice, nearestKeyLevels, periodLabels, summarizeCurrentPosition, summarizeModeOrdering, type AnalysisMode } from "@/lib/market/workbench-presentation";
 import { liveEmaDefinitions } from "@/lib/market/live-chart";
 import { buildPublicStrategyEvidence } from "@/lib/strategy/public-strategy-observations";
 
@@ -365,27 +365,56 @@ export function MarketResearchPanel({ points, interval, analysisMode = "short", 
   const longHistoryStale = longHistoryDelayed || longHistoryIssue || snapshot?.longHistory.status === "stale";
   const cycle = availableResearch(snapshot?.cycle);
   const cycleStale = cycleDelayed || cycleIssue || snapshot?.cycle.status === "stale";
-  return <>
-    <aside className="mw-research mw-research--summary" aria-label="当前行情摘要">
+  const conclusion = buildMechanicalMarketConclusion(points, analysis, analysisMode, stale);
+  const upwardBoundary = conclusion.resistance;
+  const downwardBoundary = conclusion.support;
+  const upwardLabel = conclusion.stance === "strong"
+    ? "偏强延续确认"
+    : conclusion.stance === "weak"
+      ? "偏弱判断失效"
+      : "转强确认";
+  const downwardLabel = conclusion.stance === "weak"
+    ? "偏弱延续确认"
+    : conclusion.stance === "strong"
+      ? "偏强判断失效"
+      : "转弱确认";
+  return <section className="mw-research-details" aria-labelledby="mw-research-details-title">
+    <header className="mw-research-details__header">
+      <div><p>图表下方研究区</p><h2 id="mw-research-details-title">当前结论与判断依据</h2></div>
+      <span>先看机械结论，再核对关键位置、历史与周期；点击价格或案例可回到上方图表定位</span>
+    </header>
+    <div className="mw-research-layout">
+    <aside className="mw-research mw-research--summary" aria-label="当前行情机械结论">
       <section className="mw-research-section mw-interpretation">
-        <div className="mw-section-heading"><h2>当前阶段</h2><span>{periodLabels[interval]} · {mode.label}视角</span></div>
+        <div className="mw-section-heading"><h2>当前市场结论</h2><span>{periodLabels[interval]} · {mode.label}视角</span></div>
+        <div className={`mw-conclusion-verdict mw-conclusion-verdict--${conclusion.stance}`} role="status">
+          <span>基于已闭合 K 线</span>
+          <strong>{conclusion.label}</strong>
+          <p>{conclusion.rationale}</p>
+        </div>
         {current ? <>
+          <div className="mw-stage-label"><span>判断依据</span><strong>当前阶段</strong></div>
           <h3>{current.headline.replace("当前价格", delayed ? "最近记录的闭合收盘" : "最新闭合收盘")}<span>{current.ordering}</span></h3>
           <p className="mw-position-summary">{current.movementLabel} <b className={`mw-${changeTone(current.movement)}`}>{formatChange(current.movement)}</b></p>
           <div className="mw-ema-facts">{current.comparisons.map((entry) => <div key={entry.key} title={`最新闭合收盘相对均线 ${formatChange(entry.distance)}`}><span><i style={{ background: emaColors[entry.key] }} />{liveEmaDefinitions[entry.key].label}</span><strong>{entry.distance === null ? "样本不足" : entry.distance > 0 ? "上方" : entry.distance < 0 ? "下方" : "线上"}</strong><small>{entry.distance === null ? "—" : `相差 ${formatChange(entry.distance)}`}</small></div>)}</div>
           {intrabar ? <div className="mw-intrabar-position"><span>盘中位置</span><strong>{formatPrice(latestPoint?.close)} USDT</strong><small>{intrabar.headline.replace("当前价格", "盘中价格")} 仅供观察，闭合后才进入阶段判断。</small></div> : null}
         </> : <p className="mw-empty-copy">行情暂不可用，恢复后将显示价格与均线的位置。</p>}
+        {conclusion.status === "available" ? <div className="mw-conclusion-boundaries">
+          <div className="mw-conclusion-boundaries__heading"><h3>接下来验证什么</h3><span>以本周期闭合为准</span></div>
+          {upwardBoundary ? <button type="button" onClick={() => onSelectLevel(upwardBoundary.id)} aria-label={`在图表定位${upwardLabel} ${formatPrice(upwardBoundary.upper)}`}>
+            <span>{upwardLabel}</span><strong>{periodLabels[interval]}收盘站上 {formatPrice(upwardBoundary.upper)}</strong><small>突破最近压力区上沿并守住，向上结构才获得边界确认。</small>
+          </button> : <div><span>{upwardLabel}</span><strong>上方边界暂未识别</strong><small>没有可靠压力区域时不补写价格。</small></div>}
+          {downwardBoundary ? <button type="button" onClick={() => onSelectLevel(downwardBoundary.id)} aria-label={`在图表定位${downwardLabel} ${formatPrice(downwardBoundary.lower)}`}>
+            <span>{downwardLabel}</span><strong>{periodLabels[interval]}收盘跌破 {formatPrice(downwardBoundary.lower)}</strong><small>跌破最近支撑区下沿后，向下结构才获得边界确认。</small>
+          </button> : <div><span>{downwardLabel}</span><strong>下方边界暂未识别</strong><small>没有可靠支撑区域时不补写价格。</small></div>}
+          <p>结论只描述当前结构，不是买卖指令；盘中刺穿不会改变判断。</p>
+        </div> : null}
       </section>
     </aside>
-
-    <section className="mw-research-details" aria-labelledby="mw-research-details-title">
-      <header className="mw-research-details__header">
-        <div><p>深入参考</p><h2 id="mw-research-details-title">历史、关键位与周期</h2></div>
-        <span>点击价格或案例，可在上方图表定位</span>
-      </header>
       <div className="mw-research-details__grid">
         <section className="mw-research-section mw-history">
           <div className="mw-section-heading"><h2>历史参照</h2><span>机械统计 · 非预测</span></div>
+          <p className="mw-section-intro">把今天的均线状态放回过去，查看相似阶段曾经持续多久、出现过怎样的变化分布。它回答“过去发生过什么”，不把历史重复当成预测。</p>
           <MarketCycleReference analysis={cycle} loading={!snapshot && !cycleIssue} issue={cycleIssue} stale={cycleStale} updatedAt={snapshot?.cycle.updatedAt ?? null} onRetry={onRetry} onTimelineToggle={onCycleTimelineToggle} />
           {interval === "15m" ? <p className="mw-empty-copy mw-history-interval-note">15 分钟暂不进行精确 EMA 历史匹配；可切换至 1 小时、4 小时或日线查看。</p> : <>
             <LongHistoryReference analysis={longHistory} interval={interval} loading={!snapshot && !longHistoryIssue} issue={longHistoryIssue} stale={longHistoryStale} horizon={historyHorizon} onSelectHorizon={onSelectHistoryHorizon ?? noopHistoryHorizonSelection} onRetry={onRetry} />
@@ -395,6 +424,7 @@ export function MarketResearchPanel({ points, interval, analysisMode = "short", 
 
         <section className="mw-research-section mw-levels-section">
           <div className="mw-section-heading"><h2>关键位置</h2><span>{stale && analysis ? "数据延迟" : "点击定位"}</span></div>
+          <p className="mw-section-intro">压力与支撑是已闭合行情样本合并出的价格区域，用来划定观察边界：站上压力再确认，跌破支撑则重新评估；它们不是必然反转点。</p>
           {analysis && price ? <>
             <div className="mw-key-levels">
               {atPrice.map((level) => <KeyLevelRow key={level.id} level={level} name="现价附近" price={price} selectedLevel={selectedLevel} onSelectLevel={onSelectLevel} />)}
@@ -415,7 +445,7 @@ export function MarketResearchPanel({ points, interval, analysisMode = "short", 
                   { name: "支撑", levels: remainingSupport, offset: nearest.supports.length },
                 ] as const).map((group) => group.levels.map((level, index) => <KeyLevelRow key={level.id} level={level} name={group.name} rank={group.offset + index + 1} price={price} selectedLevel={selectedLevel} expanded onSelectLevel={onSelectLevel} />))}
                 {fibonacci.length > 0 && <div className="mw-fibonacci-levels"><h3>斐波那契参考</h3>{fibonacci.map((line) => <button type="button" key={line.id} className={`mw-level-row${selectedLevel === line.id ? " is-selected" : ""}`} onClick={() => onSelectLevel(line.id)} aria-pressed={selectedLevel === line.id} aria-label={`在图表定位 ${line.label} ${formatPrice(line.price)}`}><span>{line.label}</span><strong>{formatPrice(line.price)}</strong><small>{formatChange((line.price / price - 1) * 100)}</small></button>)}</div>}
-                <p className="mw-more-levels-note">相近价位已合并为区域，多种依据重合不代表成功率。图表默认显示最近三档，点击其他价位可定位。</p>
+                <p className="mw-more-levels-note">相近价位已合并为区域，多种依据重合不代表成功率。点击任一价位后，会在上方图表显示并定位对应区域。</p>
               </div>
             </details> : null}
           </> : <div className="mw-research-empty" aria-live="polite"><p>{!snapshot && !issue ? "正在计算关键价位…" : "关键价位暂不可用"}</p><span>有足够行情样本后显示，不用占位数字替代。</span>{issue && <button onClick={onRetry}>重新获取</button>}</div>}
@@ -423,6 +453,7 @@ export function MarketResearchPanel({ points, interval, analysisMode = "short", 
 
         <section className="mw-research-section mw-watch">
           <div className="mw-section-heading"><h2>确认与失效</h2></div>
+          <p className="mw-section-intro">把结论拆成可以核对的条件。只有本周期闭合后满足区域边界，结构判断才改变；盘中短暂穿越不算确认。</p>
           {stale ? <p className="mw-empty-copy">等待数据恢复后更新观察条件，当前不提供即时判断。</p> : analysis ? <ul>
             {atPrice[0] ? <li><i className="mw-watch-zone" /><p>现价正在 <button onClick={() => onSelectLevel(atPrice[0].id)}>{formatLevelRange(atPrice[0])}</button> 关键区域内，先等待本周期收盘离开区域再确认。</p></li> : null}
             <li><i className="mw-watch-up" /><p>{resistance ? <>站上 <button onClick={() => onSelectLevel(resistance.id)}>{formatPrice(resistance.upper)}</button> 压力区上沿后，观察本周期收盘能否守住。</> : "上方尚未识别出有效关键位，继续观察价格与均线的位置。"}</p></li>
@@ -438,6 +469,7 @@ export function MarketResearchPanel({ points, interval, analysisMode = "short", 
 
         <section className="mw-research-section mw-timeframes">
           <div className="mw-section-heading"><h2>量能与周期</h2><span>闭合数据</span></div>
+          <p className="mw-section-intro">量能用于核对本周期变化是否得到成交配合，多周期用于检查短线结构与更大周期是否同向；两者都是佐证，不单独生成方向。</p>
           <div className="mw-confirmation-facts" aria-label="通用策略确认证据">
             <div><span>已闭合量能</span><strong>{strategyEvidence.closedVolume.headline}</strong><small>{stale ? "数据延迟 · " : ""}{strategyEvidence.closedVolume.detail}</small></div>
             <div><span>多周期位置</span><strong>{strategyEvidence.multiTimeframe.headline}</strong><small>{stale ? "数据延迟 · " : ""}{strategyEvidence.multiTimeframe.detail}</small></div>
@@ -453,8 +485,8 @@ export function MarketResearchPanel({ points, interval, analysisMode = "short", 
           <p className="mw-quiet">研究更新 {formatUpdate(snapshot?.levels.updatedAt)}</p></div></details>
         </section>
       </div>
-    </section>
-  </>;
+    </div>
+  </section>;
 }
 
 function noopHistorySelection(): void {}

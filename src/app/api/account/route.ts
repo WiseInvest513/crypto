@@ -17,6 +17,7 @@ export async function GET(): Promise<Response> {
       emailVerified: account.emailVerified,
       imageUrl: account.imageUrl,
       label: account.label,
+      membershipAccessFresh: account.membershipAccessFresh,
       membershipTier: account.membershipTier,
       tier: account.principal.tier,
       wiseId: account.wiseId,

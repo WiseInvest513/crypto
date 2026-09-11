@@ -49,7 +49,9 @@ export default async function AccountPage() {
                 : "WISE ID · 已连接"}
             </p>
             <h1 id="account-title">{accountName}</h1>
-            <span>{account.label}</span>
+            <span>
+              {account.membershipAccessFresh ? account.label : "VIP 权益待验证"}
+            </span>
           </div>
         </div>
         <div className="account-center__hero-copy">
@@ -81,7 +83,7 @@ export default async function AccountPage() {
             <span>
               {isLocalDevelopment
                 ? "固定调试资料 · 不创建主站会话"
-                : "实时取自当前 Wise ID 会话"}
+                : "取自本次 Wise ID 登录"}
             </span>
           </header>
 
@@ -109,11 +111,15 @@ export default async function AccountPage() {
             <div>
               <dt>会员等级</dt>
               <dd>
-                <strong>{account.label}</strong>
+                <strong>
+                  {account.membershipAccessFresh ? account.label : "VIP 权益待重新验证"}
+                </strong>
                 <span>
                   {isLocalDevelopment
                     ? "开发旁路固定为普通用户，不授予 VIP 权限"
-                    : "权限以 Wise ID 返回的最新有效状态为准"}
+                    : account.membershipAccessFresh
+                      ? "本次会话以登录时 Wise ID 返回的状态为准"
+                      : "基础登录仍有效；重新验证后才能恢复 VIP 私有内容"}
                 </span>
               </dd>
             </div>
@@ -175,11 +181,17 @@ export default async function AccountPage() {
             </>
           ) : (
             <>
+              {!account.membershipAccessFresh ? (
+                <Link className="account-center__reauth" href="/auth/sign-in?returnTo=/account&reauth=1">
+                  重新验证 VIP 权益
+                  <span aria-hidden="true">↗</span>
+                </Link>
+              ) : null}
               <a href={WISE_INVEST_ACCOUNT_URL}>
                 前往 Wise ID 管理账户
                 <span aria-hidden="true">↗</span>
               </a>
-              <Link href="/auth/sign-out?returnTo=/account">
+              <Link className="account-center__sign-out" href="/auth/sign-out?returnTo=/account">
                 退出当前账户
               </Link>
               <small>

@@ -33,6 +33,7 @@ describe("Wise account route", () => {
         emailVerified: true,
         imageUrl: "https://www.wise-invest.org/avatar.png",
         label: "VIP+ 用户",
+        membershipAccessFresh: true,
         membershipTier: "VIP_PLUS",
         principal: {
           subject: "Y123456789",
@@ -54,6 +55,7 @@ describe("Wise account route", () => {
       emailVerified: true,
       imageUrl: "https://www.wise-invest.org/avatar.png",
       label: "VIP+ 用户",
+      membershipAccessFresh: true,
       membershipTier: "VIP_PLUS",
       tier: "vip",
       wiseId: "Y123456789",
@@ -101,6 +103,7 @@ describe("Wise account route", () => {
         emailVerified: null,
         imageUrl: null,
         label: "普通用户",
+        membershipAccessFresh: true,
         membershipTier: "MEMBER",
         principal: {
           subject: "local-development",
@@ -122,6 +125,7 @@ describe("Wise account route", () => {
       emailVerified: null,
       imageUrl: null,
       label: "普通用户",
+      membershipAccessFresh: true,
       membershipTier: "MEMBER",
       tier: "regular",
       wiseId: "LOCAL-DEVELOPMENT",

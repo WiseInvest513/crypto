@@ -2,8 +2,11 @@ import NextAuth, { customFetch, type NextAuthConfig } from "next-auth";
 import type { OIDCConfig } from "next-auth/providers";
 import { readWiseMembershipTier } from "@/lib/auth/wise-membership";
 import {
+  createWiseSessionExpiresAt,
   isWiseIdentityFresh,
+  isWiseSessionFresh,
   readWiseIdentityExpiresAt,
+  WISE_SESSION_REMEMBERED_SECONDS,
 } from "@/lib/auth/wise-session-policy";
 import {
   resolveWiseAuthConfiguration,
@@ -14,6 +17,7 @@ import {
   parseWiseOidcProfile,
   type WiseOidcProfile,
 } from "@/server/auth/wise-profile";
+import { readWiseSessionDurationPreference } from "@/server/auth/wise-session-preference";
 
 const configuration = resolveWiseAuthConfiguration();
 
@@ -30,7 +34,7 @@ const authConfig = {
   secret: configuration?.sessionSecret,
   session: {
     strategy: "jwt",
-    maxAge: 60 * 60,
+    maxAge: WISE_SESSION_REMEMBERED_SECONDS,
   },
   pages: {
     error: "/auth/error",
@@ -52,9 +56,12 @@ const authConfig = {
         token.wiseImage = parsedProfile.image;
         token.wiseMembershipTier = parsedProfile.membershipTier;
         token.wiseIdentityExpiresAt = identityExpiresAt;
+        token.wiseSessionExpiresAt = createWiseSessionExpiresAt(
+          await readWiseSessionDurationPreference(),
+        ) ?? undefined;
       }
 
-      if (!isWiseIdentityFresh(token.wiseIdentityExpiresAt)) return null;
+      if (!isWiseSessionFresh(token.wiseSessionExpiresAt)) return null;
       return token;
     },
     async session({ session, token }) {
@@ -75,6 +82,9 @@ const authConfig = {
         );
         session.user.image = readSafeUrl(token.wiseImage);
         session.user.membershipTier = membershipTier;
+        session.user.wiseIdentityExpiresAt = readWiseIdentityExpiresAt(
+          token.wiseIdentityExpiresAt,
+        ) ?? undefined;
       }
 
       return session;

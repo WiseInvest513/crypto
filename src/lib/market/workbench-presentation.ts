@@ -92,6 +92,113 @@ export function summarizeCurrentPosition(
   };
 }
 
+export type MechanicalMarketConclusion = Readonly<{
+  status: "available" | "unavailable";
+  stance: "strong" | "weak" | "wait" | "unavailable";
+  label: "结构偏强" | "结构偏弱" | "震荡等待确认" | "暂不形成结论";
+  rationale: string;
+  current: ReturnType<typeof summarizeCurrentPosition>;
+  priceZone: ComputedKeyLevel | null;
+  support: ComputedKeyLevel | null;
+  resistance: ComputedKeyLevel | null;
+}>;
+
+/**
+ * Turns auditable, closed-candle facts into a deliberately strict observation
+ * state. This is a presentation rule, not a forecast: any conflicting EMA,
+ * movement or key-zone evidence falls back to waiting for confirmation.
+ */
+export function buildMechanicalMarketConclusion(
+  points: readonly LiveChartPoint[],
+  analysis: KeyLevelAnalysis | null,
+  mode: AnalysisMode = "short",
+  unavailable = false,
+): MechanicalMarketConclusion {
+  const closedPoints = points.filter((point) => point.state === "closed");
+  const current = summarizeCurrentPosition(closedPoints, mode);
+  const trend = closedPoints.length
+    ? summarizeLiveTrend(closedPoints, analysisModes[mode].emaKeys)
+    : null;
+  const matchingScope = Boolean(
+    analysis &&
+    current &&
+    analysis.asset === current.latest.asset &&
+    analysis.symbol === current.latest.symbol &&
+    analysis.interval === current.latest.interval &&
+    analysis.quoteCurrency === current.latest.quoteCurrency &&
+    Date.parse(analysis.confirmedAt) <= Date.parse(current.latest.closedAt),
+  );
+  if (
+    unavailable ||
+    !analysis ||
+    !current ||
+    !trend ||
+    !matchingScope ||
+    trend.recentThreeChangePercent === null ||
+    trend.comparisons.some((comparison) => comparison.relation === "unavailable")
+  ) {
+    return {
+      status: "unavailable",
+      stance: "unavailable",
+      label: "暂不形成结论",
+      rationale: unavailable
+        ? "行情或关键位置数据正在延迟，恢复后再根据已闭合 K 线形成结论。"
+        : "已闭合 K 线、均线或关键位置样本还不完整，暂时不补写方向。",
+      current,
+      priceZone: null,
+      support: null,
+      resistance: null,
+    };
+  }
+
+  const closedPrice = current.latest.close;
+  const priceZone = keyLevelsContainingPrice(analysis, closedPrice)[0] ?? null;
+  const nearest = nearestKeyLevels(analysis, closedPrice);
+  const support = nearest.supports[0] ?? null;
+  const resistance = nearest.resistances[0] ?? null;
+  const allAbove = trend.comparisons.every((comparison) => comparison.relation === "above");
+  const allBelow = trend.comparisons.every((comparison) => comparison.relation === "below");
+  const upwardOrdering = trend.ordering?.state === "short_above_long";
+  const downwardOrdering = trend.ordering?.state === "short_below_long";
+
+  if (!priceZone && allAbove && upwardOrdering && trend.recentThreeChangePercent > 0) {
+    return {
+      status: "available",
+      stance: "strong",
+      label: "结构偏强",
+      rationale: "闭合收盘、均线排列与最近 3 根变化方向一致，当前偏强证据占优；这不代表下一根必然上涨。",
+      current,
+      priceZone,
+      support,
+      resistance,
+    };
+  }
+  if (!priceZone && allBelow && downwardOrdering && trend.recentThreeChangePercent < 0) {
+    return {
+      status: "available",
+      stance: "weak",
+      label: "结构偏弱",
+      rationale: "闭合收盘、均线排列与最近 3 根变化方向一致，当前偏弱证据占优；这不代表下一根必然下跌。",
+      current,
+      priceZone,
+      support,
+      resistance,
+    };
+  }
+  return {
+    status: "available",
+    stance: "wait",
+    label: "震荡等待确认",
+    rationale: priceZone
+      ? "最新闭合收盘仍在关键价格区域内，方向尚未脱离边界，等待本周期收盘确认。"
+      : "闭合收盘、均线排列或最近 3 根变化存在冲突，当前没有单一方向形成完整确认。",
+    current,
+    priceZone,
+    support,
+    resistance,
+  };
+}
+
 export function summarizeModeOrdering(
   comparisons: readonly Readonly<{ key: LiveEmaKey; value: number | null }>[],
   mode: AnalysisMode,

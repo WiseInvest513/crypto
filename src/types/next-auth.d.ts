@@ -8,6 +8,7 @@ declare module "next-auth" {
       membershipTier?: WiseMembershipTier;
       wiseEmailVerified?: boolean | null;
       wiseId?: string;
+      wiseIdentityExpiresAt?: number;
     };
   }
 
@@ -24,6 +25,7 @@ declare module "next-auth/jwt" {
     wiseEmail?: string | null;
     wiseEmailVerified?: boolean | null;
     wiseIdentityExpiresAt?: number;
+    wiseSessionExpiresAt?: number;
     wiseImage?: string | null;
     wiseMembershipTier?: WiseMembershipTier;
     wiseSubject?: string;
