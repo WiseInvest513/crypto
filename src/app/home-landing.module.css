@@ -1,0 +1,766 @@
+.page {
+  --landing-bg: #ffffff;
+  --landing-surface: #f7f9fd;
+  --landing-surface-hover: #eef3ff;
+  --landing-ink: #111318;
+  --landing-muted: #606876;
+  --landing-faint: #89909d;
+  --landing-line: rgb(17 19 24 / 12%);
+  --landing-line-soft: rgb(77 120 255 / 16%);
+  --landing-grid: rgb(59 99 190 / 8%);
+  --landing-blue: #356df6;
+  --landing-blue-bright: #4d78ff;
+  --landing-cyan: #1e91a3;
+  --landing-violet: #7658df;
+  --landing-action: #2f5fdf;
+  --landing-action-hover: #3569eb;
+  overflow: clip;
+  background: var(--landing-bg);
+  color: var(--landing-ink);
+}
+
+:global(html[data-theme="dark"]) .page {
+  --landing-bg: #05060a;
+  --landing-surface: #090c12;
+  --landing-surface-hover: #0d1320;
+  --landing-ink: #f7f8fc;
+  --landing-muted: #a2a9b7;
+  --landing-faint: #737c8f;
+  --landing-line: rgb(174 189 221 / 16%);
+  --landing-line-soft: rgb(77 120 255 / 25%);
+  --landing-grid: rgb(113 137 190 / 9%);
+  --landing-blue: #4d78ff;
+  --landing-blue-bright: #6990ff;
+  --landing-cyan: #5ce1e6;
+  --landing-violet: #8b6cff;
+  --landing-action: #3567e8;
+  --landing-action-hover: #3c6ded;
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  min-height: min(48rem, calc(100svh - 4rem));
+  isolation: isolate;
+  border-bottom: 1px solid var(--landing-line);
+  background:
+    radial-gradient(circle at 74% 44%, rgb(77 120 255 / 9%), transparent 30%),
+    radial-gradient(circle at 92% 30%, rgb(92 225 230 / 6%), transparent 20%),
+    var(--landing-bg);
+}
+
+.hero::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--landing-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--landing-grid) 1px, transparent 1px);
+  background-size: 4.5rem 4.5rem;
+  content: "";
+  mask-image: linear-gradient(90deg, transparent 2%, black 42%, black 100%);
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 2%,
+    black 42%,
+    black 100%
+  );
+}
+
+.hero::after {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(58rem, 67vw);
+  background: linear-gradient(
+    90deg,
+    var(--landing-bg) 0%,
+    color-mix(in srgb, var(--landing-bg) 96%, transparent) 62%,
+    transparent 100%
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.signalNetwork {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  animation: network-arrive 900ms cubic-bezier(0.2, 0.72, 0.22, 1) 120ms forwards;
+}
+
+.heroGrid,
+.sectionInner {
+  width: min(calc(100% - clamp(1rem, 5vw, 6rem)), 104rem);
+  margin-inline: auto;
+}
+
+.heroGrid {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  min-height: 100%;
+  grid-template-columns: minmax(20rem, 0.82fr) minmax(28rem, 1.18fr);
+  align-items: center;
+}
+
+.heroCopy {
+  z-index: 1;
+  max-width: 47rem;
+  padding-block: clamp(5.5rem, 10vw, 8rem);
+  opacity: 0;
+  transform: translateY(1.1rem);
+  animation: copy-arrive 640ms cubic-bezier(0.2, 0.72, 0.22, 1) 80ms forwards;
+}
+
+.heroCopy h1 {
+  display: grid;
+  gap: 0.08em;
+  margin: 0;
+  color: var(--landing-ink);
+  font-size: clamp(3.6rem, 5vw, 6.2rem);
+  font-weight: 760;
+  letter-spacing: -0.065em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.heroCopy h1 span {
+  display: block;
+}
+
+.heroCopy > p {
+  max-width: 38rem;
+  margin: 2rem 0 0;
+  color: var(--landing-muted);
+  font-size: clamp(1.02rem, 1.4vw, 1.2rem);
+  line-height: 1.75;
+  text-wrap: pretty;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 2.5rem;
+}
+
+.primaryAction,
+.secondaryAction {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  padding-inline: 1.35rem;
+  border: 1px solid transparent;
+  border-radius: 0.65rem;
+  font-size: 0.92rem;
+  font-weight: 720;
+  letter-spacing: -0.01em;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.primaryAction {
+  background: var(--landing-action);
+  box-shadow: 0 0.8rem 2.5rem rgb(53 109 246 / 22%);
+  color: #ffffff;
+}
+
+.secondaryAction {
+  border-color: var(--landing-line);
+  background: color-mix(in srgb, var(--landing-bg) 78%, transparent);
+  color: var(--landing-ink);
+  backdrop-filter: blur(14px);
+}
+
+.primaryAction svg,
+.secondaryAction svg,
+.capabilityArrow svg {
+  flex: 0 0 auto;
+  transition: transform 180ms ease;
+}
+
+@media (hover: hover) {
+  .primaryAction:hover {
+    background: var(--landing-action-hover);
+    box-shadow: 0 1rem 3rem rgb(53 109 246 / 31%);
+    transform: translateY(-2px);
+  }
+
+  .secondaryAction:hover {
+    border-color: color-mix(in srgb, var(--landing-blue) 54%, var(--landing-line));
+    background: var(--landing-surface-hover);
+    transform: translateY(-2px);
+  }
+
+  .primaryAction:hover svg,
+  .secondaryAction:hover svg,
+  .capabilityLink:hover .capabilityArrow svg {
+    transform: translateX(3px);
+  }
+}
+
+.capabilities {
+  position: relative;
+  border-bottom: 1px solid var(--landing-line);
+  background:
+    radial-gradient(circle at 16% 100%, rgb(77 120 255 / 6%), transparent 25%),
+    var(--landing-surface);
+}
+
+.sectionInner {
+  position: relative;
+  z-index: 1;
+}
+
+.capabilityHeading {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(17rem, 0.65fr);
+  align-items: end;
+  gap: 3rem;
+  padding-block: clamp(5rem, 9vw, 8rem) clamp(3.5rem, 6vw, 5rem);
+}
+
+.capabilityHeading h2,
+.manifesto h2 {
+  margin: 0;
+  color: var(--landing-ink);
+  font-size: clamp(2.75rem, 5vw, 5.25rem);
+  font-weight: 720;
+  letter-spacing: -0.055em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.capabilityHeading p {
+  max-width: 26rem;
+  margin: 0;
+  color: var(--landing-muted);
+  font-size: 0.98rem;
+  line-height: 1.75;
+}
+
+.capabilityList {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0 0 clamp(5rem, 9vw, 8rem);
+  list-style: none;
+}
+
+.capabilityList > li {
+  min-width: 0;
+}
+
+.capabilityLink {
+  position: relative;
+  display: grid;
+  min-height: 17rem;
+  grid-template-rows: auto 1fr auto auto;
+  align-content: start;
+  padding: 1.25rem clamp(1.25rem, 2.5vw, 2rem) 1.6rem;
+  border-top: 1px solid var(--landing-line-soft);
+  color: var(--landing-ink);
+  transition:
+    background 220ms ease,
+    border-color 220ms ease,
+    transform 220ms ease;
+}
+
+.capabilityList > li + li .capabilityLink {
+  border-left: 1px solid var(--landing-line);
+}
+
+.capabilityLink::before {
+  position: absolute;
+  top: -1px;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--landing-blue), var(--landing-violet));
+  content: "";
+  opacity: 0;
+  transform: scaleX(0.4);
+  transform-origin: left;
+  transition:
+    opacity 220ms ease,
+    transform 420ms cubic-bezier(0.2, 0.72, 0.22, 1);
+}
+
+.capabilityIndex {
+  color: var(--landing-faint);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+}
+
+.capabilityNode {
+  position: absolute;
+  top: -0.34rem;
+  left: clamp(1.25rem, 2.5vw, 2rem);
+  width: 0.7rem;
+  aspect-ratio: 1;
+  border: 2px solid var(--landing-blue);
+  border-radius: 50%;
+  background: var(--landing-bg);
+  box-shadow: 0 0 0 0.28rem rgb(77 120 255 / 11%);
+  transition:
+    background 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.capabilityIcon {
+  display: grid;
+  width: 3.2rem;
+  aspect-ratio: 1;
+  align-self: center;
+  place-items: center;
+  border: 1px solid var(--landing-line);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--landing-bg) 68%, transparent);
+  color: var(--landing-blue-bright);
+  transition:
+    border-color 220ms ease,
+    color 220ms ease,
+    transform 220ms ease;
+}
+
+.capabilityIcon svg {
+  width: 1.65rem;
+  height: 1.65rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.55;
+}
+
+.capabilityLink strong {
+  align-self: end;
+  margin-top: 1.8rem;
+  font-size: clamp(1.25rem, 1.7vw, 1.55rem);
+  font-weight: 720;
+  letter-spacing: -0.035em;
+}
+
+.capabilityDescription {
+  min-height: 3rem;
+  margin-top: 0.65rem;
+  color: var(--landing-muted);
+  font-size: 0.88rem;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.capabilityArrow {
+  display: inline-flex;
+  margin-top: 1.3rem;
+  color: var(--landing-blue-bright);
+}
+
+@media (hover: hover) {
+  .capabilityLink:hover {
+    border-color: transparent;
+    background: linear-gradient(180deg, rgb(77 120 255 / 10%), transparent 84%);
+    transform: translateY(-0.2rem);
+  }
+
+  .capabilityLink:hover::before {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  .capabilityLink:hover .capabilityNode {
+    background: var(--landing-cyan);
+    box-shadow:
+      0 0 0 0.35rem rgb(92 225 230 / 12%),
+      0 0 1.4rem rgb(92 225 230 / 42%);
+    transform: scale(1.12);
+  }
+
+  .capabilityLink:hover .capabilityIcon {
+    border-color: color-mix(in srgb, var(--landing-blue) 60%, transparent);
+    color: var(--landing-cyan);
+    transform: translateY(-0.18rem);
+  }
+}
+
+.manifesto {
+  position: relative;
+  min-height: 38rem;
+  overflow: hidden;
+  border-bottom: 1px solid var(--landing-line);
+  background:
+    radial-gradient(circle at 88% 50%, rgb(77 120 255 / 12%), transparent 30%),
+    linear-gradient(160deg, var(--landing-bg), var(--landing-surface));
+}
+
+.manifesto::before {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--landing-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--landing-grid) 1px, transparent 1px);
+  background-size: 5rem 5rem;
+  content: "";
+  mask-image: linear-gradient(90deg, transparent 25%, black 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 25%, black 100%);
+  pointer-events: none;
+}
+
+.manifestoCopy {
+  position: relative;
+  z-index: 2;
+  max-width: 62rem;
+  padding-block: clamp(6rem, 11vw, 9rem);
+}
+
+.manifesto h2 {
+  max-width: 56rem;
+}
+
+.principles {
+  display: grid;
+  max-width: 48rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: clamp(3rem, 6vw, 4.5rem) 0 2.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.principles li {
+  display: grid;
+  gap: 0.55rem;
+  padding-right: 1.5rem;
+}
+
+.principles li + li {
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--landing-line);
+}
+
+.principles span {
+  color: var(--landing-blue-bright);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.principles strong {
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  font-weight: 680;
+}
+
+.convergenceGraphic {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  right: -8rem;
+  width: min(66rem, 70vw);
+  height: 27rem;
+  color: var(--landing-ink);
+  opacity: 0.72;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.convergenceGraphic circle:last-child {
+  fill: var(--landing-ink);
+}
+
+@keyframes copy-arrive {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes network-arrive {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 72rem) {
+  .heroGrid {
+    grid-template-columns: minmax(20rem, 0.95fr) minmax(20rem, 1.05fr);
+  }
+
+  .heroCopy h1 {
+    font-size: clamp(3.35rem, 6vw, 4.8rem);
+  }
+
+  .capabilityHeading {
+    grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
+  }
+
+  .capabilityList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .capabilityList > li:nth-child(3) .capabilityLink,
+  .capabilityList > li:nth-child(4) .capabilityLink {
+    border-top-color: var(--landing-line);
+  }
+
+  .capabilityList > li:nth-child(3) .capabilityLink {
+    border-left: 0;
+  }
+}
+
+@media (max-width: 58rem) {
+  .hero {
+    min-height: min(44rem, calc(100svh - 6.75rem));
+  }
+
+  .hero::after {
+    width: 78vw;
+  }
+
+  .heroGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .heroCopy {
+    max-width: 40rem;
+  }
+
+  .capabilityHeading {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 1.5rem;
+  }
+
+  .manifestoCopy {
+    max-width: 46rem;
+  }
+
+  .convergenceGraphic {
+    right: -24rem;
+    width: 64rem;
+    opacity: 0.42;
+  }
+}
+
+@media (max-width: 42rem) {
+  .heroGrid,
+  .sectionInner {
+    width: min(calc(100% - 2rem), 104rem);
+  }
+
+  .hero {
+    min-height: calc(100svh - 6.25rem);
+    background:
+      radial-gradient(circle at 72% 32%, rgb(77 120 255 / 13%), transparent 34%),
+      var(--landing-bg);
+  }
+
+  .hero::before {
+    background-size: 3.5rem 3.5rem;
+    mask-image: linear-gradient(180deg, transparent 0%, black 30%, black 100%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, black 30%, black 100%);
+  }
+
+  .hero::after {
+    top: auto;
+    width: 100%;
+    height: 72%;
+    background: linear-gradient(0deg, var(--landing-bg) 22%, transparent 100%);
+  }
+
+  .signalNetwork {
+    height: 72%;
+    opacity: 0;
+  }
+
+  .heroCopy {
+    align-self: end;
+    padding-block: clamp(8rem, 28vh, 13rem) 3rem;
+  }
+
+  .heroCopy h1 {
+    max-width: 22rem;
+    font-size: clamp(2.55rem, 12vw, 4.35rem);
+    letter-spacing: -0.07em;
+    line-height: 0.99;
+  }
+
+  .heroCopy > p {
+    max-width: 29rem;
+    margin-top: 1.4rem;
+    font-size: 0.98rem;
+    line-height: 1.68;
+  }
+
+  .heroActions {
+    align-items: stretch;
+    margin-top: 1.8rem;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    min-height: 3.2rem;
+  }
+
+  .capabilityHeading {
+    padding-block: 4.5rem 3rem;
+  }
+
+  .capabilityHeading h2,
+  .manifesto h2 {
+    font-size: clamp(2.5rem, 11vw, 3.65rem);
+  }
+
+  .capabilityList {
+    grid-template-columns: 1fr;
+    padding-bottom: 4.5rem;
+  }
+
+  .capabilityLink {
+    min-height: 13rem;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto 1fr;
+    column-gap: 1rem;
+    padding: 1.35rem 1rem 1.4rem 3.4rem;
+    border-top-color: var(--landing-line);
+    border-left: 0 !important;
+  }
+
+  .capabilityLink::before {
+    top: 0;
+    right: auto;
+    bottom: 0;
+    left: 1.45rem;
+    width: 1px;
+    height: auto;
+    background: linear-gradient(180deg, var(--landing-blue), var(--landing-violet));
+    transform: scaleY(0.35);
+    transform-origin: top;
+  }
+
+  .capabilityLink:hover::before {
+    transform: scaleY(1);
+  }
+
+  .capabilityIndex {
+    grid-column: 1 / -1;
+  }
+
+  .capabilityNode {
+    top: 1.55rem;
+    left: 1.12rem;
+  }
+
+  .capabilityIcon {
+    width: 2.9rem;
+    grid-row: 2 / 4;
+    align-self: start;
+    margin-top: 0.25rem;
+  }
+
+  .capabilityLink strong {
+    align-self: auto;
+    margin-top: 0;
+    font-size: 1.35rem;
+  }
+
+  .capabilityDescription {
+    min-height: 0;
+    margin-top: 0.45rem;
+  }
+
+  .capabilityArrow {
+    grid-row: 2 / 4;
+    grid-column: 3;
+    align-self: center;
+    margin-top: 0;
+  }
+
+  .manifesto {
+    min-height: 35rem;
+  }
+
+  .manifesto::before {
+    mask-image: linear-gradient(180deg, black 0%, transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, black 0%, transparent 100%);
+  }
+
+  .manifestoCopy {
+    padding-block: 5.5rem 6rem;
+  }
+
+  .principles {
+    grid-template-columns: 1fr;
+    margin-block: 3rem 2.25rem;
+  }
+
+  .principles li {
+    grid-template-columns: 2rem 1fr;
+    gap: 0.75rem;
+    padding-block: 0.8rem;
+    padding-right: 0;
+    border-top: 1px solid var(--landing-line);
+  }
+
+  .principles li + li {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .convergenceGraphic {
+    top: auto;
+    right: -27rem;
+    bottom: -2rem;
+    width: 58rem;
+    height: 22rem;
+    opacity: 0.3;
+    transform: none;
+  }
+}
+
+@media (max-width: 29rem) {
+  .heroActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signalNetwork,
+  .heroCopy {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .primaryAction,
+  .secondaryAction,
+  .capabilityLink,
+  .capabilityLink::before,
+  .capabilityNode,
+  .capabilityIcon,
+  .primaryAction svg,
+  .secondaryAction svg,
+  .capabilityArrow svg {
+    transition: none;
+  }
+
+}
