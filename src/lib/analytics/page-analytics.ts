@@ -3,12 +3,13 @@ export type PageViewPath =
   | "/btc"
   | "/eth"
   | "/exchanges"
+  | "/learn"
+  | "/learn/futures-intro"
   | "/tools"
   | "/tools/position-size"
   | "/tools/leverage"
   | "/tools/dca"
-  | "/tools/risk-reward"
-  | "/tools/futures-intro";
+  | "/tools/risk-reward";
 
 export type PageViewEvent = Readonly<{
   name: "page_view";
@@ -66,12 +67,13 @@ const STATIC_PAGE_PATHS = new Set<string>([
   "/btc",
   "/eth",
   "/exchanges",
+  "/learn",
+  "/learn/futures-intro",
   "/tools",
   "/tools/position-size",
   "/tools/leverage",
   "/tools/dca",
   "/tools/risk-reward",
-  "/tools/futures-intro",
 ]);
 
 export function isPublicPagePath(path: unknown): path is PageViewPath {

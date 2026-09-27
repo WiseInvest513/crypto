@@ -51,12 +51,13 @@ export const AUTHENTICATED_ROUTES = [
   "/btc",
   "/eth",
   "/exchanges",
+  "/learn",
+  "/learn/futures-intro",
   "/tools",
   "/tools/position-size",
   "/tools/leverage",
   "/tools/dca",
   "/tools/risk-reward",
-  "/tools/futures-intro",
   "/account",
 ] as const;
 

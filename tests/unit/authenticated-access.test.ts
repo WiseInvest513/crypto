@@ -12,12 +12,13 @@ const protectedPages = {
   "/btc": "src/app/btc/page.tsx",
   "/eth": "src/app/eth/page.tsx",
   "/exchanges": "src/app/exchanges/page.tsx",
+  "/learn": "src/app/learn/page.tsx",
+  "/learn/futures-intro": "src/app/learn/futures-intro/page.tsx",
   "/tools": "src/app/tools/page.tsx",
   "/tools/position-size": "src/app/tools/position-size/page.tsx",
   "/tools/leverage": "src/app/tools/leverage/page.tsx",
   "/tools/dca": "src/app/tools/dca/page.tsx",
   "/tools/risk-reward": "src/app/tools/risk-reward/page.tsx",
-  "/tools/futures-intro": "src/app/tools/futures-intro/page.tsx",
   "/account": "src/app/account/page.tsx",
 } as const;
 
@@ -91,6 +92,14 @@ describe("authenticated access static boundaries", () => {
     expect(action).toContain('await signOut({ redirectTo: "/" });');
     expect(action).not.toContain("redirectTo: returnTo");
     expect(action).not.toMatch(/redirect\(returnTo\)/);
+  });
+
+  it("permanently redirects the legacy course URL without keeping old metadata", () => {
+    const source = readSource("src/app/tools/futures-intro/page.tsx");
+
+    expect(source).toContain('permanentRedirect("/learn/futures-intro")');
+    expect(source).not.toContain("metadata");
+    expect(source).not.toContain("requireWisePageAccount");
   });
 
   it("keeps account and chart details dismissible by outside interaction and Escape", () => {

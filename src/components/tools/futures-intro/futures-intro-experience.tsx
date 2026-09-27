@@ -43,7 +43,7 @@ import {
   type QuizKind,
   type FuturesIntroCourse,
 } from "@/lib/learning/futures-course";
-import { BackToToolsLink } from "../back-to-tools-link";
+import { BackToLearnLink } from "@/components/learning/back-to-learn-link";
 import { LessonVisual } from "./lesson-visual";
 import styles from "./futures-intro.module.css";
 
@@ -164,7 +164,7 @@ export function FuturesIntroExperience() {
         courseId: LEARNING_COURSE_ID,
         contentVersion: LEARNING_CONTENT_VERSION,
         placement: "course_index",
-        sourcePage: "/tools/futures-intro",
+        sourcePage: "/learn/futures-intro",
       });
     }
 
@@ -517,11 +517,11 @@ function CourseOverview({
 
   return (
     <div className={`${styles.page} page-container`}>
-      <BackToToolsLink currentLabel="合约入门" />
+      <BackToLearnLink currentLabel="合约入门" />
 
       <header className={styles.courseHero}>
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>工具 · 合约入门</p>
+          <p className={styles.eyebrow}>学习 · 合约入门</p>
           <h1 ref={headingRef} tabIndex={-1}>{course.title}</h1>
           <p>{course.summary}</p>
           <div className={styles.courseFacts} aria-label="课程概况">
@@ -881,7 +881,7 @@ function LessonView({
     >
       <header className={styles.lessonTopbar}>
         <div className={styles.lessonNavigation}>
-          <BackToToolsLink currentLabel="合约入门" />
+          <BackToLearnLink currentLabel="合约入门" />
           <button
             type="button"
             className={styles.backButton}

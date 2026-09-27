@@ -29,10 +29,12 @@ describe("page analytics facade", () => {
     expect(isStaticPageViewPath("/exchanges")).toBe(true);
     expect(isPublicPagePath("/exchanges?from=header")).toBe(false);
     expect(isPublicPagePath("/exchanges/binance")).toBe(false);
-    expect(isPublicPagePath("/tools/futures-intro")).toBe(true);
-    expect(isStaticPageViewPath("/tools/futures-intro")).toBe(true);
-    expect(isPublicPagePath("/tools/futures-intro?lesson=lesson-01")).toBe(false);
-    expect(isPublicPagePath("/tools/futures-intro/lesson-01")).toBe(false);
+    expect(isPublicPagePath("/learn")).toBe(true);
+    expect(isPublicPagePath("/learn/futures-intro")).toBe(true);
+    expect(isStaticPageViewPath("/learn/futures-intro")).toBe(true);
+    expect(isPublicPagePath("/learn/futures-intro?lesson=lesson-01")).toBe(false);
+    expect(isPublicPagePath("/learn/futures-intro/lesson-01")).toBe(false);
+    expect(isPublicPagePath("/tools/futures-intro")).toBe(false);
   });
 
   it("rejects queries, unknown routes, malformed slugs, and oversized slugs", () => {

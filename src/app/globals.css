@@ -6019,7 +6019,7 @@ html[data-theme="dark"] .site-header__theme-icon--sun {
 
   .primary-nav ul {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0;
   }
 
@@ -6250,7 +6250,7 @@ html[data-theme="dark"] .site-header__theme-icon--sun {
 
   .primary-nav ul {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0;
   }
 
@@ -6258,6 +6258,8 @@ html[data-theme="dark"] .site-header__theme-icon--sun {
     display: flex;
     min-height: 2.75rem;
     justify-content: center;
+    padding-inline: 0.25rem;
+    font-size: 0.8125rem;
   }
 
   .primary-nav a[aria-current="page"]::after {

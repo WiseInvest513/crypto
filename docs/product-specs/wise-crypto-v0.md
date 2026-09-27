@@ -1,7 +1,7 @@
 # Wise Crypto V0 产品规范与分阶段执行计划
 
 > 状态：Phase 7 Production Quality 已完成，Wise Crypto V0 已收口；上线前访问门禁批次已在本地完成
-> 最后更新：2026-09-11
+> 最后更新：2026-09-27
 > 仓库：<https://github.com/WiseInvest513/crypto.git>  
 > 计划生产域名：<https://crypto.wise-invest.org>
 
@@ -29,7 +29,7 @@ Wise Crypto V0 是面向 Crypto / Web3 用户的独立市场信息与分析工�
   与行情工作台只显示更新时间与异常状态，避免重复来源文本干扰主信息；完整口径保留在内部合同。
 - 可解释、可人工维护的 Wise Take、Market Status 和 Wise Scenario。
 - 四个不误导用户的基础计算工具。
-- 工具区内的“合约入门”学习工具，以 5 章 26 关解释合约风险和图表观察方法。
+- 独立“学习”栏目中的合约入门课程，以 5 章 26 关解释合约风险和图表观察方法。
 - 主站与子站职责分离：产品、邀请码和 Crypto 权益内容统一由 Wise Invest 主站承接。
 - V0 收口后的已批准优化已经建立 Wise ID OIDC、独立子站 Session 与 `regular / vip`
   两级身份合同；首页保持公开，行情、工具、课程与账户页需要有效登录。
@@ -182,16 +182,17 @@ type MarketDatum<T> =
 # 需要有效 Wise ID Session
 /btc
 /eth
+/learn
+/learn/futures-intro
 /tools
 /tools/position-size
 /tools/leverage
 /tools/dca
 /tools/risk-reward
-/tools/futures-intro
 /account
 ```
 
-全局导航包含：市场总览、行情、工具。BTC / ETH 在行情工作台内切换；`/btc`、
+全局导航包含：市场总览、行情、开户福利、学习、工具。BTC / ETH 在行情工作台内切换；`/btc`、
 `/eth` 继续作为独立可分享 URL，不新增冗余顶层入口。
 
 登录门禁只验证是否存在有效 Wise ID 身份，不等同于 VIP 权益门禁：`regular` 与 `vip` 用户均可
@@ -1772,3 +1773,18 @@ Analytics 失败不能阻断导航、行情交互或工具计算。历史 Referr
   与 `SameSite=Lax` 等 Cookie 边界继续适用。
 - 本批次只实现本地代码、规范与自动化检查，不更改 Wise ID 上游协议，不新增用户数据库，不推送
   GitHub、不部署 Vercel，也不修改 DNS；生产 OAuth 往返和实际 Cookie 到期仍需在发布前单独验收。
+
+## 35. 2026-09-27 工具与学习栏目拆分
+
+- 一级导航新增“学习”，固定入口为 `/learn`；`/tools` 只承载仓位、杠杆、DCA 与风险回报四个
+  计算器，不再混放课程入口或学习进度说明。
+- 已完成的“合约入门”课程迁至 `/learn/futures-intro`，课程内容、5 章 26 关、8 关快速路径、
+  本地进度键和答题状态合同保持不变。课程内的栏目出口改为“返回学习”，“返回目录”继续只负责
+  从当前关卡回到课程目录。
+- 旧 `/tools/futures-intro` 使用固定 308 永久重定向到新地址，不保留旧 canonical、metadata 或
+  page view，也不根据查询参数改变目的地址。新学习目录与课程页继续执行 Wise ID 登录门禁、
+  `private/no-store`、`noindex` 与 robots 禁止抓取，不进入 sitemap。
+- 首页“学会合约”与“从合约入门开始”统一指向新课程地址；Header 与 Footer 共用的导航同时增加
+  “学习”，移动端采用五列导航并保持触控与无横向溢出。
+- 学习目录只展示已经完成并核验的课程。后续合约或 Web3 基础内容必须完成内容、来源、风险边界
+  与验收后再加入，不以“即将上线”空卡或未经核验的正文填充页面。

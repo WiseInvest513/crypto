@@ -38,7 +38,7 @@ describe("Public homepage landing integrity", () => {
   it("links all four capabilities to their existing protected destinations", () => {
     const page = read("src/app/page.tsx");
 
-    for (const href of ["/btc", "/tools", "/tools/futures-intro", "/exchanges"]) {
+    for (const href of ["/btc", "/tools", "/learn/futures-intro", "/exchanges"]) {
       expect(page).toContain(`href: "${href}"`);
     }
     for (const label of ["看懂市场", "算清风险", "学会合约", "找到入口"]) {

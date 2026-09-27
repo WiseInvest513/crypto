@@ -163,7 +163,9 @@ describe("post-authentication return paths", () => {
     ["/", "/"],
     ["/btc", "/btc"],
     ["/eth?interval=4h", "/eth?interval=4h"],
-    ["/tools/futures-intro", "/tools/futures-intro"],
+    ["/exchanges", "/exchanges"],
+    ["/learn", "/learn"],
+    ["/learn/futures-intro", "/learn/futures-intro"],
     ["/account", "/account"],
   ])("keeps an internal public path %s", (value, expected) => {
     expect(normalizeAuthReturnTo(value)).toBe(expected);

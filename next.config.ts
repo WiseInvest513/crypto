@@ -21,6 +21,7 @@ const nextConfig: NextConfig = {
         "/btc/:path*",
         "/eth/:path*",
         "/exchanges/:path*",
+        "/learn/:path*",
         "/tools/:path*",
         "/account/:path*",
       ].map((source) => ({ source, headers: [...privatePageHeaders] })),

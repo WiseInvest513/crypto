@@ -6,8 +6,9 @@ import { metadata as accountMetadata } from "../../src/app/account/page";
 import { metadata as btcMetadata } from "../../src/app/btc/page";
 import { metadata as ethMetadata } from "../../src/app/eth/page";
 import { metadata as exchangesMetadata } from "../../src/app/exchanges/page";
+import { metadata as learnMetadata } from "../../src/app/learn/page";
+import { metadata as futuresIntroMetadata } from "../../src/app/learn/futures-intro/page";
 import { metadata as toolsMetadata } from "../../src/app/tools/page";
-import { metadata as futuresIntroMetadata } from "../../src/app/tools/futures-intro/page";
 import { metadata as positionSizeMetadata } from "../../src/app/tools/position-size/page";
 import { metadata as leverageMetadata } from "../../src/app/tools/leverage/page";
 import { metadata as dcaMetadata } from "../../src/app/tools/dca/page";
@@ -27,8 +28,9 @@ const routeMetadata = [
   ["/btc", btcMetadata],
   ["/eth", ethMetadata],
   ["/exchanges", exchangesMetadata],
+  ["/learn", learnMetadata],
+  ["/learn/futures-intro", futuresIntroMetadata],
   ["/tools", toolsMetadata],
-  ["/tools/futures-intro", futuresIntroMetadata],
   ["/tools/position-size", positionSizeMetadata],
   ["/tools/leverage", leverageMetadata],
   ["/tools/dca", dcaMetadata],
@@ -85,6 +87,7 @@ describe("SEO foundation", () => {
       images: [expect.objectContaining({ url: "/og.png", width: 1200, height: 630 })],
     });
     expect(toRecord(exchangesMetadata.openGraph).images).toHaveLength(1);
+    expect(toRecord(learnMetadata.openGraph).images).toHaveLength(1);
     expect(toRecord(toolsMetadata.openGraph).images).toHaveLength(1);
     expect(toRecord(futuresIntroMetadata.openGraph).images).toHaveLength(1);
 
@@ -175,6 +178,7 @@ describe("SEO foundation", () => {
           "/btc",
           "/eth",
           "/exchanges",
+          "/learn",
           "/studio/",
           "/tools",
         ],

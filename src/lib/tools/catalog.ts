@@ -1,9 +1,3 @@
-import {
-  futuresFullPathLessonIds,
-  futuresIntroCourse,
-  futuresQuickPathLessonIds,
-} from "@/lib/learning/futures-course";
-
 export const toolSlugs = [
   "position-size",
   "leverage",
@@ -36,35 +30,6 @@ export type ToolDefinition = {
   outputs: readonly string[];
   caveat: string;
 };
-
-export type LearningToolDefinition = Readonly<{
-  slug: "futures-intro";
-  href: "/tools/futures-intro";
-  title: string;
-  description: string;
-  chapterCount: number;
-  lessonCount: number;
-  quickLessonCount: number;
-  chapters: readonly string[];
-}>;
-
-/**
- * Learning stays separate from `toolCatalog` so the four calculator entries
- * keep their equal layout and calculator-only type contract.
- */
-export const futuresIntroTool: LearningToolDefinition = Object.freeze({
-  slug: "futures-intro",
-  href: "/tools/futures-intro",
-  title: futuresIntroCourse.title,
-  description:
-    "从合约规则、杠杆风险到 K 线与关键区域，一关一关建立自己的观察流程。",
-  chapterCount: futuresIntroCourse.chapters.length,
-  lessonCount: futuresFullPathLessonIds.length,
-  quickLessonCount: futuresQuickPathLessonIds.length,
-  chapters: Object.freeze(
-    futuresIntroCourse.chapters.map((chapter) => chapter.title),
-  ),
-});
 
 export const toolCatalog: readonly ToolDefinition[] = [
   {

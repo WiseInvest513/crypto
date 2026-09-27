@@ -3392,15 +3392,15 @@
     gap: 0.4rem;
   }
 
-  .lessonNavigation :global(.tool-return-context) {
+  .lessonNavigation :global(.learn-return-context) {
     gap: 0;
   }
 
-  .lessonNavigation :global(.tool-return-link) {
+  .lessonNavigation :global(.learn-return-link) {
     padding-inline: 0.65rem;
   }
 
-  .lessonNavigation :global(.tool-breadcrumb) {
+  .lessonNavigation :global(.learn-breadcrumb) {
     display: none;
   }
 

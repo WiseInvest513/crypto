@@ -1,6 +1,13 @@
 import type { Route } from "next";
 
-const SAFE_RETURN_ROOTS = ["/btc", "/eth", "/tools", "/account"] as const;
+const SAFE_RETURN_ROOTS = [
+  "/btc",
+  "/eth",
+  "/exchanges",
+  "/learn",
+  "/tools",
+  "/account",
+] as const;
 
 export function normalizeAuthReturnTo(value: unknown): Route {
   if (

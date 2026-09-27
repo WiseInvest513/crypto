@@ -38,7 +38,7 @@ type CourseIdentity = Readonly<{
 export type CourseOpenContext = CourseIdentity &
   Readonly<{
     placement: CourseOpenPlacement;
-    sourcePage: "/tools/futures-intro";
+    sourcePage: "/learn/futures-intro";
   }>;
 
 type LessonContext = CourseIdentity &
@@ -216,7 +216,7 @@ function toSafePayload(
   if (name === "course_open") {
     if (
       !isAllowedString(context.placement, PLACEMENT_SET) ||
-      context.sourcePage !== "/tools/futures-intro"
+      context.sourcePage !== "/learn/futures-intro"
     ) {
       return null;
     }

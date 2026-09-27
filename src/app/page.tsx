@@ -31,7 +31,7 @@ const capabilities = [
     index: "03",
     title: "学会合约",
     description: "用五章二十六关理解规则与风险",
-    href: "/tools/futures-intro",
+    href: "/learn/futures-intro",
     icon: LearnIcon,
   },
   {
@@ -74,7 +74,7 @@ export default function Home() {
               </Link>
               <Link
                 className={styles.secondaryAction}
-                href="/tools/futures-intro"
+                href="/learn/futures-intro"
                 prefetch={false}
               >
                 从合约入门开始

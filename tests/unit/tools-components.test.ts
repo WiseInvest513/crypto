@@ -14,6 +14,7 @@ import type {
   DcaMarketHistory,
 } from "../../src/lib/tools/dca-market-data";
 import { getToolDefinition } from "../../src/lib/tools/catalog";
+import LearnPage from "../../src/app/learn/page";
 import ToolsPage from "../../src/app/tools/page";
 
 vi.mock("@/server/auth/wise-route-access", () => ({
@@ -21,19 +22,15 @@ vi.mock("@/server/auth/wise-route-access", () => ({
 }));
 
 describe("Phase 5 calculator components", () => {
-  it("presents one learning entry before four equal calculator cards", async () => {
+  it("presents only four equal calculator cards", async () => {
     const markup = renderToStaticMarkup(await ToolsPage());
 
     expect(markup).toContain("交易前，先把风险弄明白");
-    expect(markup).toContain('class="tools-learning"');
-    expect(markup).toContain('href="/tools/futures-intro"');
-    expect(markup).toContain("合约入门");
-    expect(markup).toContain("5</strong> 章");
-    expect(markup).toContain("26</strong> 关");
-    expect(markup).toContain("快速路径 <strong>8</strong> 关");
+    expect(markup).not.toContain('class="tools-learning"');
+    expect(markup).not.toContain("合约入门");
     expect(markup).toContain("从当前问题开始");
     expect(markup).toContain('aria-label="计算工具"');
-    expect(markup).toContain("只在当前设备学习与计算");
+    expect(markup).toContain("只在当前设备计算");
     expect(markup.match(/class="tools-card"/g)).toHaveLength(4);
     expect(markup.match(/class="tools-card__icon"/g)).toHaveLength(4);
     for (const slug of ["position-size", "leverage", "dca", "risk-reward"]) {
@@ -44,6 +41,18 @@ describe("Phase 5 calculator components", () => {
     expect(markup).not.toContain("tools-task-list");
     expect(markup).not.toContain("tools-index__summary");
     expect(markup).not.toContain("tool-card__index");
+  });
+
+  it("presents the existing course in the separate learning center", async () => {
+    const markup = renderToStaticMarkup(await LearnPage());
+
+    expect(markup).toContain("系统学习，从合约入门开始");
+    expect(markup).toContain('href="/learn/futures-intro"');
+    expect(markup).toContain("合约入门");
+    expect(markup).toContain("5</strong> 章");
+    expect(markup).toContain("26</strong> 关");
+    expect(markup).toContain("快速路径 <strong>8</strong> 关");
+    expect(markup).not.toContain("即将上线");
   });
 
   it("renders an empty, labelled position-size form without a suggested risk value", () => {

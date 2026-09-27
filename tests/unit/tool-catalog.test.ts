@@ -10,7 +10,10 @@ import {
   futuresQuickPathLessonIds,
 } from "../../src/lib/learning/futures-course";
 import {
-  futuresIntroTool,
+  futuresIntroCourseSummary,
+  learningCatalog,
+} from "../../src/lib/learning/catalog";
+import {
   getToolDefinition,
   toolCatalog,
   toolCategories,
@@ -48,35 +51,36 @@ const EXPECTED_PRESENTATION = {
 } as const;
 
 describe("tool catalog", () => {
-  it("keeps the learning tool distinct from the four calculators", () => {
+  it("keeps learning courses in a distinct catalog from the four calculators", () => {
     expect(toolCatalog).toHaveLength(4);
-    expect(futuresIntroTool).toMatchObject({
+    expect(learningCatalog).toEqual([futuresIntroCourseSummary]);
+    expect(futuresIntroCourseSummary).toMatchObject({
       slug: "futures-intro",
-      href: "/tools/futures-intro",
+      href: "/learn/futures-intro",
       chapterCount: 5,
       lessonCount: 26,
       quickLessonCount: 8,
     });
-    expect(futuresIntroTool.chapters).toHaveLength(5);
-    expect(futuresIntroTool.chapterCount).toBe(
+    expect(futuresIntroCourseSummary.chapters).toHaveLength(5);
+    expect(futuresIntroCourseSummary.chapterCount).toBe(
       futuresIntroCourse.chapters.length,
     );
-    expect(futuresIntroTool.lessonCount).toBe(
+    expect(futuresIntroCourseSummary.lessonCount).toBe(
       futuresFullPathLessonIds.length,
     );
-    expect(futuresIntroTool.quickLessonCount).toBe(
+    expect(futuresIntroCourseSummary.quickLessonCount).toBe(
       futuresQuickPathLessonIds.length,
     );
-    expect(futuresIntroTool.chapters).toEqual(
+    expect(futuresIntroCourseSummary.chapters).toEqual(
       futuresIntroCourse.chapters.map((chapter) => chapter.title),
     );
     expect(toolCatalog.map((tool) => String(tool.slug))).not.toContain(
       "futures-intro",
     );
-    expect(AUTHENTICATED_ROUTES).toContain(futuresIntroTool.href);
-    expect(PUBLIC_ROUTES).not.toContain(futuresIntroTool.href);
+    expect(AUTHENTICATED_ROUTES).toContain(futuresIntroCourseSummary.href);
+    expect(PUBLIC_ROUTES).not.toContain(futuresIntroCourseSummary.href);
     expect(sitemap().map((entry) => new URL(entry.url).pathname)).not.toContain(
-      futuresIntroTool.href,
+      futuresIntroCourseSummary.href,
     );
   });
 

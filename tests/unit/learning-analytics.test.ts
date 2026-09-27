@@ -30,7 +30,7 @@ describe("learning analytics facade", () => {
       courseId: LEARNING_COURSE_ID,
       contentVersion: LEARNING_CONTENT_VERSION,
       placement: "course_index",
-      sourcePage: "/tools/futures-intro",
+      sourcePage: "/learn/futures-intro",
     });
     analytics.trackLessonStart(lessonContext);
     analytics.trackQuizResult({
@@ -139,7 +139,7 @@ describe("learning analytics facade", () => {
       courseId: LEARNING_COURSE_ID,
       contentVersion: LEARNING_CONTENT_VERSION,
       placement: "direct",
-      sourcePage: "/tools/futures-intro",
+      sourcePage: "/learn/futures-intro",
     } as unknown as CourseOpenContext);
 
     expect(events).toEqual([]);
