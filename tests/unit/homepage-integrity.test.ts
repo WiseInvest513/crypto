@@ -31,7 +31,7 @@ describe("Public homepage landing integrity", () => {
     expect(manifesto).toBeGreaterThan(capabilities);
     expect(page).toContain("看懂加密市场，");
     expect(page).toContain("再决定下一步。");
-    expect(page).toContain("你需要的，不只是价格。");
+    expect(page).toContain("从问题出发，找到对应入口。");
     expect(page).toContain("我们不替你预测，");
     expect(page).toContain("只帮你看清。");
   });
@@ -45,7 +45,8 @@ describe("Public homepage landing integrity", () => {
     for (const label of ["看懂市场", "算清风险", "学会合约", "找到入口"]) {
       expect(page).toContain(`title: "${label}"`);
     }
-    expect(page.match(/prefetch=\{false\}/g)?.length).toBeGreaterThanOrEqual(4);
+    // Two hero CTAs plus the mapped capability Link all opt out of prefetching.
+    expect(page.match(/prefetch=\{false\}/g)?.length).toBeGreaterThanOrEqual(3);
     expect(page).not.toContain('href="/products"');
   });
 
@@ -55,8 +56,14 @@ describe("Public homepage landing integrity", () => {
 
     expect(page).not.toContain('"use client"');
     expect(page).not.toContain("<SignalNetwork");
-    expect(page).toContain("productMap");
-    expect(page).toContain("trustStrip");
+    expect(page).toContain("heroVisual");
+    expect(page).toContain("heroRail");
+    expect(page).toContain("workflow");
+    expect(page).toContain('src="/home/crypto-network.png"');
+    expect(page).not.toContain('src="/home/crypto-pathway.png"');
+    expect(page.match(/alt=""/g)?.length).toBeGreaterThanOrEqual(1);
+    expect(stylesheet).toContain("width: min(calc(100% -");
+    expect(stylesheet).not.toContain("100vw");
     expect(stylesheet).not.toMatch(/url\s*\(/);
     expect(stylesheet).toContain("@media (prefers-reduced-motion: reduce)");
   });
@@ -70,7 +77,11 @@ describe("Public homepage landing integrity", () => {
     expect(page).toContain("useSiteImage: true");
     expect(page).not.toContain("home-dashboard.css");
     expect(page).not.toMatch(/https?:\/\//);
-    expect(page).not.toMatch(/<img|next\/image/i);
+    expect(page).toContain('import Image from "next/image"');
+    expect(page).not.toContain("<img");
+    expect(() => read("public/home/crypto-network.png")).not.toThrow();
+    expect(page).toContain("5 章 · 26 关 · 8 关快速路径");
+    expect(page).toContain("Binance · OKX · Bitget · Bybit · Gate");
   });
 
   it("uses the current Next.js retry callback in error boundaries", () => {
