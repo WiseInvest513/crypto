@@ -1,7 +1,7 @@
 .exchange-experience {
   min-width: 0;
   background:
-    radial-gradient(circle at 78% 2%, color-mix(in srgb, var(--focus) 7%, transparent), transparent 26rem),
+    radial-gradient(circle at 78% 2%, color-mix(in srgb, var(--focus) 10%, transparent), transparent 26rem),
     var(--canvas);
 }
 
@@ -36,7 +36,7 @@
   grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.65fr);
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 1.5rem;
+  border-radius: 1.65rem;
   background: var(--surface);
   box-shadow: var(--shadow-panel);
 }

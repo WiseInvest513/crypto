@@ -5,7 +5,7 @@
   --learn-line: var(--line);
   --learn-line-strong: var(--line-strong);
   --learn-surface: var(--surface);
-  --learn-surface-subtle: #fafafa;
+  --learn-surface-subtle: var(--surface-soft);
   --learn-soft: var(--brand-soft);
   --learn-accent: #9a4b00;
   --learn-accent-soft: #fff7ec;
@@ -35,8 +35,11 @@ html[data-theme="dark"] .learn-experience {
   gap: clamp(1.5rem, 4vw, 4rem);
   padding: clamp(1.5rem, 4vw, 2.75rem);
   border: 1px solid var(--learn-line);
-  border-radius: 1.25rem;
-  background: var(--learn-soft);
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(circle at 92% 4%, color-mix(in srgb, var(--focus) 13%, transparent), transparent 22rem),
+    var(--learn-surface);
+  box-shadow: var(--shadow-panel);
 }
 
 .learn-eyebrow {
@@ -58,7 +61,7 @@ html[data-theme="dark"] .learn-experience {
 .learn-hero h1 {
   max-width: 52rem;
   color: var(--learn-ink);
-  font-size: clamp(2.25rem, 5vw, 4rem);
+  font-size: clamp(2.25rem, 4.5vw, 3.4rem);
   font-weight: 780;
   letter-spacing: -0.05em;
   line-height: 1.04;
@@ -146,9 +149,7 @@ html[data-theme="dark"] .learn-experience {
   border: 1px solid var(--learn-line);
   border-radius: 1.25rem;
   background: var(--learn-surface);
-  box-shadow:
-    0 1px 2px rgb(0 0 0 / 4%),
-    0 18px 44px rgb(0 0 0 / 6%);
+  box-shadow: var(--shadow-panel);
 }
 
 .learn-course__intro {

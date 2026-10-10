@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { SignalNetwork } from "@/components/home/signal-network";
 import { createPageMetadata } from "@/lib/seo/page-metadata";
 import styles from "./home-landing.module.css";
 
@@ -44,116 +43,194 @@ const capabilities = [
 ] as const;
 
 const principles = [
-  { index: "01", label: "真实数据" },
-  { index: "02", label: "可解释判断" },
-  { index: "03", label: "风险优先" },
+  {
+    index: "01",
+    label: "真实数据",
+    description: "缺失就明确显示不可用，不用虚构数字填满页面。",
+  },
+  {
+    index: "02",
+    label: "可解释判断",
+    description: "把结论、依据与失效条件放在一起，方便你自己核对。",
+  },
+  {
+    index: "03",
+    label: "风险优先",
+    description: "先理解规则、仓位与边界，再考虑是否采取行动。",
+  },
+] as const;
+
+const productMap = [
+  { label: "行情", value: "BTC · ETH", tone: "blue" },
+  { label: "工具", value: "4 个计算器", tone: "violet" },
+  { label: "学习", value: "5 章 · 26 关", tone: "cyan" },
+  { label: "开户", value: "5 家平台", tone: "amber" },
 ] as const;
 
 export default function Home() {
   return (
     <div className={styles.page}>
-      <section className={styles.hero} aria-labelledby="home-title">
-        <SignalNetwork className={styles.signalNetwork} />
-        <div className={styles.heroGrid}>
-          <div className={styles.heroCopy}>
-            <h1 id="home-title">
-              <span>看懂加密市场，</span>
-              <span>再决定下一步。</span>
-            </h1>
-            <p>
-              把行情、工具、学习与开户路径，整理成一套清晰、可执行的加密市场工作台。
-            </p>
-            <div className={styles.heroActions}>
-              <Link
-                className={styles.primaryAction}
-                href="/btc"
-                prefetch={false}
-              >
-                进入市场工作台
-                <ArrowRightIcon />
-              </Link>
-              <Link
-                className={styles.secondaryAction}
-                href="/learn/futures-intro"
-                prefetch={false}
-              >
-                从合约入门开始
-                <ArrowRightIcon />
-              </Link>
+      <div className={styles.shell}>
+        <section className={styles.hero} aria-labelledby="home-title">
+          <div className={styles.heroGrid}>
+            <div className={styles.heroCopy}>
+              <p className={styles.eyebrow}>WISE CRYPTO · 加密市场工作台</p>
+              <h1 id="home-title">
+                <span>看懂加密市场，</span>
+                <span>再决定下一步。</span>
+              </h1>
+              <p>
+                把行情、工具、学习与开户路径，整理成一套清晰、可执行的加密市场工作台。
+              </p>
+              <div className={styles.heroActions}>
+                <Link
+                  className={styles.primaryAction}
+                  href="/btc"
+                  prefetch={false}
+                >
+                  进入市场工作台
+                  <ArrowRightIcon />
+                </Link>
+                <Link
+                  className={styles.secondaryAction}
+                  href="/learn/futures-intro"
+                  prefetch={false}
+                >
+                  从合约入门开始
+                  <ArrowRightIcon />
+                </Link>
+              </div>
+            </div>
+
+            <aside className={styles.productMap} aria-label="Wise Crypto 产品能力">
+              <div className={styles.productMapHeader}>
+                <span>工作台导航</span>
+                <strong>从信息到行动</strong>
+                <p>市场观察、风险检查、系统学习与开户路径，各自独立又彼此衔接。</p>
+              </div>
+              <dl className={styles.productMapGrid}>
+                {productMap.map((item) => (
+                  <div key={item.label} data-tone={item.tone}>
+                    <dt>{item.label}</dt>
+                    <dd>{item.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </aside>
+          </div>
+        </section>
+
+        <div className={styles.trustStrip} aria-label="Wise Crypto 产品原则概览">
+          <p>
+            <strong>为判断服务，不为热闹堆数据</strong>
+            <span>每个入口只回答一类问题</span>
+          </p>
+          <ul>
+            <li>
+              <span aria-hidden="true" />数据有来源
+            </li>
+            <li>
+              <span aria-hidden="true" />结论有依据
+            </li>
+            <li>
+              <span aria-hidden="true" />风险有边界
+            </li>
+          </ul>
+        </div>
+
+        <section
+          className={styles.capabilities}
+          aria-labelledby="capabilities-title"
+        >
+          <div className={styles.sectionInner}>
+            <header className={styles.capabilityHeading}>
+              <div>
+                <p className={styles.eyebrow}>四个清晰入口</p>
+                <h2 id="capabilities-title">你需要的，不只是价格。</h2>
+              </div>
+              <p>从观察到行动，把复杂的加密市场拆成四条清晰路径。</p>
+            </header>
+
+            <nav aria-label="Wise Crypto 核心能力">
+              <ol className={styles.capabilityList}>
+                {capabilities.map((capability) => {
+                  const Icon = capability.icon;
+
+                  return (
+                    <li key={capability.href}>
+                      <Link
+                        className={styles.capabilityLink}
+                        href={capability.href}
+                        prefetch={false}
+                      >
+                        <span
+                          className={styles.capabilityIndex}
+                          aria-hidden="true"
+                        >
+                          {capability.index}
+                        </span>
+                        <span
+                          className={styles.capabilityIcon}
+                          aria-hidden="true"
+                        >
+                          <Icon />
+                        </span>
+                        <strong>{capability.title}</strong>
+                        <span className={styles.capabilityDescription}>
+                          {capability.description}
+                        </span>
+                        <span
+                          className={styles.capabilityArrow}
+                          aria-hidden="true"
+                        >
+                          <ArrowRightIcon />
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ol>
+            </nav>
+          </div>
+        </section>
+
+        <section className={styles.manifesto} aria-labelledby="manifesto-title">
+          <div className={styles.sectionInner}>
+            <div className={styles.manifestoCopy}>
+              <div>
+                <p className={styles.eyebrow}>我们的工作方式</p>
+                <h2 id="manifesto-title">
+                  我们不替你预测，
+                  <br />
+                  只帮你看清。
+                </h2>
+                <p className={styles.manifestoLead}>
+                  把数据、解释和风险边界放在同一个阅读路径里，让你知道自己看到的是什么，也知道它不能说明什么。
+                </p>
+                <Link
+                  className={styles.primaryAction}
+                  href="/btc"
+                  prefetch={false}
+                >
+                  开始使用 Wise Crypto
+                  <ArrowRightIcon />
+                </Link>
+              </div>
+              <ul className={styles.principles} aria-label="Wise Crypto 产品原则">
+                {principles.map((principle) => (
+                  <li key={principle.label}>
+                    <span aria-hidden="true">{principle.index}</span>
+                    <div>
+                      <strong>{principle.label}</strong>
+                      <p>{principle.description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section
-        className={styles.capabilities}
-        aria-labelledby="capabilities-title"
-      >
-        <div className={styles.sectionInner}>
-          <header className={styles.capabilityHeading}>
-            <h2 id="capabilities-title">你需要的，不只是价格。</h2>
-            <p>从观察到行动，把复杂的加密市场拆成四条清晰路径。</p>
-          </header>
-
-          <nav aria-label="Wise Crypto 核心能力">
-            <ol className={styles.capabilityList}>
-              {capabilities.map((capability) => {
-                const Icon = capability.icon;
-
-                return (
-                  <li key={capability.href}>
-                    <Link
-                      className={styles.capabilityLink}
-                      href={capability.href}
-                      prefetch={false}
-                    >
-                      <span className={styles.capabilityIndex} aria-hidden="true">
-                        {capability.index}
-                      </span>
-                      <span className={styles.capabilityNode} aria-hidden="true" />
-                      <span className={styles.capabilityIcon} aria-hidden="true">
-                        <Icon />
-                      </span>
-                      <strong>{capability.title}</strong>
-                      <span className={styles.capabilityDescription}>
-                        {capability.description}
-                      </span>
-                      <span className={styles.capabilityArrow} aria-hidden="true">
-                        <ArrowRightIcon />
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ol>
-          </nav>
-        </div>
-      </section>
-
-      <section className={styles.manifesto} aria-labelledby="manifesto-title">
-        <ConvergenceGraphic />
-        <div className={styles.sectionInner}>
-          <div className={styles.manifestoCopy}>
-            <h2 id="manifesto-title">我们不替你预测，只帮你看清。</h2>
-            <ul className={styles.principles} aria-label="Wise Crypto 产品原则">
-              {principles.map((principle) => (
-                <li key={principle.label}>
-                  <span aria-hidden="true">{principle.index}</span>
-                  <strong>{principle.label}</strong>
-                </li>
-              ))}
-            </ul>
-            <Link
-              className={styles.primaryAction}
-              href="/btc"
-              prefetch={false}
-            >
-              开始使用 Wise Crypto
-              <ArrowRightIcon />
-            </Link>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }
@@ -210,45 +287,6 @@ function PerkIcon() {
     <svg viewBox="0 0 28 28" fill="none">
       <path d="M4 11h20v13H4V11Zm-1-5.5h22V11H3V5.5ZM14 5.5V24" />
       <path d="M14 5.5H9.8A2.8 2.8 0 1 1 12.6 2c1.4 0 1.4 3.5 1.4 3.5Zm0 0h4.2A2.8 2.8 0 1 0 15.4 2C14 2 14 5.5 14 5.5Z" />
-    </svg>
-  );
-}
-
-function ConvergenceGraphic() {
-  const paths = [
-    "M0 42C132 42 164 168 304 168s172-118 318-118 170 180 334 180",
-    "M0 106c154 0 190 92 322 92S514 88 646 88s160 94 310 94",
-    "M0 172c144 0 188-52 310-52s196 144 332 144 170-92 314-92",
-    "M0 236c126 0 176-92 302-92s198 34 334 34 182 58 320 58",
-  ];
-
-  return (
-    <svg
-      className={styles.convergenceGraphic}
-      viewBox="0 0 960 310"
-      preserveAspectRatio="xMidYMid slice"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id="convergence-gradient" x1="0" x2="1">
-          <stop offset="0" stopColor="#4d78ff" stopOpacity="0" />
-          <stop offset="0.58" stopColor="#4d78ff" stopOpacity="0.42" />
-          <stop offset="0.88" stopColor="#5ce1e6" stopOpacity="0.8" />
-          <stop offset="1" stopColor="currentColor" stopOpacity="0.95" />
-        </linearGradient>
-        <radialGradient id="convergence-node">
-          <stop offset="0" stopColor="currentColor" />
-          <stop offset="0.3" stopColor="#5ce1e6" />
-          <stop offset="1" stopColor="#4d78ff" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <g fill="none" stroke="url(#convergence-gradient)" strokeWidth="1">
-        {paths.map((path) => (
-          <path key={path} d={path} />
-        ))}
-      </g>
-      <circle cx="930" cy="201" r="72" fill="url(#convergence-node)" opacity="0.38" />
-      <circle cx="930" cy="201" r="3.5" fill="currentColor" />
     </svg>
   );
 }

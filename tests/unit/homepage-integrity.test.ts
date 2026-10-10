@@ -32,7 +32,8 @@ describe("Public homepage landing integrity", () => {
     expect(page).toContain("看懂加密市场，");
     expect(page).toContain("再决定下一步。");
     expect(page).toContain("你需要的，不只是价格。");
-    expect(page).toContain("我们不替你预测，只帮你看清。");
+    expect(page).toContain("我们不替你预测，");
+    expect(page).toContain("只帮你看清。");
   });
 
   it("links all four capabilities to their existing protected destinations", () => {
@@ -48,19 +49,15 @@ describe("Public homepage landing integrity", () => {
     expect(page).not.toContain('href="/products"');
   });
 
-  it("keeps animation inside one decorative, motion-safe client island", () => {
+  it("keeps the public doorway server-rendered and visually self-contained", () => {
     const page = read("src/app/page.tsx");
-    const network = read("src/components/home/signal-network.tsx");
     const stylesheet = read("src/app/home-landing.module.css");
 
     expect(page).not.toContain('"use client"');
-    expect(page).toContain("<SignalNetwork");
-    expect(network).toContain('"use client"');
-    expect(network).toContain('aria-hidden="true"');
-    expect(network).toContain("prefers-reduced-motion: reduce");
-    expect(network).toContain("1000 / 30");
-    expect(network).toContain("document.hidden");
-    expect(network).toContain("IntersectionObserver");
+    expect(page).not.toContain("<SignalNetwork");
+    expect(page).toContain("productMap");
+    expect(page).toContain("trustStrip");
+    expect(stylesheet).not.toMatch(/url\s*\(/);
     expect(stylesheet).toContain("@media (prefers-reduced-motion: reduce)");
   });
 

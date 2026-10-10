@@ -12,14 +12,14 @@
   --tools-line-strong: var(--line-strong);
   --tools-surface: var(--surface);
   --tools-surface-raised: var(--surface-raised);
-  --tools-surface-subtle: #fafafa;
+  --tools-surface-subtle: var(--surface-soft);
   --tools-field-background: var(--field-background);
   --tools-accent: var(--brand);
   --tools-accent-dark: var(--brand-dark);
   --tools-accent-soft: var(--brand-soft);
   --tools-sand: var(--surface-soft);
-  --tools-blue: #2c62d6;
-  --tools-blue-soft: #eef4ff;
+  --tools-blue: #2878ff;
+  --tools-blue-soft: #eaf2ff;
   --tools-orange: #914700;
   --tools-orange-soft: #fff3e2;
   --tools-purple: #7a4bd8;
@@ -66,15 +66,18 @@ html[data-theme="dark"] .tools-experience {
   gap: clamp(1.5rem, 4vw, 4rem);
   padding: clamp(1.5rem, 4vw, 2.75rem);
   border: 1px solid var(--tools-line);
-  border-radius: 1.25rem;
-  background: var(--tools-accent-soft);
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(circle at 92% 4%, color-mix(in srgb, var(--focus) 13%, transparent), transparent 22rem),
+    var(--tools-surface);
+  box-shadow: var(--shadow-panel);
 }
 
 .tools-hero h1 {
   max-width: 48rem;
   margin: 0;
   color: var(--tools-ink);
-  font-size: clamp(2.25rem, 5vw, 4rem);
+  font-size: clamp(2.25rem, 4.5vw, 3.4rem);
   font-weight: 750;
   letter-spacing: -0.045em;
   line-height: 1.02;
@@ -343,9 +346,7 @@ html[data-theme="dark"] .tools-experience {
   border: 1px solid var(--tools-line);
   border-radius: 1.15rem;
   background: var(--tools-surface);
-  box-shadow:
-    0 1px 2px rgb(0 0 0 / 5%),
-    0 14px 34px rgb(0 0 0 / 7%);
+  box-shadow: var(--shadow-panel);
   transition:
     transform 180ms ease,
     border-color 180ms ease,
