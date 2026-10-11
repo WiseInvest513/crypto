@@ -48,6 +48,17 @@ describe("site header login foundation", () => {
     expect(html).toContain('aria-pressed="false"');
   });
 
+  it("uses the custom CRYPTO lettering without the former app-icon mark", async () => {
+    const html = renderToStaticMarkup(await SiteHeader());
+
+    expect(html).toContain('aria-label="Wise Crypto 首页"');
+    expect(html).toContain('class="crypto-wordmark"');
+    expect(html).toContain('class="crypto-wordmark__lettering"');
+    expect(html).toContain('viewBox="0 0 139 24"');
+    expect(html).not.toContain('class="wordmark__mark"');
+    expect(html).not.toContain('class="wordmark__text"');
+  });
+
   it("keeps all three utilities touch-sized and inside narrow viewports", () => {
     const css = readFileSync(
       join(process.cwd(), "src/app/globals.css"),

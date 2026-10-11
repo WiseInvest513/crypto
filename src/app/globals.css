@@ -233,38 +233,33 @@ a {
   min-height: 2.75rem;
   width: max-content;
   align-items: center;
-  gap: 0.65rem;
+  color: var(--ink);
 }
 
-.wordmark__mark {
-  display: grid;
-  width: 1.9rem;
-  aspect-ratio: 1;
-  place-items: center;
-  border-radius: 0.68rem;
-  background: linear-gradient(135deg, #2878ff, #5856d6);
-  box-shadow: 0 0.45rem 1.2rem rgb(40 120 255 / 24%);
-  color: #ffffff;
-  font-size: 1rem;
-  font-weight: 850;
-  letter-spacing: -0.06em;
+.crypto-wordmark {
+  --crypto-wordmark-accent: #4268e8;
+  --crypto-wordmark-gold: #a18447;
+  display: inline-flex;
+  height: 1.75rem;
+  align-items: center;
+  color: currentColor;
+  transition: color 160ms ease;
 }
 
-.wordmark__text {
-  display: flex;
-  align-items: baseline;
-  gap: 0.25rem;
-  font-size: 0.98rem;
-  letter-spacing: -0.035em;
+.crypto-wordmark__lettering {
+  display: block;
+  width: 9.25rem;
+  height: 1.5rem;
+  overflow: visible;
 }
 
-.wordmark__text strong {
-  font-weight: 800;
-}
-
-.wordmark__text span {
+.wordmark:hover {
   color: var(--brand-dark);
-  font-weight: 700;
+}
+
+html[data-theme="dark"] .crypto-wordmark {
+  --crypto-wordmark-accent: #8aa5ff;
+  --crypto-wordmark-gold: #d4b56a;
 }
 
 .primary-nav {
@@ -6972,8 +6967,8 @@ html[data-theme="dark"] .site-header__theme-icon--sun {
 }
 
 @media (max-width: 22rem) {
-  .wordmark__text > span {
-    display: none;
+  .crypto-wordmark__lettering {
+    width: 7.6rem;
   }
 
   .site-header__account-trigger {

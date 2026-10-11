@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AccountMenu } from "./account-menu";
+import { CryptoWordmark } from "./crypto-wordmark";
 import { SiteNav } from "./site-nav";
 import { ThemeToggle } from "./theme-toggle";
 import { WISE_INVEST_VIP_URL } from "@/config/site";
@@ -15,13 +16,7 @@ export async function SiteHeader() {
     <header className="site-header">
       <div className="page-container site-header__inner">
         <Link className="wordmark" href="/" aria-label="Wise Crypto 首页">
-          <span className="wordmark__mark" aria-hidden="true">
-            W
-          </span>
-          <span className="wordmark__text">
-            <strong>Wise</strong>
-            <span>Crypto</span>
-          </span>
+          <CryptoWordmark />
         </Link>
 
         <SiteNav />

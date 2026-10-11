@@ -1226,12 +1226,8 @@
     flex: 0 0 auto;
   }
 
-  .wordmark__mark {
-    width: 1.9rem;
-  }
-
-  .wordmark__text span {
-    display: none;
+  .crypto-wordmark__lettering {
+    width: 8.4rem;
   }
 
   .primary-nav {
@@ -1589,8 +1585,8 @@
 }
 
 @media (max-width: 23.5rem) {
-  .wordmark__text {
-    display: none;
+  .crypto-wordmark__lettering {
+    width: 7.6rem;
   }
 
   .primary-nav a {
