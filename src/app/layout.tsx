@@ -1,3 +1,4 @@
+import Script from "next/script";
 import type { Metadata } from "next";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -92,7 +93,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <SiteFooter />
           </PublicChromeBoundary>
         </div>
-      </body>
+      <Script id="wise-global-popup-script" src="/wise-popup.js" strategy="afterInteractive" data-site="crypto" data-config-url={process.env.NODE_ENV === "development" ? "http://127.0.0.1:3002/api/public/popup" : "https://www.wise-invest.org/api/public/popup"} /></body>
     </html>
   );
 }
