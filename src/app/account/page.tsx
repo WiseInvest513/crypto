@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { WiseAvatar } from "@/components/account/wise-avatar";
 import { WISE_INVEST_ACCOUNT_URL } from "@/config/site";
+import { withMainSiteAttribution } from "@/lib/auth/main-site-attribution";
 import { createProtectedPageMetadata } from "@/lib/seo/page-metadata";
 import { requireWisePageAccount } from "@/server/auth/wise-route-access";
 
@@ -187,7 +188,7 @@ export default async function AccountPage() {
                   <span aria-hidden="true">↗</span>
                 </Link>
               ) : null}
-              <a href={WISE_INVEST_ACCOUNT_URL}>
+              <a href={withMainSiteAttribution(WISE_INVEST_ACCOUNT_URL, "/account")}>
                 前往 Wise ID 管理账户
                 <span aria-hidden="true">↗</span>
               </a>

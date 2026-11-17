@@ -39,7 +39,7 @@ describe("site header login foundation", () => {
     expect(toggleSource).toMatch(/^\s*["']use client["'];?/);
     expect(html).toContain('class="site-header__actions"');
     expect(html).toContain('class="site-header__main-site-link"');
-    expect(html).toContain('href="https://www.wise-invest.org/vip"');
+    expect(html).toContain('href="https://www.wise-invest.org/vip?utm_source=cry&amp;utm_campaign=%2F"');
     expect(html).toContain('aria-label="了解如何加入 Wise VIP"');
     expect(html).toContain("加入 VIP");
     expect(html).toContain('class="site-header__theme-toggle"');

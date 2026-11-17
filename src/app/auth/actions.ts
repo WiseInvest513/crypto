@@ -9,6 +9,7 @@ import {
   WISE_AUTH_PROVIDER_ID,
 } from "@/server/auth/wise-auth-config";
 import { saveWiseSessionDurationPreference } from "@/server/auth/wise-session-preference";
+import { mainSiteAuthorizationParams } from "@/lib/auth/main-site-attribution";
 
 export async function startWiseSignIn(formData: FormData): Promise<void> {
   const returnTo = normalizeAuthReturnTo(formData.get("returnTo"));
@@ -23,7 +24,7 @@ export async function startWiseSignIn(formData: FormData): Promise<void> {
       ? "remember-seven-days"
       : "default",
   );
-  await signIn(WISE_AUTH_PROVIDER_ID, { redirectTo: returnTo });
+  await signIn(WISE_AUTH_PROVIDER_ID, { redirectTo: returnTo }, mainSiteAuthorizationParams(returnTo));
 }
 
 export async function endWiseSession(formData: FormData): Promise<void> {

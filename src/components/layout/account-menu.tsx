@@ -10,6 +10,7 @@ import type { UserTier } from "@/lib/access/user-access";
 import type { WiseMembershipTier } from "@/lib/auth/wise-membership";
 import type { WiseAuthConfigurationStatus } from "@/server/auth/wise-auth-config";
 import type { WiseAuthenticationSource } from "@/server/auth/wise-session";
+import { withMainSiteAttribution } from "@/lib/auth/main-site-attribution";
 
 type AccountState =
   | Readonly<{ status: "disabled" | "loading" | "anonymous" | "error" }>
@@ -170,7 +171,7 @@ function renderAccountPanel(account: AccountState, returnTo: string) {
                   <span aria-hidden="true">↗</span>
                 </Link>
               ) : null}
-              <a href="https://www.wise-invest.org/account">
+              <a href={withMainSiteAttribution("https://www.wise-invest.org/account", returnTo)}>
                 前往 Wise ID 管理资料
                 <span aria-hidden="true">↗</span>
               </a>

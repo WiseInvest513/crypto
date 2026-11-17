@@ -4,6 +4,7 @@ import { CryptoWordmark } from "./crypto-wordmark";
 import { SiteNav } from "./site-nav";
 import { ThemeToggle } from "./theme-toggle";
 import { WISE_INVEST_VIP_URL } from "@/config/site";
+import { AttributedMainSiteLink } from "./attributed-main-site-link";
 import { getWiseAuthConfigurationStatus } from "@/server/auth/wise-auth-config";
 import { isWiseLocalDevelopmentRequest } from "@/server/auth/wise-local-development";
 
@@ -23,7 +24,7 @@ export async function SiteHeader() {
 
         <div className="site-header__actions">
           <span className="wise-popup-actions"><button type="button" data-wise-community="">加入群聊</button></span>
-          <a
+          <AttributedMainSiteLink
             className="site-header__main-site-link"
             href={WISE_INVEST_VIP_URL}
             aria-label="了解如何加入 Wise VIP"
@@ -33,7 +34,7 @@ export async function SiteHeader() {
               <path d="m10 3 1.8 4.2L16 9l-4.2 1.8L10 15l-1.8-4.2L4 9l4.2-1.8L10 3Z" />
             </svg>
             <span>加入 VIP</span>
-          </a>
+          </AttributedMainSiteLink>
           <ThemeToggle />
           <AccountMenu configurationStatus={configurationStatus} />
         </div>
