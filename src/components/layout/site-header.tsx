@@ -23,7 +23,7 @@ export async function SiteHeader() {
         <SiteNav />
 
         <div className="site-header__actions">
-          <span className="wise-popup-actions"><button type="button" data-wise-community="">加入群聊</button></span>
+          <span className="wise-popup-actions"><button type="button" data-wise-kraken="">限时福利</button><button type="button" data-wise-community="">加入群聊</button></span>
           <AttributedMainSiteLink
             className="site-header__main-site-link"
             href={WISE_INVEST_VIP_URL}
